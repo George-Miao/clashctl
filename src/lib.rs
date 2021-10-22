@@ -1,8 +1,12 @@
 #[cfg(feature = "cli")]
 pub mod cli;
 
-pub mod error;
-pub mod model;
-
 #[cfg(test)]
 mod test;
+
+mod api;
+mod error;
+pub mod model;
+
+pub use api::*;
+pub use error::*;
