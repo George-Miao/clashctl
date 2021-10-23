@@ -17,3 +17,8 @@ pub enum Mode {
     Rule,
     Direct,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Delay {
+    delay: u64,
+}
