@@ -41,9 +41,11 @@ Since the project is not published yet, you can clone and compile from source ma
 
 ### Compile from source
 
-####  Prerequisites
+#### Prerequisites
 
 You will need rust environment to compile and install
+
+#### Install
 
 ```bash
 $ git clone https://github.com/George-Miao/clashctl.git
@@ -51,10 +53,14 @@ $ cd clashctl
 $ cargo install --features cli --path .
 ```
 
+## MSRV
+Minimum supported rust version is `1.56.0`
 
-End with an example of getting some data out of the system or using it for a little demo.
+Test with cargo-msrv
 
 ## Usage <a name = "usage"></a>
+
+### Use the CLI
 
 ```
 clashctl 0.1.0
@@ -77,4 +83,23 @@ SUBCOMMANDS:
     help          Print this message or the help of the given subcommand(s)
     proxy         Interacting with proxies
     server        Interacting with servers
+```
+
+### Use as a crate
+
+```toml
+# cargo.toml
+clashctl = { version = "0.1.0", git = "https://github.com/George-Miao/clashctl.git" }
+```
+
+Then in your project: 
+
+```rust
+use clashctl::Clash;
+
+#[tokio::test]
+async fn test() {
+  let clash = Clash::builder("http://example.com:9090").unwrap().build();
+  println!("Clash version is {:?}", clash.get_version().await.unwrap())
+}
 ```
