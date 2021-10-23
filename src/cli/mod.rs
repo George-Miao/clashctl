@@ -1,9 +1,9 @@
-mod cmd;
+mod command;
+mod config;
 mod proxy_render;
-mod server;
 mod utils;
 
-pub use cmd::*;
+pub use command::*;
+pub use config::*;
 pub use proxy_render::*;
-pub use server::*;
 pub use utils::*;
