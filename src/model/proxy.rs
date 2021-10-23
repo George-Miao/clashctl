@@ -51,9 +51,50 @@ pub enum ProxyType {
     Http,
     Snell,
     Trojan,
-    Relay,
     Socks5,
+    // Relay
+    Relay,
     // Unknown
     #[serde(other)]
     Unknown,
+}
+
+impl ProxyType {
+    pub fn is_selector(&self) -> bool {
+        match self {
+            ProxyType::Selector => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_group(&self) -> bool {
+        match self {
+            ProxyType::Selector
+            | ProxyType::URLTest
+            | ProxyType::Fallback
+            | ProxyType::LoadBalance
+            | ProxyType::Relay => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_built_in(&self) -> bool {
+        match self {
+            ProxyType::Direct | ProxyType::Reject => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_normal(&self) -> bool {
+        match self {
+            ProxyType::Shadowsocks
+            | ProxyType::Vmess
+            | ProxyType::ShadowsocksR
+            | ProxyType::Http
+            | ProxyType::Snell
+            | ProxyType::Trojan
+            | ProxyType::Socks5 => true,
+            _ => false,
+        }
+    }
 }
