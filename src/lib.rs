@@ -6,6 +6,7 @@ mod test;
 
 mod api;
 mod error;
+
 pub mod model;
 
 pub use api::*;

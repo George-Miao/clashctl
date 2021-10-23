@@ -1,22 +1,15 @@
-use std::io;
-
-use clashctl::cli::{Cmd, Opts};
+use clashctl::cli::{init_logger, Cmd, Opts};
 use clashctl::Result;
 
-use clap::{IntoApp, Parser};
-use clap_generate::generate;
+use clap::Parser;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
+    init_logger();
     let opts = Opts::parse();
 
     match opts.cmd {
-        Cmd::Completion(arg) => generate(
-            arg.shell,
-            &mut Opts::into_app(),
-            "clashctl",
-            &mut io::stdout(),
-        ),
+        Cmd::Completion(arg) => arg.handle()?,
         Cmd::Proxy(sub) => sub.handle().await?,
         Cmd::Server(sub) => sub.handle().await?,
     }

@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt::Display;
 use std::ops::Deref;
 
 use chrono::{DateTime, Utc};
@@ -28,13 +29,25 @@ pub struct Proxy {
     pub now: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Eq, Ord)]
 pub struct History {
-    time: DateTime<Utc>,
-    delay: u64,
+    pub time: DateTime<Utc>,
+    pub delay: u64,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+impl PartialEq for History {
+    fn eq(&self, other: &Self) -> bool {
+        self.delay.eq(&other.delay)
+    }
+}
+
+impl PartialOrd for History {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.delay.partial_cmp(&other.delay)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, PartialOrd, Eq, Ord)]
 pub enum ProxyType {
     // Built-In types
     Direct,
@@ -96,5 +109,11 @@ impl ProxyType {
             | ProxyType::Socks5 => true,
             _ => false,
         }
+    }
+}
+
+impl Display for ProxyType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
     }
 }

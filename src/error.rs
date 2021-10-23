@@ -1,3 +1,4 @@
+#[cfg(feature = "cli")]
 use requestty::ErrorKind;
 use reqwest::StatusCode;
 
@@ -13,6 +14,7 @@ pub enum Error {
     BadResponseFormat,
     #[error("Failed response from server")]
     FailedResponse(StatusCode),
+    #[cfg(feature = "cli")]
     #[error("Requestty error")]
     RequesttyError(#[from] ErrorKind),
 }
