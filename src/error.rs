@@ -1,3 +1,4 @@
+use requestty::ErrorKind;
 use reqwest::StatusCode;
 
 #[derive(thiserror::Error, Debug)]
@@ -12,6 +13,8 @@ pub enum Error {
     BadResponseFormat,
     #[error("Failed response from server")]
     FailedResponse(StatusCode),
+    #[error("Requestty error")]
+    RequesttyError(#[from] ErrorKind),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

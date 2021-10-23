@@ -1,15 +1,10 @@
 use std::io;
 
-use clashctl::cli::{Cmd, Opts, ProxySubcommand};
+use clashctl::cli::{Cmd, Opts};
 use clashctl::Result;
 
 use clap::{IntoApp, Parser};
 use clap_generate::generate;
-
-// use clashctl::model::Proxies;
-// use serde_json::from_str;
-
-// pub mod lib;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
@@ -22,10 +17,8 @@ async fn main() -> Result<()> {
             "clashctl",
             &mut io::stdout(),
         ),
-        Cmd::Proxy(sub) => match sub {
-            ProxySubcommand::List => {}
-            ProxySubcommand::Select => {}
-        },
+        Cmd::Proxy(sub) => sub.handle().await?,
+        Cmd::Server(sub) => sub.handle().await?,
     }
     Ok(())
 }
