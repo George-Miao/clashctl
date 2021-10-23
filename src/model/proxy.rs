@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fmt::Display;
 use std::ops::Deref;
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -31,7 +31,7 @@ pub struct Proxy {
 
 #[derive(Serialize, Deserialize, Debug, Eq, Ord)]
 pub struct History {
-    pub time: DateTime<Utc>,
+    pub time: DateTime<Local>,
     pub delay: u64,
 }
 

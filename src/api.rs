@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 use std::time::Duration;
 
-use log::debug;
+use log::{debug, trace};
 use reqwest::{Client, Method, RequestBuilder, Response, Url};
 use serde::de::DeserializeOwned;
 use serde_json::from_str;
@@ -101,7 +101,7 @@ impl Clash {
         method: Method,
         body: Option<String>,
     ) -> Result<String> {
-        debug!("Body: {:#?}", body);
+        trace!("Body: {:#?}", body);
         let resp = if let Some(body) = body {
             self.build_request(endpoint, method)?.body(body)
         } else {
@@ -116,7 +116,7 @@ impl Clash {
         }
 
         let text = resp.text().await.map_err(|_| Error::BadResponseEncoding)?;
-        debug!("Received response: {}", text);
+        trace!("Received response: {}", text);
 
         Ok(text)
     }

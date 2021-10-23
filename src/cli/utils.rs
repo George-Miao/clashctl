@@ -1,7 +1,7 @@
 use clap_generate::Shell;
 use env_logger::fmt::Color;
 use env_logger::Builder;
-use log::Level;
+use log::{Level, LevelFilter};
 use std::{env, path::PathBuf};
 
 pub fn detect_shell() -> Option<Shell> {
@@ -14,13 +14,15 @@ pub fn detect_shell() -> Option<Shell> {
     }
 }
 
-pub fn init_logger() {
+pub fn init_logger(level: Option<LevelFilter>) {
     let mut builder = Builder::new();
 
-    if let Ok(s) = ::std::env::var("CLASHCTL_LOG") {
+    if let Some(lf) = level {
+        builder.filter_level(lf);
+    } else if let Ok(s) = ::std::env::var("CLASHCTL_LOG") {
         builder.parse_filters(&s);
     } else {
-        builder.parse_filters("INFO");
+        builder.filter_level(LevelFilter::Info);
     }
 
     builder.format(|f, record| {
@@ -28,11 +30,11 @@ pub fn init_logger() {
         let mut style = f.style();
 
         let level = match record.level() {
-            Level::Trace => style.set_color(Color::Magenta).value("TRACE"),
-            Level::Debug => style.set_color(Color::Blue).value("DEBUG"),
-            Level::Info => style.set_color(Color::Green).value("INFO "),
-            Level::Warn => style.set_color(Color::Yellow).value("WARN "),
-            Level::Error => style.set_color(Color::Red).value("ERROR"),
+            Level::Trace => style.set_color(Color::Magenta).value("Trace"),
+            Level::Debug => style.set_color(Color::Blue).value("Debug"),
+            Level::Info => style.set_color(Color::Green).value(" Info"),
+            Level::Warn => style.set_color(Color::Yellow).value(" Warn"),
+            Level::Error => style.set_color(Color::Red).value("Error"),
         };
 
         writeln!(f, " {} > {}", level, record.args(),)
