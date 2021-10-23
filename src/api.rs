@@ -6,7 +6,7 @@ use reqwest::{Client, Method, RequestBuilder, Response, Url};
 use serde::de::DeserializeOwned;
 use serde_json::from_str;
 
-use crate::model::{Config, Delay, Proxies, Proxy};
+use crate::model::{Config, Delay, Proxies, Proxy, Version};
 use crate::{Error, Result};
 
 trait Convert<T: DeserializeOwned> {
@@ -125,6 +125,10 @@ impl Clash {
         self.oneshot_req_with_body(endpoint, method, None).await
     }
 
+    pub async fn get(&self, endpoint: &str) -> Result<String> {
+        self.oneshot_req(endpoint, Method::GET).await
+    }
+
     pub async fn longhaul_req<T: DeserializeOwned>(
         &self,
         endpoint: &str,
@@ -144,20 +148,20 @@ impl Clash {
         })
     }
 
+    pub async fn get_version(&self) -> Result<Version> {
+        self.get("version").await.and_then(Convert::convert)
+    }
+
     pub async fn get_configs(&self) -> Result<Config> {
-        self.oneshot_req("configs", Method::GET)
-            .await
-            .and_then(Convert::convert)
+        self.get("configs").await.and_then(Convert::convert)
     }
 
     pub async fn get_proxies(&self) -> Result<Proxies> {
-        self.oneshot_req("proxies", Method::GET)
-            .await
-            .and_then(Convert::convert)
+        self.get("proxies").await.and_then(Convert::convert)
     }
 
     pub async fn get_proxy(&self, proxy: &str) -> Result<Proxy> {
-        self.oneshot_req(&format!("proxies/{}", proxy), Method::GET)
+        self.get(&format!("proxies/{}", proxy))
             .await
             .and_then(Convert::convert)
     }

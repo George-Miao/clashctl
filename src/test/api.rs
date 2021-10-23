@@ -1,14 +1,25 @@
+use std::env;
+
+use log::info;
+
 use crate::Clash;
+
+fn init() -> Clash {
+    simple_logger::init_with_level(log::Level::Debug).unwrap();
+    Clash::builder(env::var("PROXY_ADDR").unwrap())
+        .unwrap()
+        .build()
+}
 
 #[tokio::test]
 async fn test_proxies() {
-    let clash = Clash::builder("http://proxy.lan:9090").unwrap().build();
+    let clash = init();
     clash.get_proxies().await.unwrap();
 }
 
 #[tokio::test]
 async fn test_proxy() {
-    let clash = Clash::builder("http://proxy.lan:9090").unwrap().build();
+    let clash = init();
     let proxies = clash.get_proxies().await.unwrap();
     let (proxy, _) = proxies.iter().next().unwrap();
     clash.get_proxy(proxy).await.unwrap();
@@ -16,7 +27,7 @@ async fn test_proxy() {
 
 #[tokio::test]
 async fn test_proxy_delay() {
-    let clash = Clash::builder("http://proxy.lan:9090").unwrap().build();
+    let clash = init();
     let proxies = clash.get_proxies().await.unwrap();
     let (proxy, _) = proxies.iter().next().unwrap();
     clash
@@ -27,7 +38,7 @@ async fn test_proxy_delay() {
 
 #[tokio::test]
 async fn test_set_proxy() {
-    let clash = Clash::builder("http://proxy.lan:9090").unwrap().build();
+    let clash = init();
     let proxies = clash.get_proxies().await.unwrap();
     if let Some((group, proxy)) = proxies
         .iter()
@@ -41,6 +52,12 @@ async fn test_set_proxy() {
 
 #[tokio::test]
 async fn test_configs() {
-    let clash = Clash::builder("http://proxy.lan:9090").unwrap().build();
+    let clash = init();
     clash.get_configs().await.unwrap();
+}
+
+#[tokio::test]
+async fn test_version() {
+    let clash = init();
+    info!("{:#?}", clash.get_version().await.unwrap())
 }
