@@ -93,7 +93,7 @@ impl ServerSubcommand {
                     };
                     println!(
                         "{:^8}{:<50}",
-                        if is_active { ">".green() } else { "".green() },
+                        if is_active { "→".green() } else { "".green() },
                         server.url.as_str(),
                     )
                 }
