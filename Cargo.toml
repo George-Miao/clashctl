@@ -5,7 +5,6 @@ version = "0.1.0"
 authors = ["George Miao <gm@miao.dev>"]
 rust-version = "1.56"
 repository = "https://github.com/George-Miao/clashctl"
-license-file = "LICENSE"
 license = "MIT"
 edition = "2021"
 keywords = ["clash", "cli"]
