@@ -47,7 +47,7 @@ impl PartialOrd for History {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, PartialOrd, Eq, Ord, Clone, Copy)]
 pub enum ProxyType {
     // Built-In types
     Direct,

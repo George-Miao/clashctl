@@ -30,6 +30,10 @@ pub enum Error {
     #[cfg(feature = "cli")]
     #[error("Config file cannot be parsed")]
     ConfigFileFormatError(#[from] ron::Error),
+
+    #[cfg(feature = "cli")]
+    #[error("Bad option")]
+    BadOption,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
