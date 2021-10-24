@@ -1,14 +1,13 @@
 use clap::Subcommand;
 
-use home::home_dir;
 use log::{debug, info, warn};
 use owo_colors::OwoColorize;
 use requestty::{prompt, prompt_one, Question};
 use terminal_size::{terminal_size, Height, Width};
 use url::Url;
 
-use crate::cli::{Config, Flags, Server};
-use crate::{Error, Result};
+use crate::cli::{Flags, Server};
+use crate::Result;
 
 #[derive(Subcommand, Debug)]
 #[clap(about = "Interacting with servers")]
@@ -23,19 +22,7 @@ pub enum ServerSubcommand {
 
 impl ServerSubcommand {
     pub async fn handle(&self, flags: &Flags) -> Result<()> {
-        let dir = flags
-            .config
-            .to_owned()
-            .or_else(|| home_dir())
-            .and_then(|dir| Some(dir.join(".config/clashctl")))
-            .expect("Unable to find path to config file. Manually pass in with -c flag.");
-        if !dir.exists() {
-            debug!("Config directory does not exist, creating.");
-            std::fs::create_dir_all(&dir).map_err(Error::ConfigFileIoError)?;
-        }
-        let conf_file = dir.join("config.ron");
-        debug!("Path to config: {}", conf_file.display());
-        let mut config = Config::from_dir(conf_file)?;
+        let mut config = flags.get_config()?;
 
         match self {
             ServerSubcommand::Add => {
@@ -52,7 +39,7 @@ impl ServerSubcommand {
                         .build(),
                 ];
                 let mut res = prompt(questions).expect("Error during prompt");
-                info!("{:#?}", res);
+                debug!("{:#?}", res);
                 let secret = match res.remove("secret").unwrap().try_into_string().unwrap() {
                     string if string == "".to_owned() => None,
                     secret => Some(secret),

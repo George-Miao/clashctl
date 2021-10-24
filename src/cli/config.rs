@@ -13,7 +13,7 @@ use url::Url;
 
 use crate::{Clash, ClashBuilder, Error, Result};
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
 pub struct Server {
     pub url: url::Url,
     pub secret: Option<String>,

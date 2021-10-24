@@ -2,38 +2,41 @@ use std::time::Duration;
 
 use clap::Subcommand;
 
-use log::{error, info};
+use log::{error, info, warn};
 use owo_colors::OwoColorize;
 use requestty::{prompt_one, Answer, ListItem, Question};
 
 use crate::cli::{Flags, ProxySort};
-use crate::{Clash, Result};
+use crate::Result;
 
 #[derive(Subcommand, Debug)]
 #[clap(about = "Interacting with proxies")]
 pub enum ProxySubcommand {
     #[clap(alias = "ls", about = "List proxies (alias ls)")]
     List,
-    #[clap(about = "Set proxies")]
-    Set,
+    #[clap(about = "Set active proxy")]
+    Use,
 }
 
 impl ProxySubcommand {
     pub async fn handle(&self, flags: &Flags) -> Result<()> {
+        let config = flags.get_config()?;
+        let server = match config.using_server() {
+            Some(server) => server.to_owned(),
+            None => {
+                warn!("No server configured yet. Use `clashctl server add` first.");
+                return Ok(());
+            }
+        };
+        info!("Using {}", server);
+        let clash = server.into_clash_with_timeout(Some(Duration::from_millis(flags.timeout)))?;
+
         match self {
             ProxySubcommand::List => {
-                let server = "http://proxy.lan:9090";
-                let clash = Clash::builder(server)?
-                    .timeout(Some(Duration::from_millis(flags.timeout)))
-                    .build();
                 let proxies = clash.get_proxies().await?;
                 proxies.render_list(ProxySort::by_delay())?;
             }
-            ProxySubcommand::Set => {
-                let server = "http://proxy.lan:9090";
-                let clash = Clash::builder(server)?
-                    .timeout(Some(Duration::from_millis(flags.timeout)))
-                    .build();
+            ProxySubcommand::Use => {
                 let proxies = clash.get_proxies().await?;
                 let mut groups = proxies
                     .iter()
@@ -48,12 +51,7 @@ impl ProxySubcommand {
                         .choices(groups)
                         .build(),
                 ) {
-                    Ok(result) => match result {
-                        Answer::ListItem(ListItem { text, .. }) => text,
-                        _ => {
-                            unreachable!()
-                        }
-                    },
+                    Ok(result) => result.as_list_item().unwrap().text.to_owned(),
                     Err(e) => {
                         error!("Error selecting proxy: {}", e);
                         return Err(e.into());
