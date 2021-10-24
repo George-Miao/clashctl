@@ -3,7 +3,7 @@ pub enum Error {
     #[error("Invalid URL format")]
     UrlParseError,
 
-    #[error("Error whiling requesting API")]
+    #[error("Error whiling requesting API ({0})")]
     RequestError(#[from] reqwest::Error),
 
     #[error("Broken response from server")]
@@ -12,7 +12,7 @@ pub enum Error {
     #[error("Broken response from server")]
     BadResponseFormat,
 
-    #[error("Failed response from server")]
+    #[error("Failed response from server (Code {0})")]
     FailedResponse(reqwest::StatusCode),
 
     #[cfg(feature = "cli")]

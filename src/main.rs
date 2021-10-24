@@ -2,7 +2,7 @@ use clashctl::cli::{init_logger, Cmd, Opts};
 use clashctl::Result;
 
 use clap::Parser;
-use log::{debug, LevelFilter};
+use log::{debug, warn, LevelFilter};
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
@@ -18,10 +18,13 @@ async fn main() -> Result<()> {
     debug!("Opts: {:#?}", opts);
 
     match opts.cmd {
-        Cmd::Completion(arg) => arg.handle()?,
-        Cmd::Proxy(sub) => sub.handle(&opts.flag).await?,
-        Cmd::Server(sub) => sub.handle(&opts.flag).await?,
+        Cmd::Completion(arg) => arg.handle(),
+        Cmd::Proxy(sub) => sub.handle(&opts.flag).await,
+        Cmd::Server(sub) => sub.handle(&opts.flag).await,
     }
+    .unwrap_or_else(|e| match e {
+        _ => warn!("{}", e),
+    });
 
     Ok(())
 }

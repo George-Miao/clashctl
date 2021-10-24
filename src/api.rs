@@ -108,8 +108,7 @@ impl Clash {
             self.build_request(endpoint, method)?
         }
         .send()
-        .await
-        .map_err(|_| Error::BadResponseEncoding)?;
+        .await?;
 
         if !resp.status().is_success() {
             return Err(Error::FailedResponse(resp.status()));
