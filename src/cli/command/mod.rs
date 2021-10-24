@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use clap::{Parser, Subcommand};
 
 mod completion;
@@ -37,6 +39,12 @@ pub struct Flags {
         default_value = "2000"
     )]
     pub timeout: u64,
+    #[clap(
+        short,
+        long,
+        about = "Path of config file. Default to ~/.config/clashctl/config.ron"
+    )]
+    pub config: Option<PathBuf>,
 }
 
 #[derive(Subcommand, Debug)]

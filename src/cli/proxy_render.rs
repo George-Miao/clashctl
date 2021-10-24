@@ -11,6 +11,7 @@ impl Proxies {
         let (Width(terminal_width), _) = terminal_size().unwrap_or((Width(70), Height(0)));
         let mut list = self.iter().collect::<Vec<_>>();
         sort.sort(&mut list);
+        println!("\n{:-<1$}", "", terminal_width as usize);
         println!("{:<16}{:<8}{}", "TYPE", "DELAY", "NAME");
         println!("{:-<1$}", "", terminal_width as usize);
         for (name, _) in list.into_iter() {
@@ -24,6 +25,7 @@ impl Proxies {
             let type_name = proxy.proxy_type.to_string();
             println!("{:<16}{:<8}{}", type_name.green(), delay, name)
         }
+        println!("{:-<1$}", "", terminal_width as usize);
         Ok(())
     }
 }

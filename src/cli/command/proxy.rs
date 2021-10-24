@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use clap::Subcommand;
 
 use log::{error, info};
@@ -12,7 +14,7 @@ use crate::{Clash, Result};
 pub enum ProxySubcommand {
     #[clap(alias = "ls", about = "List proxies (alias ls)")]
     List,
-    #[clap(alias = "ls", about = "Set proxies")]
+    #[clap(about = "Set proxies")]
     Set,
 }
 
@@ -21,13 +23,17 @@ impl ProxySubcommand {
         match self {
             ProxySubcommand::List => {
                 let server = "http://proxy.lan:9090";
-                let clash = Clash::builder(server)?.build();
+                let clash = Clash::builder(server)?
+                    .timeout(Some(Duration::from_millis(flags.timeout)))
+                    .build();
                 let proxies = clash.get_proxies().await?;
                 proxies.render_list(ProxySort::by_delay())?;
             }
             ProxySubcommand::Set => {
                 let server = "http://proxy.lan:9090";
-                let clash = Clash::builder(server)?.build();
+                let clash = Clash::builder(server)?
+                    .timeout(Some(Duration::from_millis(flags.timeout)))
+                    .build();
                 let proxies = clash.get_proxies().await?;
                 let mut groups = proxies
                     .iter()
