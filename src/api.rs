@@ -30,7 +30,7 @@ impl ClashBuilder {
     pub fn new<S: Into<String>>(url: S) -> Result<Self> {
         let mut url_str = url.into();
         // Handle trailling slash
-        if !url_str.ends_with("/") {
+        if !url_str.ends_with('/') {
             url_str += "/";
         };
         let url = Url::parse(&url_str).map_err(|_| Error::UrlParseError)?;

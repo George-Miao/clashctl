@@ -29,7 +29,7 @@ pub struct Proxy {
     pub now: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Eq, Ord)]
+#[derive(Serialize, Deserialize, Debug, Eq)]
 pub struct History {
     pub time: DateTime<Local>,
     pub delay: u64,
@@ -44,6 +44,12 @@ impl PartialEq for History {
 impl PartialOrd for History {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self.delay.partial_cmp(&other.delay)
+    }
+}
+
+impl Ord for History {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.delay.cmp(&other.delay)
     }
 }
 
@@ -74,41 +80,35 @@ pub enum ProxyType {
 
 impl ProxyType {
     pub fn is_selector(&self) -> bool {
-        match self {
-            ProxyType::Selector => true,
-            _ => false,
-        }
+        matches!(self, ProxyType::Selector)
     }
 
     pub fn is_group(&self) -> bool {
-        match self {
+        matches!(
+            self,
             ProxyType::Selector
-            | ProxyType::URLTest
-            | ProxyType::Fallback
-            | ProxyType::LoadBalance
-            | ProxyType::Relay => true,
-            _ => false,
-        }
+                | ProxyType::URLTest
+                | ProxyType::Fallback
+                | ProxyType::LoadBalance
+                | ProxyType::Relay
+        )
     }
 
     pub fn is_built_in(&self) -> bool {
-        match self {
-            ProxyType::Direct | ProxyType::Reject => true,
-            _ => false,
-        }
+        matches!(self, ProxyType::Direct | ProxyType::Reject)
     }
 
     pub fn is_normal(&self) -> bool {
-        match self {
+        matches!(
+            self,
             ProxyType::Shadowsocks
-            | ProxyType::Vmess
-            | ProxyType::ShadowsocksR
-            | ProxyType::Http
-            | ProxyType::Snell
-            | ProxyType::Trojan
-            | ProxyType::Socks5 => true,
-            _ => false,
-        }
+                | ProxyType::Vmess
+                | ProxyType::ShadowsocksR
+                | ProxyType::Http
+                | ProxyType::Snell
+                | ProxyType::Trojan
+                | ProxyType::Socks5
+        )
     }
 }
 

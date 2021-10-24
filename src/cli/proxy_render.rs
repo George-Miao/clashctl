@@ -33,16 +33,10 @@ impl Proxies {
             }
             let delay = proxy
                 .history
-                .iter()
-                .next()
-                .and_then(|x| {
-                    Some(format!(
-                        "{}",
-                        match x.delay {
-                            0 => "?".to_owned(),
-                            delay => delay.to_string(),
-                        }
-                    ))
+                .get(0)
+                .map(|x| match x.delay {
+                    0 => "?".to_owned(),
+                    delay => delay.to_string(),
                 })
                 .unwrap_or_else(|| "-".into());
             let type_name = proxy.proxy_type.to_string();
