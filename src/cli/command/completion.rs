@@ -50,7 +50,8 @@ impl CompletionArg {
                 //     .unwrap();
                 let mut out: Box<dyn Write> = match self.output {
                     Some(ref dir) => Box::new(
-                        File::create(&dir).expect(&format!("Unable to open {}", dir.display())),
+                        File::create(&dir)
+                            .unwrap_or_else(|_| panic!("Unable to open {}", dir.display())),
                     ),
                     None => Box::new(std::io::stdout()),
                 };

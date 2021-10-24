@@ -16,14 +16,14 @@ impl Proxies {
         let mut list = self.iter().collect::<Vec<_>>();
         opt.sort.sort(&mut list);
         println!("\n{:-<1$}", "", terminal_width as usize);
-        println!("{:<16}{:<8}{}", "TYPE", "DELAY", "NAME");
+        println!("{:<16}{:<8}NAME", "TYPE", "DELAY");
         println!("{:-<1$}", "", terminal_width as usize);
         let iter: Box<dyn Iterator<Item = _>> = if opt.reverse {
             Box::new(list.into_iter().rev())
         } else {
             Box::new(list.into_iter())
         };
-        let show_all = opt.proxy_types.len() == 0;
+        let show_all = opt.proxy_types.is_empty();
         for (name, proxy) in iter {
             if opt.exclude.contains(&proxy.proxy_type) {
                 continue;
@@ -82,8 +82,8 @@ impl ProxySort {
     pub fn sort(&self, proxies: &mut Vec<(&String, &Proxy)>) {
         proxies.sort_by(|lhs, rhs| match self {
             Self::Type => lhs.1.proxy_type.cmp(&rhs.1.proxy_type),
-            Self::Name => lhs.0.cmp(&rhs.0),
-            Self::Delay => match (lhs.1.history.iter().next(), rhs.1.history.iter().next()) {
+            Self::Name => lhs.0.cmp(rhs.0),
+            Self::Delay => match (lhs.1.history.get(0), rhs.1.history.get(0)) {
                 // 0 delay means unable to connect, so handle exceptionally
                 // This will push all 0-delay proxies to the end of list
                 (Some(l_history), Some(r_history)) => match (l_history.delay, r_history.delay) {

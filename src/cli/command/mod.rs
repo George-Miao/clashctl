@@ -57,8 +57,8 @@ impl Flags {
         let dir = self
             .config
             .to_owned()
-            .or_else(|| home_dir())
-            .and_then(|dir| Some(dir.join(".config/clashctl")))
+            .or_else(home_dir)
+            .map(|dir| dir.join(".config/clashctl"))
             .expect("Unable to find path to config file. Manually pass in with -c flag.");
         if !dir.exists() {
             debug!("Config directory does not exist, creating.");

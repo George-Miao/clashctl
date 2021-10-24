@@ -41,7 +41,7 @@ impl ServerSubcommand {
                 let mut res = prompt(questions).expect("Error during prompt");
                 debug!("{:#?}", res);
                 let secret = match res.remove("secret").unwrap().try_into_string().unwrap() {
-                    string if string == "".to_owned() => None,
+                    string if string == *"" => None,
                     secret => Some(secret),
                 };
 
@@ -49,7 +49,7 @@ impl ServerSubcommand {
                 let url = Url::parse(&url_str).unwrap();
 
                 let server = Server {
-                    secret: secret,
+                    secret,
                     url: url.clone(),
                 };
 
@@ -61,7 +61,7 @@ impl ServerSubcommand {
                 config.write()?;
             }
             ServerSubcommand::Select => {
-                if config.servers.len() == 0 {
+                if config.servers.is_empty() {
                     warn!("No server configured yet. Use `clashctl server add` first.");
                     return Ok(());
                 }
@@ -77,7 +77,7 @@ impl ServerSubcommand {
                 config.write()?;
             }
             ServerSubcommand::List => {
-                if config.servers.len() == 0 {
+                if config.servers.is_empty() {
                     warn!("No server configured yet. Use `clashctl server add` first.");
                     return Ok(());
                 }
