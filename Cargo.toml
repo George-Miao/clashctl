@@ -1,7 +1,15 @@
 [package]
 name = "clashctl"
+description = "A CLI to interact with clash RESTful API"
 version = "0.1.0"
+authors = ["George Miao <gm@miao.dev>"]
+rust-version = "1.56"
+repository = "https://github.com/George-Miao/clashctl"
+license-file = "LICENSE"
+license = "MIT"
 edition = "2021"
+keywords = ["clash", "cli"]
+categories = ["command-line-utilities"]
 
 [features]
 cli = [
@@ -12,7 +20,8 @@ cli = [
   "requestty", 
   "clap", 
   "home",
-  "ron"]
+  "ron"
+]
 
 [[bin]]
 name = "clashctl"
