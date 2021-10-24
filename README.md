@@ -30,8 +30,9 @@ Shadowsocks     143     SomeProxy-4
 - Generate completion script
 
 ### TODO
-- [ ] Inspect rules
+- [ ] Manage servers
 - [ ] Sort proxies
+- [ ] Inspect rules
 - [ ] Status panel
 
 
