@@ -41,13 +41,13 @@ impl ClashBuilder {
         })
     }
 
-    pub fn secret(mut self, secret: String) -> Self {
-        self.secret = Some(secret);
+    pub fn secret(mut self, secret: Option<String>) -> Self {
+        self.secret = secret;
         self
     }
 
-    pub fn timeout(mut self, timeout: Duration) -> Self {
-        self.timeout = Some(timeout);
+    pub fn timeout(mut self, timeout: Option<Duration>) -> Self {
+        self.timeout = timeout;
         self
     }
 

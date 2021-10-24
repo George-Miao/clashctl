@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 use std::ops::{Deref, DerefMut};
@@ -8,6 +9,7 @@ use log::debug;
 use ron::from_str;
 use ron::ser::{to_string_pretty, PrettyConfig};
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 use crate::{Clash, ClashBuilder, Error, Result};
 
@@ -19,18 +21,21 @@ pub struct Server {
 
 impl Server {
     pub fn into_clash_with_timeout(self, timeout: Option<Duration>) -> Result<Clash> {
-        let mut builder = ClashBuilder::new(self.url)?;
-        if let Some(secret) = self.secret {
-            builder = builder.secret(secret)
-        }
-        if let Some(timeout) = timeout {
-            builder = builder.timeout(timeout)
-        }
-        Ok(builder.build())
+        Ok(self.into_clash_builder()?.timeout(timeout).build())
     }
 
     pub fn into_clash(self) -> Result<Clash> {
         self.into_clash_with_timeout(None)
+    }
+
+    pub fn into_clash_builder(self) -> Result<ClashBuilder> {
+        Ok(ClashBuilder::new(self.url)?.secret(self.secret))
+    }
+}
+
+impl Display for Server {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Server ({})", self.url)
     }
 }
 
@@ -38,6 +43,13 @@ impl TryInto<Clash> for Server {
     type Error = Error;
     fn try_into(self) -> std::result::Result<Clash, Self::Error> {
         self.into_clash()
+    }
+}
+
+impl TryInto<ClashBuilder> for Server {
+    type Error = Error;
+    fn try_into(self) -> std::result::Result<ClashBuilder, Self::Error> {
+        self.into_clash_builder()
     }
 }
 
@@ -99,25 +111,23 @@ impl Config {
 
     pub fn using_server(&self) -> Option<&Server> {
         match self.using {
-            Some(ref using) => self.servers.iter().find(|x| x.url.as_str() == using),
+            Some(ref using) => self.servers.iter().find(|x| &x.url == using),
             None => None,
         }
     }
 
-    pub fn use_server<'a, T: Into<&'a str>>(&mut self, url: T) -> Result<()> {
-        let url = url.into();
-        match self.servers.iter().find(|x| x.url.as_str() == url) {
+    pub fn use_server(&mut self, url: Url) -> Result<()> {
+        match self.get_server(url) {
             Some(s) => {
-                self.using = Some(s.url.to_string());
+                self.using = Some(s.url.clone());
                 Ok(())
             }
             None => Err(Error::ServerNotFound),
         }
     }
 
-    pub fn get_server<'a, T: Into<&'a str>>(&mut self, url: T) -> Option<&Server> {
-        let url = url.into();
-        self.servers.iter().find(|x| x.url.as_str() == url)
+    pub fn get_server(&mut self, url: Url) -> Option<&Server> {
+        self.servers.iter().find(|x| x.url == url)
     }
 }
 
@@ -138,17 +148,18 @@ impl DerefMut for Config {
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct ConfigData {
     pub servers: Vec<Server>,
-    pub using: Option<String>,
+    pub using: Option<Url>,
 }
 
 #[test]
 fn test_config() {
     use log::Level;
+    use std::env;
     simple_logger::init_with_level(Level::Debug).unwrap();
     let mut config = Config::from_dir("/tmp/test.ron").unwrap();
     config.write().unwrap();
     config.servers.push(Server {
-        url: url::Url::parse("http://proxy.lan:9090").unwrap(),
+        url: url::Url::parse(&env::var("PROXY_ADDR").unwrap()).unwrap(),
         secret: None,
     });
     config.write().unwrap();
