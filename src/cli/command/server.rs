@@ -21,7 +21,7 @@ pub enum ServerSubcommand {
 }
 
 impl ServerSubcommand {
-    pub async fn handle(&self, flags: &Flags) -> Result<()> {
+    pub fn handle(&self, flags: &Flags) -> Result<()> {
         let mut config = flags.get_config()?;
 
         match self {

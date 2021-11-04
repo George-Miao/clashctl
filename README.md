@@ -101,8 +101,8 @@ Then in your project:
 use clashctl::Clash;
 
 #[tokio::test]
-async fn test() {
+fn test() {
   let clash = Clash::builder("http://example.com:9090").unwrap().build();
-  println!("Clash version is {:?}", clash.get_version().await.unwrap())
+  println!("Clash version is {:?}", clash.get_version().unwrap())
 }
 ```

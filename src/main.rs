@@ -4,8 +4,7 @@ use clashctl::Result;
 use clap::Parser;
 use log::{debug, warn, LevelFilter};
 
-#[tokio::main(flavor = "current_thread")]
-async fn main() -> Result<()> {
+fn main() -> Result<()> {
     let opts = Opts::parse();
 
     init_logger(match opts.flag.verbose {
@@ -19,8 +18,8 @@ async fn main() -> Result<()> {
 
     match opts.cmd {
         Cmd::Completion(arg) => arg.handle(),
-        Cmd::Proxy(sub) => sub.handle(&opts.flag).await,
-        Cmd::Server(sub) => sub.handle(&opts.flag).await,
+        Cmd::Proxy(sub) => sub.handle(&opts.flag),
+        Cmd::Server(sub) => sub.handle(&opts.flag),
     }
     .unwrap_or_else(|e| warn!("{}", e));
 

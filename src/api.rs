@@ -1,10 +1,14 @@
+use std::io::{BufRead, BufReader};
 use std::marker::PhantomData;
 use std::time::Duration;
 
+use attohttpc::body::{self};
+use attohttpc::{Method, RequestBuilder, Response, ResponseReader};
 use log::{debug, trace};
-use reqwest::{Client, Method, RequestBuilder, Response, Url};
+
 use serde::de::DeserializeOwned;
 use serde_json::from_str;
+use url::Url;
 
 use crate::model::{Config, Delay, Proxies, Proxy, Version};
 use crate::{Error, Result};
@@ -82,7 +86,7 @@ impl Clash {
 
     fn build_request(&self, endpoint: &str, method: Method) -> Result<RequestBuilder> {
         let url = self.url.join(endpoint).map_err(|_| Error::UrlParseError)?;
-        let mut req = Client::new().request(method, url);
+        let mut req = RequestBuilder::new(method, url);
 
         if let Some(timeout) = self.timeout {
             req = req.timeout(timeout)
@@ -95,7 +99,7 @@ impl Clash {
         Ok(req)
     }
 
-    pub async fn oneshot_req_with_body(
+    pub fn oneshot_req_with_body(
         &self,
         endpoint: &str,
         method: Method,
@@ -103,81 +107,69 @@ impl Clash {
     ) -> Result<String> {
         trace!("Body: {:#?}", body);
         let resp = if let Some(body) = body {
-            self.build_request(endpoint, method)?.body(body)
-        } else {
             self.build_request(endpoint, method)?
-        }
-        .send()
-        .await?;
+                .body(body::Text(body))
+                .send()?
+        } else {
+            self.build_request(endpoint, method)?.send()?
+        };
 
         if !resp.status().is_success() {
             return Err(Error::FailedResponse(resp.status()));
         }
 
-        let text = resp.text().await.map_err(|_| Error::BadResponseEncoding)?;
+        let text = resp.text().map_err(|_| Error::BadResponseEncoding)?;
         trace!("Received response: {}", text);
 
         Ok(text)
     }
 
-    pub async fn oneshot_req(&self, endpoint: &str, method: Method) -> Result<String> {
-        self.oneshot_req_with_body(endpoint, method, None).await
+    pub fn oneshot_req(&self, endpoint: &str, method: Method) -> Result<String> {
+        self.oneshot_req_with_body(endpoint, method, None)
     }
 
-    pub async fn get(&self, endpoint: &str) -> Result<String> {
-        self.oneshot_req(endpoint, Method::GET).await
+    pub fn get(&self, endpoint: &str) -> Result<String> {
+        self.oneshot_req(endpoint, Method::GET)
     }
 
-    pub async fn longhaul_req<T: DeserializeOwned>(
+    pub fn longhaul_req<T: DeserializeOwned>(
         &self,
         endpoint: &str,
         method: Method,
     ) -> Result<LongHaul<T>> {
-        let resp = Client::new()
-            .execute(self.build_request(endpoint, method)?.build().unwrap())
-            .await?;
+        let resp = self.build_request(endpoint, method)?.send()?;
 
         if !resp.status().is_success() {
             return Err(Error::FailedResponse(resp.status()));
         }
 
-        Ok(LongHaul {
-            resp,
-            ty: PhantomData,
-        })
+        Ok(LongHaul::new(resp))
     }
 
-    pub async fn get_version(&self) -> Result<Version> {
-        self.get("version").await.and_then(Convert::convert)
+    pub fn get_version(&self) -> Result<Version> {
+        self.get("version").and_then(Convert::convert)
     }
 
-    pub async fn get_configs(&self) -> Result<Config> {
-        self.get("configs").await.and_then(Convert::convert)
+    pub fn get_configs(&self) -> Result<Config> {
+        self.get("configs").and_then(Convert::convert)
     }
 
-    pub async fn get_proxies(&self) -> Result<Proxies> {
-        self.get("proxies").await.and_then(Convert::convert)
+    pub fn get_proxies(&self) -> Result<Proxies> {
+        self.get("proxies").and_then(Convert::convert)
     }
 
-    pub async fn get_proxy(&self, proxy: &str) -> Result<Proxy> {
+    pub fn get_proxy(&self, proxy: &str) -> Result<Proxy> {
         self.get(&format!("proxies/{}", proxy))
-            .await
             .and_then(Convert::convert)
     }
 
-    pub async fn set_proxygroup_selected(&self, group: &str, proxy: &str) -> Result<()> {
+    pub fn set_proxygroup_selected(&self, group: &str, proxy: &str) -> Result<()> {
         let body = format!("{{\"name\":\"{}\"}}", proxy);
-        self.oneshot_req_with_body(&format!("proxies/{}", group), Method::PUT, Some(body))
-            .await?;
+        self.oneshot_req_with_body(&format!("proxies/{}", group), Method::PUT, Some(body))?;
         Ok(())
     }
 
-    pub async fn get_proxy_delay(
-        &self,
-        proxy: &str,
-        test_url: &str,
-        timeout: u64,
-    ) -> Result<Delay> {
+    pub fn get_proxy_delay(&self, proxy: &str, test_url: &str, timeout: u64) -> Result<Delay> {
         self.oneshot_req(
             &format!(
                 "proxies/{}/delay?url={}&timeout={}",
@@ -185,34 +177,37 @@ impl Clash {
             ),
             Method::GET,
         )
-        .await
         .and_then(Convert::convert)
     }
 }
 
 pub struct LongHaul<T: DeserializeOwned> {
-    resp: Response,
+    reader: BufReader<ResponseReader>,
     ty: PhantomData<T>,
 }
 
 impl<T: DeserializeOwned> LongHaul<T> {
-    pub async fn next(&mut self) -> Result<Option<T>> {
-        match self.next_raw().await {
-            Ok(Some(text)) => text.convert(),
-            Ok(None) => Ok(None),
-            Err(_) => Err(Error::BadResponseEncoding),
+    pub fn new(resp: Response) -> Self {
+        let reader = BufReader::new(resp.split().2);
+        Self {
+            reader,
+            ty: PhantomData,
         }
     }
 
-    pub async fn next_raw(&mut self) -> Result<Option<String>> {
-        match self.resp.chunk().await {
-            Ok(Some(byte)) => Ok(Some(
-                std::str::from_utf8(&byte)
-                    .map_err(|_| Error::BadResponseEncoding)?
-                    .to_string(),
-            )),
-            Ok(None) => Ok(None),
-            Err(_) => Err(Error::BadResponseEncoding),
+    pub fn next_raw(&mut self) -> Option<Result<String>> {
+        let mut buf = String::with_capacity(30);
+        match self.reader.read_line(&mut buf) {
+            Ok(0) => None,
+            Ok(_) => Some(Ok(buf)),
+            _ => Some(Err(Error::BadResponseEncoding)),
         }
+    }
+}
+
+impl<T: DeserializeOwned> Iterator for LongHaul<T> {
+    type Item = Result<T>;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.next_raw().map(|x| x.and_then(Convert::convert))
     }
 }

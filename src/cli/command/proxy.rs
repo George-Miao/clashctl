@@ -103,7 +103,7 @@ pub struct ProxyListOpt {
 }
 
 impl ProxySubcommand {
-    pub async fn handle(&self, flags: &Flags) -> Result<()> {
+    pub fn handle(&self, flags: &Flags) -> Result<()> {
         let config = flags.get_config()?;
         let server = match config.using_server() {
             Some(server) => server.to_owned(),
@@ -117,11 +117,11 @@ impl ProxySubcommand {
 
         match self {
             ProxySubcommand::List(opt) => {
-                let proxies = clash.get_proxies().await?;
+                let proxies = clash.get_proxies()?;
                 proxies.render_list(opt)?;
             }
             ProxySubcommand::Use => {
-                let proxies = clash.get_proxies().await?;
+                let proxies = clash.get_proxies()?;
                 let mut groups = proxies
                     .iter()
                     .filter(|(_, p)| p.proxy_type.is_selector())
@@ -141,7 +141,7 @@ impl ProxySubcommand {
                         return Err(e.into());
                     }
                 };
-                let proxy = clash.get_proxy(&group_selected).await?;
+                let proxy = clash.get_proxy(&group_selected)?;
 
                 // all / now only occurs when proxy_type is [`ProxyType::Selector`]
                 let members = proxy.all.unwrap();
@@ -170,7 +170,7 @@ impl ProxySubcommand {
                 );
                 clash
                     .set_proxygroup_selected(&group_selected, &member_selected)
-                    .await?;
+                    ?;
                 info!("Done!")
             }
         }

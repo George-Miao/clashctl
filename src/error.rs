@@ -4,7 +4,7 @@ pub enum Error {
     UrlParseError,
 
     #[error("Error whiling requesting API ({0})")]
-    RequestError(#[from] reqwest::Error),
+    RequestError(#[from] attohttpc::Error),
 
     #[error("Broken response from server")]
     BadResponseEncoding,
@@ -13,7 +13,7 @@ pub enum Error {
     BadResponseFormat,
 
     #[error("Failed response from server (Code {0})")]
-    FailedResponse(reqwest::StatusCode),
+    FailedResponse(attohttpc::StatusCode),
 
     #[cfg(feature = "cli")]
     #[error("Cannot find server")]
