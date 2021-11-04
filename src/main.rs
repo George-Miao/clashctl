@@ -22,9 +22,7 @@ async fn main() -> Result<()> {
         Cmd::Proxy(sub) => sub.handle(&opts.flag).await,
         Cmd::Server(sub) => sub.handle(&opts.flag).await,
     }
-    .unwrap_or_else(|e| match e {
-        _ => warn!("{}", e),
-    });
+    .unwrap_or_else(|e| warn!("{}", e));
 
     Ok(())
 }

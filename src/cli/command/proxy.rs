@@ -11,7 +11,7 @@ use crate::cli::{Flags, ProxySort};
 use crate::{Error, Result};
 use crate::model::ProxyType;
 
-
+#[allow(clippy::match_str_case_mismatch)]
 impl FromStr for ProxyType {
     type Err = Error;
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
