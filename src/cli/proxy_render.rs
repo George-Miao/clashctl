@@ -1,36 +1,55 @@
 use std::cmp::Ordering;
-use std::str::FromStr;
 
-// use clap::Parser;
+use either::Either;
 use owo_colors::OwoColorize;
-use serde::{Deserialize, Serialize};
 use terminal_size::{terminal_size, Height, Width};
 
 use crate::cli::ProxyListOpt;
 use crate::model::{Proxies, Proxy};
-use crate::{Error, Result};
+use crate::Result;
 
 impl Proxies {
+    pub fn names(&self) -> impl Iterator<Item = &String> {
+        self.iter().map(|x| x.0)
+    }
+
     pub fn render_list(&self, opt: &ProxyListOpt) -> Result<()> {
         let (Width(terminal_width), _) = terminal_size().unwrap_or((Width(70), Height(0)));
+        println!("\n{:-<1$}", "", terminal_width as usize);
+        println!("{:<18}{:<8}NAME", "TYPE", "DELAY");
+        println!("{:-<1$}", "", terminal_width as usize);
+
+        if opt.plain {
+            self.render_plain(opt);
+        } else {
+            self.render_tree(opt)
+        }
+
+        println!("{:-<1$}", "", terminal_width as usize);
+        Ok(())
+    }
+
+    fn render_plain(&self, opt: &ProxyListOpt) {
         let mut list = self.iter().collect::<Vec<_>>();
         opt.sort.sort(&mut list);
-        println!("\n{:-<1$}", "", terminal_width as usize);
-        println!("{:<16}{:<8}NAME", "TYPE", "DELAY");
-        println!("{:-<1$}", "", terminal_width as usize);
-        let iter: Box<dyn Iterator<Item = _>> = if opt.reverse {
-            Box::new(list.into_iter().rev())
+
+        let iter = if opt.reverse {
+            Either::Left(list.into_iter().rev())
         } else {
-            Box::new(list.into_iter())
-        };
-        let show_all = opt.proxy_types.is_empty();
+            Either::Right(list.into_iter())
+        }
+        .filter(|x| {
+            let proxy_type = &x.1.proxy_type;
+            // When include all types
+            if opt.include.is_empty() {
+                !opt.exclude.contains(proxy_type)
+            } else {
+                // When types included is specified
+                opt.include.contains(proxy_type)
+            }
+        });
+
         for (name, proxy) in iter {
-            if opt.exclude.contains(&proxy.proxy_type) {
-                continue;
-            }
-            if !show_all && !opt.proxy_types.contains(&proxy.proxy_type) {
-                continue;
-            }
             let delay = proxy
                 .history
                 .get(0)
@@ -40,31 +59,79 @@ impl Proxies {
                 })
                 .unwrap_or_else(|| "-".into());
             let type_name = proxy.proxy_type.to_string();
-            println!("{:<16}{:<8}{}", type_name.green(), delay, name)
+            println!("{:<18}{:<8}{}", type_name.green(), delay, name)
         }
-        println!("{:-<1$}", "", terminal_width as usize);
-        Ok(())
+    }
+
+    fn render_tree(&self, opt: &ProxyListOpt) {
+        let list = self
+            .iter()
+            .filter(|x| {
+                let proxy_type = x.1.proxy_type;
+                proxy_type.is_group() && !opt.exclude.contains(&proxy_type)
+            })
+            .collect::<Vec<_>>();
+
+        let groups = if opt.reverse {
+            Either::Left(list.iter().rev())
+        } else {
+            Either::Right(list.iter())
+        };
+
+        for (name, group) in groups.into_iter() {
+            // Since list only contains groups, and only groups have `all`, so it is safe to [`unwrap`]
+            println!("{:<16}  -       {}\n", group.proxy_type.blue(), name);
+            let mut members = group
+                .all
+                .as_ref()
+                .expect("Proxy groups should have `all`")
+                .iter()
+                .map(|member_name| self.iter().find(|(name, _)| &member_name == name).unwrap())
+                .collect::<Vec<_>>();
+            opt.sort.sort(&mut members);
+            for (
+                name,
+                Proxy {
+                    proxy_type,
+                    history,
+                    ..
+                },
+            ) in members
+            {
+                let delay = history
+                    .get(0)
+                    .map(|x| match x.delay {
+                        0 => "?".to_owned(),
+                        delay => delay.to_string(),
+                    })
+                    .unwrap_or_else(|| "-".into());
+                println!("  {:<16}{:<8}{}", proxy_type.green(), delay, name)
+            }
+            println!();
+        }
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+#[derive(
+    strum::EnumString,
+    strum::Display,
+    strum::EnumVariantNames,
+    Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Clone,
+    Copy,
+)]
+#[strum(ascii_case_insensitive, serialize_all = "lowercase")]
 pub enum ProxySort {
     Type,
     Name,
     Delay,
 }
 
-impl FromStr for ProxySort {
-    type Err = Error;
-    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
-        match s.to_ascii_lowercase().as_str() {
-            "type" => Ok(Self::Type),
-            "name" => Ok(Self::Name),
-            "delay" => Ok(Self::Delay),
-            _ => Err(Self::Err::BadOption),
-        }
-    }
-}
+// impl Default for ProxySort
 
 impl ProxySort {
     pub fn by_type() -> Self {
