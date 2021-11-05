@@ -54,17 +54,20 @@ pub struct Flags {
 
 impl Flags {
     pub fn get_config(&self) -> Result<Config> {
-        let dir = self
+        let conf_file = self
             .config
             .to_owned()
-            .or_else(home_dir)
-            .map(|dir| dir.join(".config/clashctl"))
-            .expect("Unable to find path to config file. Manually pass in with -c flag.");
-        if !dir.exists() {
-            debug!("Config directory does not exist, creating.");
-            std::fs::create_dir_all(&dir).map_err(Error::ConfigFileIoError)?;
+            .or_else(|| home_dir().map(|dir| dir.join(".config/clashctl/config.ron")))
+            .ok_or(Error::ConfigFileOpenError)?;
+
+        if !conf_file.is_file() {
+            return Err(Error::ConfigFileTypeError(conf_file));
         }
-        let conf_file = dir.join("config.ron");
+
+        if !conf_file.exists() {
+            debug!("Config directory does not exist, creating.");
+            std::fs::create_dir_all(&conf_file).map_err(Error::ConfigFileIoError)?;
+        }
         debug!("Path to config: {}", conf_file.display());
         Config::from_dir(conf_file)
     }

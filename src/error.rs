@@ -1,3 +1,6 @@
+#[cfg(feature = "cli")]
+use std::path::PathBuf;
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("Invalid URL format")]
@@ -22,6 +25,14 @@ pub enum Error {
     #[cfg(feature = "cli")]
     #[error("Requestty error")]
     RequesttyError(#[from] requestty::ErrorKind),
+
+    #[cfg(feature = "cli")]
+    #[error("{0} is not a file")]
+    ConfigFileTypeError(PathBuf),
+
+    #[cfg(feature = "cli")]
+    #[error("Config file cannot be found")]
+    ConfigFileOpenError,
 
     #[cfg(feature = "cli")]
     #[error("Config file cannot be read")]
