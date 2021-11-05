@@ -1,13 +1,15 @@
+cargo-features = ["strip"]
+
 [package]
-name         = "clashctl"
-description  = "A CLI to interact with clash RESTful API"
-version      = "0.2.0"
-authors      = ["George Miao <gm@miao.dev>"]
-repository   = "https://github.com/George-Miao/clashctl"
-license      = "MIT"
-edition      = "2021"
-keywords     = ["clash", "cli"]
-categories   = ["command-line-utilities"]
+name           = "clashctl"
+description    = "A CLI to interact with clash RESTful API"
+version        = "0.2.0"
+authors        = ["George Miao <gm@miao.dev>"]
+repository     = "https://github.com/George-Miao/clashctl"
+license        = "MIT"
+edition        = "2021"
+keywords       = ["clash", "cli"]
+categories     = ["command-line-utilities"]
 
 [features]
 cli = [
@@ -22,6 +24,13 @@ cli = [
   "home",
   "ron"
 ]
+
+[profile.release]
+lto = true
+strip = true  
+panic = "abort"
+opt-level = "z" 
+codegen-units = 1
 
 [[bin]]
 name              = "clashctl"
