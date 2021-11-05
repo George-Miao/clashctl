@@ -17,7 +17,7 @@ use crate::{Error, Result};
 
 #[derive(Parser, Debug)]
 #[clap(
-    version = "0.1.0",
+    version = "0.2.0",
     author = "George Miao <gm@miao.dev>",
     about = "CLI used to interact with Clash RESTful API"
 )]
