@@ -2,7 +2,7 @@ use clap::Subcommand;
 
 use log::{debug, info, warn};
 use owo_colors::OwoColorize;
-use requestty::{prompt, prompt_one, Question};
+use requestty::{prompt, prompt_one, Answers, Question};
 use terminal_size::{terminal_size, Height, Width};
 use url::Url;
 
@@ -15,9 +15,11 @@ pub enum ServerSubcommand {
     #[clap(alias = "a", about = "Add new server (alias a)")]
     Add,
     #[clap(about = "Select active server")]
-    Select,
+    Use,
     #[clap(alias = "ls", about = "Show current active server")]
     List,
+    #[clap(about = "Remove servers")]
+    Del,
 }
 
 impl ServerSubcommand {
@@ -25,7 +27,7 @@ impl ServerSubcommand {
         let mut config = flags.get_config()?;
 
         match self {
-            ServerSubcommand::Add => {
+            Self::Add => {
                 let questions = [
                     Question::input("url")
                         .message("URL of Clash API")
@@ -60,7 +62,7 @@ impl ServerSubcommand {
                 config.use_server(url)?;
                 config.write()?;
             }
-            ServerSubcommand::Select => {
+            Self::Use => {
                 if config.servers.is_empty() {
                     warn!("No server configured yet. Use `clashctl server add` first.");
                     return Ok(());
@@ -76,7 +78,7 @@ impl ServerSubcommand {
                 config.use_server(Url::parse(ans_str).unwrap())?;
                 config.write()?;
             }
-            ServerSubcommand::List => {
+            Self::List => {
                 if config.servers.is_empty() {
                     warn!("No server configured yet. Use `clashctl server add` first.");
                     return Ok(());
@@ -98,6 +100,56 @@ impl ServerSubcommand {
                     )
                 }
                 println!("{:-<1$}\n", "", terminal_width as usize);
+            }
+            Self::Del => {
+                if config.servers.is_empty() {
+                    warn!("No server configured yet. Use `clashctl server add` first.");
+                    return Ok(());
+                }
+                let servers = config.servers.iter().map(|server| server.url.as_str());
+                let ans = &prompt([
+                    Question::multi_select("server")
+                        .message("Select server(s) to remove")
+                        .choices(servers)
+                        .build(),
+                    Question::confirm("confirm")
+                        .when(|prev: &Answers| {
+                            prev.get("server")
+                                .and_then(|x| x.as_list_items())
+                                .map(|x| !x.is_empty())
+                                .or(Some(false))
+                                .unwrap()
+                        })
+                        .default(true)
+                        .message(|prev: &Answers| {
+                            format!(
+                                "Confirm to remove {} servers?",
+                                prev.get("server").unwrap().as_list_items().unwrap().len()
+                            )
+                        })
+                        .build(),
+                ])?;
+                match (
+                    ans.get("server").and_then(|x| x.as_list_items()),
+                    ans.get("confirm").and_then(|x| x.as_bool()),
+                ) {
+                    (None, _) => {
+                        warn!("No servers given")
+                    }
+                    (Some(_), None | Some(false)) => {
+                        warn!("Operation cancelled")
+                    }
+                    (Some(servers), Some(true)) => {
+                        info!("Removing {} servers", servers.len());
+                        let server_names =
+                            servers.iter().map(|x| x.text.clone()).collect::<Vec<_>>();
+                        config
+                            .servers
+                            .retain(|f| !server_names.contains(&f.url.to_string()))
+                    }
+                }
+                debug!("{:#?}", config.servers);
+                config.write()?;
             }
         }
         Ok(())
