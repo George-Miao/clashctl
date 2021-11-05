@@ -1,4 +1,3 @@
-use std::str::FromStr;
 use std::time::Duration;
 
 use clap::{Parser, Subcommand};
@@ -6,34 +5,35 @@ use clap::{Parser, Subcommand};
 use log::{error, info, warn};
 use owo_colors::OwoColorize;
 use requestty::{prompt_one, Answer, ListItem, Question};
+use strum::VariantNames;
 
 use crate::cli::{Flags, ProxySort};
-use crate::{Error, Result};
+use crate::{Result};
 use crate::model::ProxyType;
 
-#[allow(clippy::match_str_case_mismatch)]
-impl FromStr for ProxyType {
-    type Err = Error;
-    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
-        match s.to_ascii_lowercase().as_str() {
-            "direct" => Ok(Self::Direct),
-            "reject" => Ok(Self::Reject),
-            "selector" => Ok(Self::Selector),
-            "urltest" => Ok(Self::URLTest),
-            "fallback" => Ok(Self::Fallback),
-            "loadbalance" => Ok(Self::LoadBalance),
-            "shadowsocks" => Ok(Self::Shadowsocks),
-            "vmess" => Ok(Self::Vmess),
-            "ssr" => Ok(Self::ShadowsocksR),
-            "http" => Ok(Self::Http),
-            "snell" => Ok(Self::Snell),
-            "trojan" => Ok(Self::Trojan),
-            "socks5" => Ok(Self::Socks5),
-            "relay" => Ok(Self::Relay),
-            _ => Err(Error::BadOption)
-        }
-    }
-}
+// #[allow(clippy::match_str_case_mismatch)]
+// impl FromStr for ProxyType {
+//     type Err = Error;
+//     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+//         match s.to_ascii_lowercase().as_str() {
+//             "direct" => Ok(Self::Direct),
+//             "reject" => Ok(Self::Reject),
+//             "selector" => Ok(Self::Selector),
+//             "urltest" => Ok(Self::URLTest),
+//             "fallback" => Ok(Self::Fallback),
+//             "loadbalance" => Ok(Self::LoadBalance),
+//             "shadowsocks" => Ok(Self::Shadowsocks),
+//             "vmess" => Ok(Self::Vmess),
+//             "ssr" => Ok(Self::ShadowsocksR),
+//             "http" => Ok(Self::Http),
+//             "snell" => Ok(Self::Snell),
+//             "trojan" => Ok(Self::Trojan),
+//             "socks5" => Ok(Self::Socks5),
+//             "relay" => Ok(Self::Relay),
+//             _ => Err(Error::BadOption)
+//         }
+//     }
+// }
 
 #[derive(Subcommand, Debug)]
 #[clap(about = "Interacting with proxies")]
@@ -49,57 +49,34 @@ pub struct ProxyListOpt {
     #[clap(
         short, 
         long, 
-        default_value = "type", 
+        default_value = "delay", 
         possible_values = &["type", "name", "delay"],
     )]
     pub sort: ProxySort,
+
     #[clap(short, long, about = "Reverse the listed result")]
     pub reverse: bool,
+
     #[clap(
         short,
         long,
         about = "Exclude proxy types",
-        name = "PROXY_TYPES",
-        possible_values = &[
-            "direct",
-            "reject",
-            "selector",
-            "urltest",
-            "fallback",
-            "loadbalance",
-            "shadowsocks",
-            "vmess",
-            "ssr",
-            "http",
-            "snell",
-            "trojan",
-            "socks5",
-            "relay"
-        ],
+        conflicts_with = "include",
+        possible_values = ProxyType::VARIANTS
     )]
     pub exclude: Vec<ProxyType>,
+
     #[clap(
-        short = 't', 
-        long = "type", 
-        about = "Only show selected proxy types",
-        possible_values = &[
-            "direct",
-            "reject",
-            "selector",
-            "urltest",
-            "fallback",
-            "loadbalance",
-            "shadowsocks",
-            "vmess",
-            "ssr",
-            "http",
-            "snell",
-            "trojan",
-            "socks5",
-            "relay"
-        ],
+        short, 
+        long, 
+        about = "Include proxy types",
+        conflicts_with = "exclude",
+        possible_values = ProxyType::VARIANTS
     )]
-    pub proxy_types: Vec<ProxyType>
+    pub include: Vec<ProxyType>,
+
+    #[clap(short, long, about = "Show proxies and groups without cascading")]
+    pub plain: bool
 }
 
 impl ProxySubcommand {

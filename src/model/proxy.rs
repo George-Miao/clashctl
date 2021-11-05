@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::fmt::Display;
 use std::ops::Deref;
 
 use chrono::{DateTime, Local};
@@ -54,6 +53,11 @@ impl Ord for History {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, PartialOrd, Eq, Ord, Clone, Copy)]
+#[cfg_attr(
+    feature = "cli",
+    derive(strum::EnumString, strum::Display, strum::EnumVariantNames),
+    strum(ascii_case_insensitive, serialize_all = "lowercase")
+)]
 pub enum ProxyType {
     // Built-In types
     Direct,
@@ -109,11 +113,5 @@ impl ProxyType {
                 | ProxyType::Trojan
                 | ProxyType::Socks5
         )
-    }
-}
-
-impl Display for ProxyType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
     }
 }
