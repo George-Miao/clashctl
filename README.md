@@ -67,7 +67,7 @@ Test with cargo-msrv
 ### Use the CLI
 
 ```
-clashctl 0.2.2
+clashctl
 
 George Miao <gm@miao.dev>
 
@@ -96,7 +96,7 @@ SUBCOMMANDS:
 # cargo.toml
 
 [dependencies]
-clashctl = { version = "0.2.2" }
+clashctl = "*"
 ```
 
 Then in your project: 

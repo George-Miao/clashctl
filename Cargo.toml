@@ -60,5 +60,5 @@ ron           = { version = "~0.7", optional = true }
 either        = { version = "~1.6.1", optional = true }
 
 [dev-dependencies]
-simple_logger = "*"
+simple_logger = "1.13.0"
 
