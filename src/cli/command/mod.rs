@@ -17,9 +17,11 @@ use crate::{Error, Result};
 
 #[derive(Parser, Debug)]
 #[clap(
-    version = "0.2.0",
-    author = "George Miao <gm@miao.dev>",
-    about = "CLI used to interact with Clash RESTful API"
+    name = clap::crate_name!(),
+    author = clap::crate_authors!(),
+    about = clap::crate_description!(),
+    license = clap::crate_license!(),
+    version = clap::crate_version!(),
 )]
 pub struct Opts {
     #[clap(subcommand)]
