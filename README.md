@@ -33,8 +33,10 @@ selector            -       All
 ### TODO
 - [X] Manage servers
 - [X] Sort proxies
-- [ ] Inspect rules
 - [ ] Status panel (TUI)
+- [ ] Inspect rules
+- [ ] Inspect configs
+- [ ] Update configs
 
 ## Installing
 
