@@ -43,6 +43,14 @@ pub enum Error {
     ConfigFileFormatError(#[from] ron::Error),
 
     #[cfg(feature = "cli")]
+    #[error("TUI error")]
+    TuiError(#[from] std::io::Error),
+
+    #[cfg(feature = "cli")]
+    #[error("TUI backend error")]
+    TuiBackendErr,
+
+    #[cfg(feature = "cli")]
     #[error("Bad option")]
     BadOption,
 }

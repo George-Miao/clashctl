@@ -12,7 +12,7 @@ use log::debug;
 pub use proxy::*;
 pub use server::*;
 
-use crate::cli::Config;
+use crate::cli::{Config, TuiOpt};
 use crate::{Error, Result};
 
 #[derive(Parser, Debug)]
@@ -28,6 +28,17 @@ pub struct Opts {
     pub cmd: Cmd,
     #[clap(flatten)]
     pub flag: Flags,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum Cmd {
+    Tui(TuiOpt),
+    #[clap(subcommand)]
+    Proxy(ProxySubcommand),
+    #[clap(subcommand)]
+    Server(ServerSubcommand),
+    #[clap(alias = "comp")]
+    Completion(CompletionArg),
 }
 
 #[derive(Parser, Debug)]
@@ -73,14 +84,4 @@ impl Flags {
         debug!("Path to config: {}", conf_file.display());
         Config::from_dir(conf_file)
     }
-}
-
-#[derive(Subcommand, Debug)]
-pub enum Cmd {
-    #[clap(subcommand)]
-    Proxy(ProxySubcommand),
-    #[clap(subcommand)]
-    Server(ServerSubcommand),
-    #[clap(alias = "comp")]
-    Completion(CompletionArg),
 }

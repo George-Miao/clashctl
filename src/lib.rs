@@ -1,3 +1,5 @@
+#![feature(thread_is_running)]
+
 #[cfg(feature = "cli")]
 pub mod cli;
 
