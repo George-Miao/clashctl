@@ -1,17 +1,22 @@
 use std::io::{self, Stdout};
 use std::sync::mpsc::{channel, Sender, TryRecvError};
 use std::thread::{sleep, spawn};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use clap::Parser;
-use crossterm::event::Event as CrossTermEvent;
-use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
+use crossterm::event::{DisableMouseCapture, EnableMouseCapture, Event as CrossTermEvent};
+use crossterm::execute;
+use crossterm::terminal::{
+    disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
+};
 use tui::backend::CrosstermBackend;
-use tui::layout::{Constraint, Direction, Layout};
-use tui::widgets::{Block, Borders, Paragraph, Wrap};
+use tui::layout::{Constraint, Layout, Rect};
 use tui::{Frame, Terminal};
 
 use crate::cli::ui::components::TabState;
+use crate::cli::ui::pages::{
+    ConfigPage, ConfigState, ProxiesPage, ProxiesState, StatusPage, StatusState,
+};
 use crate::cli::{components::*, Event, EventHandler};
 use crate::{Error, Result};
 
@@ -44,23 +49,14 @@ impl Default for TuiOpt {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct TuiStates {
     tab_state: TabState,
+    proxies_state: ProxiesState,
+    status_state: StatusState,
+    config_state: ConfigState,
     ticks: u64,
-    start_time: Instant,
     number_of_events: u64,
-}
-
-impl Default for TuiStates {
-    fn default() -> Self {
-        Self {
-            start_time: Instant::now(),
-            number_of_events: Default::default(),
-            tab_state: Default::default(),
-            ticks: Default::default(),
-        }
-    }
 }
 
 #[derive(Clone, Debug, Default)]
@@ -77,22 +73,41 @@ impl TuiApp {
         }
     }
 
-    pub fn run(&mut self) -> Result<()> {
+    fn setup() -> Result<Terminal<Backend>> {
+        let mut stdout = io::stdout();
+        execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
         enable_raw_mode()?;
-        let (tx, rx) = channel();
-        let opt = self.opt.clone();
-        let handle = spawn(move || Self::servo(tx, &opt));
 
-        let stdout = io::stdout();
-        // execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
         let backend = CrosstermBackend::new(stdout);
         let mut terminal = Terminal::new(backend)?;
         terminal.clear()?;
 
+        Ok(terminal)
+    }
+
+    fn wrap_up(mut terminal: Terminal<Backend>) -> Result<()> {
+        execute!(
+            terminal.backend_mut(),
+            LeaveAlternateScreen,
+            DisableMouseCapture
+        )?;
+
+        disable_raw_mode()?;
+
+        Ok(())
+    }
+
+    pub fn run(&mut self) -> Result<()> {
+        let (tx, rx) = channel();
+        let opt = self.opt.clone();
+        let servo_handle = spawn(move || Self::servo(tx, &opt));
+
+        let mut terminal = Self::setup()?;
+
         loop {
             self.state.ticks += 1;
             terminal.draw(|f| self.render(f))?;
-            if !handle.is_running() {
+            if !servo_handle.is_running() {
                 return Err(Error::TuiBackendErr);
             }
             match rx.try_recv() {
@@ -107,38 +122,40 @@ impl TuiApp {
             }
         }
 
-        // execute!(
-        //     terminal.backend_mut(),
-        //     LeaveAlternateScreen,
-        //     DisableMouseCapture
-        // )?;
-        disable_raw_mode()?;
+        Self::wrap_up(terminal)?;
+
         Ok(())
     }
 
+    fn route(&mut self, area: Rect, f: &mut Frame<Backend>) {
+        match self.state.tab_state.index {
+            0 => {
+                let page = StatusPage::default();
+                f.render_stateful_widget(page, area, &mut self.state.status_state)
+            }
+            1 => {
+                let page = ProxiesPage::default();
+                f.render_stateful_widget(page, area, &mut self.state.proxies_state)
+            }
+            2 => {
+                let page = ConfigPage::default();
+                f.render_stateful_widget(page, area, &mut self.state.config_state)
+            }
+            _ => unreachable!(),
+        }
+    }
+
     fn render(&mut self, f: &mut Frame<Backend>) {
-        let main_layout = Layout::default()
+        let layout = Layout::default()
             .constraints([Constraint::Length(3), Constraint::Min(0)])
             .split(f.size());
 
         let tabs = Tabs::default();
-        f.render_stateful_widget(tabs, main_layout[0], &mut self.state.tab_state);
+        f.render_stateful_widget(tabs, layout[0], &mut self.state.tab_state);
 
-        let info_layout = Layout::default()
-            .constraints([Constraint::Percentage(30), Constraint::Percentage(70)])
-            .direction(Direction::Horizontal)
-            .split(main_layout[1]);
+        let main = layout[1];
 
-        let block = Block::default().title("Debug").borders(Borders::ALL);
-        let tps = self.state.ticks as f64 / self.state.start_time.elapsed().as_secs_f64();
-        let text = Paragraph::new(format!(
-            "Ticks: {}\nTPS: {:.2}\nEvents: {}",
-            self.state.ticks, tps, self.state.number_of_events
-        ))
-        .block(block)
-        .wrap(Wrap { trim: true });
-
-        f.render_widget(text, info_layout[0]);
+        self.route(main, f);
     }
 
     fn handle(&mut self, _t: &mut Terminal<Backend>, event: &Event) -> Result<()> {
@@ -147,7 +164,8 @@ impl TuiApp {
             Event::Traffic(_traffic) => Ok(()),
             Event::Log(_log) => Ok(()),
             Event::TabNext | Event::TabPrev => self.state.tab_state.handle(event),
-            _ => Ok(()),
+            Event::Update => self.state.proxies_state.handle(event),
+            // _ => Ok(()),
         }
     }
 

@@ -12,8 +12,8 @@ pub enum Error {
     #[error("Broken response from server")]
     BadResponseEncoding,
 
-    #[error("Broken response from server")]
-    BadResponseFormat,
+    #[error("Broken response from server: {0}")]
+    BadResponseFormat(#[from] serde_json::Error),
 
     #[error("Failed response from server (Code {0})")]
     FailedResponse(attohttpc::StatusCode),

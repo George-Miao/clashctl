@@ -10,7 +10,7 @@ use serde::de::DeserializeOwned;
 use serde_json::from_str;
 use url::Url;
 
-use crate::model::{Config, Delay, Proxies, Proxy, Version};
+use crate::model::{Config, Connections, Delay, Proxies, Proxy, Version};
 use crate::{Error, Result};
 
 trait Convert<T: DeserializeOwned> {
@@ -19,7 +19,7 @@ trait Convert<T: DeserializeOwned> {
 
 impl<T: DeserializeOwned> Convert<T> for String {
     fn convert(self) -> Result<T> {
-        from_str(&self).map_err(|_| Error::BadResponseFormat)
+        from_str(&self).map_err(Error::BadResponseFormat)
     }
 }
 
@@ -161,6 +161,10 @@ impl Clash {
     pub fn get_proxy(&self, proxy: &str) -> Result<Proxy> {
         self.get(&format!("proxies/{}", proxy))
             .and_then(Convert::convert)
+    }
+
+    pub fn get_connections(&self) -> Result<Connections> {
+        self.get("connections").and_then(Convert::convert)
     }
 
     pub fn set_proxygroup_selected(&self, group: &str, proxy: &str) -> Result<()> {

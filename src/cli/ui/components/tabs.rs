@@ -1,6 +1,6 @@
-use tui::style::{Color, Style};
+use tui::style::{Color, Modifier, Style};
 use tui::text::{Span, Spans};
-use tui::widgets::{Block, Borders, StatefulWidget, Tabs as TuiTabs, Widget};
+use tui::widgets::{Block, BorderType, Borders, StatefulWidget, Tabs as TuiTabs, Widget};
 
 use crate::cli::{Event, EventHandler};
 
@@ -59,9 +59,14 @@ impl StatefulWidget for Tabs {
             .block(
                 Block::default()
                     .borders(Borders::ALL)
+                    .border_type(BorderType::Rounded)
                     .title(clap::crate_name!()),
             )
-            .highlight_style(Style::default().fg(Color::Yellow))
+            .highlight_style(
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            )
             .select(state.index);
         tabs.render(area, buf)
     }
