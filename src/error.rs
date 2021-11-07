@@ -51,6 +51,14 @@ pub enum Error {
     TuiBackendErr,
 
     #[cfg(feature = "cli")]
+    #[error("TUI interuptted error")]
+    TuiInterupttedErr,
+
+    #[cfg(feature = "cli")]
+    #[error("TUI internal error")]
+    TuiInternalErr,
+
+    #[cfg(feature = "cli")]
     #[error("Bad option")]
     BadOption,
 }
