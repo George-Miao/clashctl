@@ -59,6 +59,12 @@ fn test_configs() {
 }
 
 #[test]
+fn test_connections() {
+    let clash = init();
+    clash.get_connections().unwrap();
+}
+
+#[test]
 fn test_version() {
     let clash = init();
     info!("{:#?}", clash.get_version().unwrap())
