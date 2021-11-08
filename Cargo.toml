@@ -26,6 +26,7 @@ cli = [
   "home",
   "ron"
 ]
+ring = ["array-init"]
 
 [profile.release]
 lto = true
@@ -62,6 +63,7 @@ ron           = { version = "~0.7", optional = true }
 either        = { version = "~1.6.1", optional = true }
 tui           = { version = "~0.16.0", optional = true, default-features = false, features = ['crossterm'] }
 crossterm     = { version = "~0.22.1", optional = true }
+array-init    = { version = "~2.0.0", optional = true }
 
 [dev-dependencies]
 simple_logger = "1.13.0"
