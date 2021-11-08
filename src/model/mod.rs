@@ -24,11 +24,11 @@ pub enum Mode {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Delay {
-    delay: u64,
+    pub delay: u64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub struct Version {
-    version: semver::Version,
+    pub version: semver::Version,
 }

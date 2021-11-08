@@ -12,6 +12,6 @@ pub enum Level {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Log {
     #[serde(rename = "type")]
-    log_type: Level,
-    payload: String,
+    pub log_type: Level,
+    pub payload: String,
 }
