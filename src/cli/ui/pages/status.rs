@@ -1,7 +1,7 @@
 use bytesize::ByteSize;
+use clap::crate_version;
 use tui::{
     layout::{Constraint, Direction, Layout},
-    text::Spans,
     widgets::{Paragraph, StatefulWidget, Widget},
 };
 
@@ -47,10 +47,16 @@ impl StatefulWidget for StatusPage {
             ("▲ Total", ByteSize(con.upload_total).to_string_as(true)),
             ("▼ Total", ByteSize(con.download_total).to_string_as(true)),
             ("Connection #", con.connections.len().to_string()),
+            ("Clash Ver.", state.version.version.to_string()),
+            ("Clashctl Ver.", crate_version!().to_owned()),
         ]
         .into_iter()
-        .map(|(title, content)| Spans::from(format!(" {:<15}{:>11} ", title, content)))
-        .collect::<Vec<_>>();
+        .map(|(title, content)| format!(" {:<15}{:>11} ", title, content))
+        .fold(String::with_capacity(255), |mut a, b| {
+            a.push('\n');
+            a.push_str(&b);
+            a
+        });
 
         Paragraph::new(info)
             .block(get_block("Info"))
