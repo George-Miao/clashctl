@@ -34,18 +34,19 @@ impl StatefulWidget for StatusPage {
             .map(|x| x.to_owned())
             .unwrap_or_default();
 
+        let con = &state.connection;
         let info = [
-            ("▲", ByteSize(last_traffic.up).to_string_as(true) + "/s"),
-            ("▼", ByteSize(last_traffic.down).to_string_as(true) + "/s"),
             (
-                "▲ Total",
-                ByteSize(state.connection.upload_total).to_string_as(true),
+                "▲ Upload",
+                ByteSize(last_traffic.up).to_string_as(true) + "/s",
             ),
             (
-                "▼ Total",
-                ByteSize(state.connection.download_total).to_string_as(true),
+                "▼ Download",
+                ByteSize(last_traffic.down).to_string_as(true) + "/s",
             ),
-            ("Connection #", "?".to_owned()),
+            ("▲ Total", ByteSize(con.upload_total).to_string_as(true)),
+            ("▼ Total", ByteSize(con.download_total).to_string_as(true)),
+            ("Connection #", con.connections.len().to_string()),
         ]
         .into_iter()
         .map(|(title, content)| Spans::from(format!(" {:<15}{:>11} ", title, content)))
