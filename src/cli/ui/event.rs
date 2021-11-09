@@ -8,9 +8,11 @@ pub enum Event {
     Quit,
     TabNext,
     TabPrev,
+    TabGoto(u16),
     Traffic(Traffic),
     Log(Log),
     Update,
+    Debug(String),
 }
 
 pub trait EventHandler {

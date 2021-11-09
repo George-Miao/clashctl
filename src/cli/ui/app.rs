@@ -1,6 +1,7 @@
 use std::io::{self, Stdout};
 use std::sync::mpsc::{channel, Sender, TryRecvError};
-use std::thread::{sleep, spawn};
+use std::sync::Mutex;
+use std::thread::spawn;
 use std::time::Duration;
 
 use clap::Parser;
@@ -9,15 +10,17 @@ use crossterm::execute;
 use crossterm::terminal::{
     disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
+use log::{info, warn, LevelFilter, Record};
 use tui::backend::CrosstermBackend;
 use tui::layout::{Constraint, Layout, Rect};
 use tui::{Frame, Terminal};
 
-use crate::cli::ui::components::TabState;
 use crate::cli::ui::pages::{
-    ConfigPage, ConfigState, ProxiesPage, ProxiesState, StatusPage, StatusState,
+    ConfigPage, ConfigState, DebugPage, DebugState, ProxiesPage, ProxiesState, StatusPage,
+    StatusState,
 };
-use crate::cli::{components::*, Event, EventHandler};
+use crate::cli::ui::{components::TabState, utils::Interval};
+use crate::cli::{components::*, Event, EventHandler, Flags};
 use crate::{Error, Result};
 
 type Backend = CrosstermBackend<Stdout>;
@@ -38,8 +41,8 @@ impl TuiOpt {
         Ok(TuiApp::from_opt(self))
     }
 
-    pub fn run(self) -> Result<()> {
-        self.into_app()?.run()
+    pub fn run(self, flag: &Flags) -> Result<()> {
+        self.into_app()?.run(flag)
     }
 }
 
@@ -55,8 +58,7 @@ pub struct TuiStates {
     proxies_state: ProxiesState,
     status_state: StatusState,
     config_state: ConfigState,
-    ticks: u64,
-    number_of_events: u64,
+    debug_state: DebugState,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -75,6 +77,7 @@ impl TuiApp {
 
     fn setup() -> Result<Terminal<Backend>> {
         let mut stdout = io::stdout();
+
         execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
         enable_raw_mode()?;
 
@@ -97,32 +100,49 @@ impl TuiApp {
         Ok(())
     }
 
-    pub fn run(&mut self) -> Result<()> {
+    pub fn run(&mut self, flag: &Flags) -> Result<()> {
+        match flag.get_config()?.using_server() {
+            Some(server) => server.to_owned(),
+            None => {
+                eprintln!("No server configured yet. Use `clashctl server add` first.");
+                return Ok(());
+            }
+        };
+
         let (tx, rx) = channel();
         let opt = self.opt.clone();
-        let servo_handle = spawn(move || Self::servo(tx, &opt));
+        let flag = flag.clone();
+        let servo_handle = spawn(move || Self::servo(tx, &opt, &flag));
 
         let mut terminal = Self::setup()?;
 
+        let mut interval = Interval::every(Duration::from_millis(10));
+
         loop {
-            self.state.ticks += 1;
+            interval.tick();
+            self.state.debug_state.new_tick();
             terminal.draw(|f| self.render(f))?;
             if !servo_handle.is_running() {
-                return Err(Error::TuiBackendErr);
+                Self::wrap_up(terminal)?;
+                eprintln!("Servo dropped: {:?}", servo_handle.join().unwrap());
+                break;
             }
             match rx.try_recv() {
                 Ok(event) => {
-                    self.state.number_of_events += 1;
-                    if self.handle(&mut terminal, &event).is_err() {
+                    if let Err(e) = self.handle(&event) {
+                        Self::wrap_up(terminal)?;
+                        eprintln!("Quit: {}", e);
                         break;
                     }
                 }
-                Err(TryRecvError::Disconnected) => break,
+                Err(TryRecvError::Disconnected) => {
+                    Self::wrap_up(terminal)?;
+                    eprintln!("All backend TX dropped");
+                    break;
+                }
                 _ => {}
             }
         }
-
-        Self::wrap_up(terminal)?;
 
         Ok(())
     }
@@ -141,6 +161,10 @@ impl TuiApp {
                 let page = ConfigPage::default();
                 f.render_stateful_widget(page, area, &mut self.state.config_state)
             }
+            3 => {
+                let page = DebugPage::default();
+                f.render_stateful_widget(page, area, &mut self.state.debug_state)
+            }
             _ => unreachable!(),
         }
     }
@@ -158,54 +182,146 @@ impl TuiApp {
         self.route(main, f);
     }
 
-    fn handle(&mut self, _t: &mut Terminal<Backend>, event: &Event) -> Result<()> {
+    fn handle(&mut self, event: &Event) -> Result<()> {
+        self.state.debug_state.handle(event)?;
         match event {
             Event::Quit => Err(Error::TuiInterupttedErr),
-            Event::Traffic(_traffic) => Ok(()),
+            Event::Traffic(_traffic) => self.state.status_state.handle(event),
             Event::Log(_log) => Ok(()),
-            Event::TabNext | Event::TabPrev => self.state.tab_state.handle(event),
+            Event::TabNext | Event::TabPrev | Event::TabGoto(_) => {
+                self.state.tab_state.handle(event)
+            }
             Event::Update => self.state.proxies_state.handle(event),
-            // _ => Ok(()),
+            _ => Ok(()),
         }
     }
 
-    fn servo(tx: Sender<Event>, opt: &TuiOpt) -> Result<()> {
+    fn servo(tx: Sender<Event>, opt: &TuiOpt, flags: &Flags) -> Result<()> {
+        macro_rules! run {
+            ($block:block) => {
+                Some(spawn(move || -> Result<()> {
+                    $block
+                    Ok(())
+                }))
+            }
+        }
+
+        macro_rules! watch {
+            ($identifier:literal, $handle:ident) => {
+                if let Some(ref handle) = $handle {
+                    if !handle.is_running() {
+                        let handle = $handle.take().unwrap();
+                        match handle.join() {
+                            Ok(res) => warn!(
+                                "Background task `{}` has stopped running ({:?})",
+                                $identifier, res
+                            ),
+                            Err(e) => warn!(
+                                "Background task `{}` has stopped running\n ({:?})",
+                                $identifier, e
+                            ),
+                        }
+                    }
+                }
+            };
+        }
+
+        Logger::new(tx.clone()).apply().unwrap();
+
+        info!("Logger set");
+
         let key_tx = tx.clone();
-        let key_handle = spawn(move || -> Result<()> {
+        let traffic_tx = tx.clone();
+        let req_tx = tx.clone();
+
+        let clash = flags.connect_server_from_config()?;
+        // let traffics = clash.get_traffic()?;
+
+        let interval_ms = (opt.interval * 1000f32) as u64;
+        let interval = Duration::from_millis(interval_ms);
+
+        let mut key_handle = run!({
             loop {
                 match crossterm::event::read() {
                     Ok(CrossTermEvent::Key(event)) => {
                         if let Ok(event) = Event::try_from(event) {
-                            key_tx.send(event).map_err(|_| Error::TuiBackendErr)?
+                            key_tx.send(event)?
                         }
                     }
 
                     Err(_) => {
-                        key_tx.send(Event::Quit).map_err(|_| Error::TuiBackendErr)?;
+                        key_tx.send(Event::Quit)?;
                         break;
                     }
                     _ => {}
                 }
             }
-            Ok(())
         });
 
-        let interval_ms = (opt.interval * 1000f32) as u64;
-        let interval = Duration::from_millis(interval_ms);
-
-        let request_handle = spawn(move || -> Result<()> {
-            // let clash = Clash::new();
-
+        #[allow(unreachable_code)]
+        let mut traffic_handle = run!({
+            let mut traffics = clash.get_traffic()?;
             loop {
-                sleep(interval);
-                tx.send(Event::Update).map_err(|_| Error::TuiBackendErr)?;
+                match traffics.next() {
+                    Some(Ok(traffic)) => traffic_tx.send(Event::Traffic(traffic))?,
+                    // Some(Ok(traffic)) => info!("{}", traffic),
+                    Some(Err(e)) => warn!("{:?}", e),
+                    None => warn!("No more traffic"),
+                }
             }
         });
 
-        let is_running = || key_handle.is_running() && request_handle.is_running();
-        while is_running() {
-            sleep(Duration::from_millis(10))
+        #[allow(unreachable_code)]
+        #[allow(clippy::empty_loop)]
+        let mut req_handle = run!({
+            loop {
+                // sleep(interval);
+                // req_tx.send(Event::Update)?;
+            }
+        });
+
+        loop {
+            watch!("key", key_handle);
+            watch!("traffic", traffic_handle);
+            watch!("request", req_handle);
         }
-        Ok(())
     }
+}
+
+pub struct Logger {
+    sender: Mutex<Sender<Event>>,
+    level: LevelFilter,
+}
+
+impl Logger {
+    pub fn new(sender: Sender<Event>) -> Self {
+        Self::new_with_level(sender, LevelFilter::Debug)
+    }
+
+    pub fn new_with_level(sender: Sender<Event>, level: LevelFilter) -> Self {
+        Self {
+            sender: Mutex::new(sender),
+            level,
+        }
+    }
+
+    pub fn apply(self) -> std::result::Result<(), log::SetLoggerError> {
+        let level = self.level;
+        log::set_boxed_logger(Box::new(self)).map(|()| log::set_max_level(level))
+    }
+}
+
+impl log::Log for Logger {
+    fn enabled(&self, _metadata: &log::Metadata) -> bool {
+        true
+    }
+    fn log(&self, record: &Record) {
+        let text = format!("{:?}", record.args());
+        self.sender
+            .lock()
+            .unwrap()
+            .send(Event::Debug(text))
+            .unwrap()
+    }
+    fn flush(&self) {}
 }
