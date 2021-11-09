@@ -12,6 +12,7 @@ pub mod ring {
         start: usize,
         len: usize,
     }
+
     impl<T, const S: usize> Ring<T, S> {
         pub fn new() -> Self {
             Self {
@@ -209,6 +210,9 @@ pub mod ring {
         assert_eq!(vec![5, 6, 7, 8, 9], ring.collect::<Vec<_>>());
     }
 }
+
+#[cfg(feature = "ring")]
+pub use ring::*;
 
 pub fn detect_shell() -> Option<Shell> {
     match env::var("SHELL") {

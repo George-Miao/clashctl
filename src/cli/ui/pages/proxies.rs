@@ -1,6 +1,6 @@
-use tui::widgets::{Block, BorderType, Borders, Paragraph, StatefulWidget, Widget};
+use tui::widgets::{Block, Borders, Paragraph, StatefulWidget, Widget};
 
-use crate::cli::{Event, EventHandler};
+use crate::cli::{components::get_block, Event, EventHandler};
 
 #[derive(Clone, Debug, Default)]
 pub struct ProxiesPage {}
@@ -13,10 +13,7 @@ impl StatefulWidget for ProxiesPage {
         buf: &mut tui::buffer::Buffer,
         state: &mut Self::State,
     ) {
-        let block = Block::default()
-            .borders(Borders::ALL)
-            .border_type(BorderType::Rounded)
-            .title("Proxies");
+        let block = get_block("Proxies");
         let text = Paragraph::new(format!("Event numbers: {}", state.events)).block(block);
         text.render(area, buf)
     }

@@ -1,3 +1,4 @@
+#![feature(int_abs_diff)]
 #![feature(thread_is_running)]
 #![feature(associated_type_defaults)]
 
