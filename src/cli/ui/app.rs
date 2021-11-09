@@ -191,14 +191,14 @@ impl TuiApp {
             Event::Quit => Err(Error::TuiInterupttedErr),
             Event::Log(_log) => Ok(()),
             Event::Interface(_) => self.state.tab_state.handle(event),
-            Event::Update(update) => self
+            Event::Update(_) => self
                 .state
                 .proxies_state
                 .handle(event)
+                .and_then(|_| self.state.status_state.handle(event))
                 .and_then(|_| self.state.config_state.handle(event))
                 .and_then(|_| self.state.debug_state.handle(event))
-                .and_then(|_| self.state.proxies_state.handle(event))
-                .and_then(|_| self.state.tab_state.handle(event)),
+                .and_then(|_| self.state.proxies_state.handle(event)),
             _ => Ok(()),
         }
     }
