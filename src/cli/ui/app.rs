@@ -232,13 +232,13 @@ impl TuiApp {
 
         let key_tx = tx.clone();
         let traffic_tx = tx.clone();
-        let req_tx = tx.clone();
+        let _req_tx = tx;
 
         let clash = flags.connect_server_from_config()?;
         // let traffics = clash.get_traffic()?;
 
         let interval_ms = (opt.interval * 1000f32) as u64;
-        let interval = Duration::from_millis(interval_ms);
+        let _interval = Duration::from_millis(interval_ms);
 
         let mut key_handle = run!({
             loop {

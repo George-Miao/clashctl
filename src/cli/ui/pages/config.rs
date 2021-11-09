@@ -9,9 +9,9 @@ impl StatefulWidget for ConfigPage {
     type State = ConfigState;
     fn render(
         self,
-        area: tui::layout::Rect,
-        buf: &mut tui::buffer::Buffer,
-        state: &mut Self::State,
+        _area: tui::layout::Rect,
+        _buf: &mut tui::buffer::Buffer,
+        _state: &mut Self::State,
     ) {
     }
 }
@@ -20,7 +20,7 @@ impl StatefulWidget for ConfigPage {
 pub struct ConfigState {}
 
 impl EventHandler for ConfigState {
-    fn handle(&mut self, event: &crate::cli::Event) -> crate::Result<()> {
+    fn handle(&mut self, _event: &crate::cli::Event) -> crate::Result<()> {
         Ok(())
     }
 }

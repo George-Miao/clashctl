@@ -1,4 +1,4 @@
-use tui::widgets::{Block, Borders, Paragraph, StatefulWidget, Widget};
+use tui::widgets::{Paragraph, StatefulWidget, Widget};
 
 use crate::cli::{components::get_block, Event, EventHandler};
 
