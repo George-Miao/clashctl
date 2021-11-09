@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use std::time::Duration;
 
 use clap::{Parser, Subcommand};
 
@@ -13,7 +14,7 @@ pub use proxy::*;
 pub use server::*;
 
 use crate::cli::{Config, TuiOpt};
-use crate::{Error, Result};
+use crate::{Clash, Error, Result};
 
 #[derive(Parser, Debug)]
 #[clap(
@@ -41,7 +42,7 @@ pub enum Cmd {
     Completion(CompletionArg),
 }
 
-#[derive(Parser, Debug)]
+#[derive(Clone, Parser, Debug)]
 pub struct Flags {
     #[clap(
         short,
@@ -65,6 +66,16 @@ pub struct Flags {
     pub config: Option<PathBuf>,
 }
 
+impl Default for Flags {
+    fn default() -> Self {
+        Self {
+            verbose: 0,
+            timeout: 2000,
+            config: None,
+        }
+    }
+}
+
 impl Flags {
     pub fn get_config(&self) -> Result<Config> {
         let conf_file = self
@@ -83,5 +94,14 @@ impl Flags {
         }
         debug!("Path to config: {}", conf_file.display());
         Config::from_dir(conf_file)
+    }
+
+    pub fn connect_server_from_config(&self) -> Result<Clash> {
+        let config = self.get_config()?;
+        let server = config
+            .using_server()
+            .ok_or(Error::ServerNotFound)?
+            .to_owned();
+        server.into_clash_with_timeout(Some(Duration::from_millis(self.timeout)))
     }
 }
