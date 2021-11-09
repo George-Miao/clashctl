@@ -7,7 +7,7 @@ pub enum Error {
     UrlParseError,
 
     #[error("Error whiling requesting API ({0})")]
-    RequestError(#[from] attohttpc::Error),
+    RequestError(#[from] ureq::Error),
 
     #[error("Broken response from server")]
     BadResponseEncoding,
@@ -16,7 +16,7 @@ pub enum Error {
     BadResponseFormat(#[from] serde_json::Error),
 
     #[error("Failed response from server (Code {0})")]
-    FailedResponse(attohttpc::StatusCode),
+    FailedResponse(u16),
 
     #[cfg(feature = "cli")]
     #[error("Cannot find server")]
@@ -35,7 +35,7 @@ pub enum Error {
     ConfigFileOpenError,
 
     #[cfg(feature = "cli")]
-    #[error("Config file cannot be read")]
+    #[error("Config file IO error ({0})")]
     ConfigFileIoError(std::io::Error),
 
     #[cfg(feature = "cli")]
@@ -43,24 +43,34 @@ pub enum Error {
     ConfigFileFormatError(#[from] ron::Error),
 
     #[cfg(feature = "cli")]
+    #[error("Bad option")]
+    BadOption,
+
+    #[cfg(feature = "ui")]
     #[error("TUI error")]
     TuiError(#[from] std::io::Error),
 
-    #[cfg(feature = "cli")]
+    #[cfg(feature = "ui")]
     #[error("TUI backend error")]
     TuiBackendErr,
 
-    #[cfg(feature = "cli")]
+    #[cfg(feature = "ui")]
     #[error("TUI interuptted error")]
     TuiInterupttedErr,
 
-    #[cfg(feature = "cli")]
+    #[cfg(feature = "ui")]
     #[error("TUI internal error")]
     TuiInternalErr,
 
-    #[cfg(feature = "cli")]
-    #[error("Bad option")]
-    BadOption,
+    #[error("Other errors ({0})")]
+    Other(String),
+}
+
+#[cfg(feature = "ui")]
+impl<T> From<std::sync::mpsc::SendError<T>> for Error {
+    fn from(_: std::sync::mpsc::SendError<T>) -> Self {
+        Self::TuiBackendErr
+    }
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
