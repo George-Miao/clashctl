@@ -145,7 +145,7 @@ impl DerefMut for Config {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct ConfigData {
     pub servers: Vec<Server>,
     pub using: Option<Url>,

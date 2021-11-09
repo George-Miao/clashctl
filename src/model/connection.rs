@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::model::Rule;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Connections {
     pub connections: Vec<Connection>,
@@ -11,7 +11,7 @@ pub struct Connections {
     pub upload_total: u64,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Connection {
     pub id: String,
@@ -24,7 +24,7 @@ pub struct Connection {
     pub chains: Vec<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Metadata {
     #[serde(rename = "type")]
