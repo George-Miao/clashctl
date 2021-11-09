@@ -15,12 +15,15 @@ use tui::backend::CrosstermBackend;
 use tui::layout::{Constraint, Layout, Rect};
 use tui::{Frame, Terminal};
 
-use crate::cli::ui::pages::{
-    ConfigPage, ConfigState, DebugPage, DebugState, ProxiesPage, ProxiesState, StatusPage,
-    StatusState,
-};
 use crate::cli::ui::{components::TabState, utils::Interval};
 use crate::cli::{components::*, Event, EventHandler, Flags};
+use crate::cli::{
+    ui::pages::{
+        ConfigPage, ConfigState, DebugPage, DebugState, ProxiesPage, ProxiesState, StatusPage,
+        StatusState,
+    },
+    UpdateEvent,
+};
 use crate::{Error, Result};
 
 type Backend = CrosstermBackend<Stdout>;
@@ -186,12 +189,16 @@ impl TuiApp {
         self.state.debug_state.handle(event)?;
         match event {
             Event::Quit => Err(Error::TuiInterupttedErr),
-            Event::Traffic(_traffic) => self.state.status_state.handle(event),
             Event::Log(_log) => Ok(()),
-            Event::TabNext | Event::TabPrev | Event::TabGoto(_) => {
-                self.state.tab_state.handle(event)
-            }
-            Event::Update => self.state.proxies_state.handle(event),
+            Event::Interface(_) => self.state.tab_state.handle(event),
+            Event::Update(update) => self
+                .state
+                .proxies_state
+                .handle(event)
+                .and_then(|_| self.state.config_state.handle(event))
+                .and_then(|_| self.state.debug_state.handle(event))
+                .and_then(|_| self.state.proxies_state.handle(event))
+                .and_then(|_| self.state.tab_state.handle(event)),
             _ => Ok(()),
         }
     }
@@ -263,7 +270,9 @@ impl TuiApp {
             let mut traffics = clash.get_traffic()?;
             loop {
                 match traffics.next() {
-                    Some(Ok(traffic)) => traffic_tx.send(Event::Traffic(traffic))?,
+                    Some(Ok(traffic)) => {
+                        traffic_tx.send(Event::Update(UpdateEvent::Traffic(traffic)))?
+                    }
                     // Some(Ok(traffic)) => info!("{}", traffic),
                     Some(Err(e)) => warn!("{:?}", e),
                     None => warn!("No more traffic"),
@@ -317,11 +326,7 @@ impl log::Log for Logger {
     }
     fn log(&self, record: &Record) {
         let text = format!("{:?}", record.args());
-        self.sender
-            .lock()
-            .unwrap()
-            .send(Event::Debug(text))
-            .unwrap()
+        self.sender.lock().unwrap().send(Event::Log(text)).unwrap()
     }
     fn flush(&self) {}
 }

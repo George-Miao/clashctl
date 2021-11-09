@@ -26,11 +26,6 @@ pub struct ProxiesState {
 
 impl EventHandler for ProxiesState {
     fn handle(&mut self, event: &crate::cli::Event) -> crate::Result<()> {
-        match event {
-            Event::Update => self.events += 1,
-            Event::Log(_log) => {}
-            _ => {}
-        }
         Ok(())
     }
 }

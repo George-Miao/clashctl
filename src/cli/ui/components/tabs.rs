@@ -2,7 +2,7 @@ use tui::style::{Color, Modifier, Style};
 use tui::text::{Span, Spans};
 use tui::widgets::{StatefulWidget, Tabs as TuiTabs, Widget};
 
-use crate::cli::{components::get_block, Event, EventHandler};
+use crate::cli::{components::get_block, Event, EventHandler, InterfaceEvent};
 
 #[derive(Clone, Debug)]
 pub struct TabState {
@@ -27,7 +27,7 @@ impl TabState {
         self.index = (self.index + 1) % Self::TITLES.len();
     }
 
-    pub fn previous(&mut self) {
+    pub fn prev(&mut self) {
         if self.index > 0 {
             self.index -= 1;
         } else {
@@ -39,8 +39,13 @@ impl TabState {
 impl EventHandler for TabState {
     fn handle(&mut self, event: &Event) -> crate::Result<()> {
         match event {
-            Event::TabNext => self.next(),
-            Event::TabPrev => self.previous(),
+            Event::Interface(InterfaceEvent::TabNext) => self.next(),
+            Event::Interface(InterfaceEvent::TabPrev) => self.prev(),
+            Event::Interface(InterfaceEvent::TabGoto(index)) => {
+                if index < &Self::TITLES.len() {
+                    self.index = *index
+                }
+            }
             _ => {}
         }
         Ok(())

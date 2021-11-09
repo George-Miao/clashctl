@@ -6,7 +6,7 @@ use tui::{
     symbols::bar::Set,
 };
 
-use crate::cli::{components::get_block, Event, EventHandler};
+use crate::cli::{components::get_block, Event, EventHandler, UpdateEvent};
 use crate::model::Traffic;
 
 const TRAFFIC_SIZE: usize = 100;
@@ -20,7 +20,7 @@ impl TrafficState {}
 
 impl EventHandler for TrafficState {
     fn handle(&mut self, event: &Event) -> crate::Result<()> {
-        if let Event::Traffic(traffic) = event {
+        if let Event::Update(UpdateEvent::Traffic(traffic)) = event {
             self.traffics.push(traffic.to_owned());
         }
         Ok(())
