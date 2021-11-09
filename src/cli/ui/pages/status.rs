@@ -37,8 +37,14 @@ impl StatefulWidget for StatusPage {
         let info = [
             ("▲", ByteSize(last_traffic.up).to_string_as(true) + "/s"),
             ("▼", ByteSize(last_traffic.down).to_string_as(true) + "/s"),
-            ("▲ Total", "?".to_owned()),
-            ("▼ Total", "?".to_owned()),
+            (
+                "▲ Total",
+                ByteSize(state.connection.upload_total).to_string_as(true),
+            ),
+            (
+                "▼ Total",
+                ByteSize(state.connection.download_total).to_string_as(true),
+            ),
             ("Connection #", "?".to_owned()),
         ]
         .into_iter()

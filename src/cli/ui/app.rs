@@ -15,7 +15,7 @@ use tui::backend::CrosstermBackend;
 use tui::layout::{Constraint, Layout, Rect};
 use tui::{Frame, Terminal};
 
-use crate::cli::{components::*, Event, Flags};
+use crate::cli::{components::*, DiagnosticEvent, Event, Flags};
 use crate::cli::{
     ui::pages::{ConfigPage, DebugPage, ProxiesPage, StatusPage},
     UpdateEvent,
@@ -111,7 +111,7 @@ impl TuiApp {
 
         loop {
             interval.tick();
-            // self.state.debug_state.new_tick();
+            self.state.new_tick();
             terminal.draw(|f| self.render(f))?;
             if !servo_handle.is_running() {
                 Self::wrap_up(terminal)?;
@@ -120,7 +120,7 @@ impl TuiApp {
             }
             match rx.try_recv() {
                 Ok(event) => {
-                    if let Err(e) = self.handle(&event) {
+                    if let Err(e) = self.handle(event) {
                         Self::wrap_up(terminal)?;
                         eprintln!("Quit: {}", e);
                         break;
@@ -173,10 +173,9 @@ impl TuiApp {
         self.route(main, f);
     }
 
-    fn handle(&mut self, event: &Event) -> Result<()> {
+    fn handle(&mut self, event: Event) -> Result<()> {
         match event {
             Event::Quit => Err(Error::TuiInterupttedErr),
-            Event::Log(_log) => Ok(()),
             _ => self.state.handle(event),
         }
     }
@@ -217,13 +216,9 @@ impl TuiApp {
 
         let key_tx = tx.clone();
         let traffic_tx = tx.clone();
-        let _req_tx = tx;
 
         let clash = flags.connect_server_from_config()?;
-        // let traffics = clash.get_traffic()?;
-
-        let interval_ms = (opt.interval * 1000f32) as u64;
-        let _interval = Duration::from_millis(interval_ms);
+        let req_clash = clash.clone();
 
         let mut key_handle = run!({
             loop {
@@ -259,11 +254,15 @@ impl TuiApp {
         });
 
         #[allow(unreachable_code)]
-        #[allow(clippy::empty_loop)]
         let mut req_handle = run!({
+            let mut interval = Interval::every(Duration::from_millis(500));
+            let clash = req_clash;
             loop {
-                // sleep(interval);
-                // req_tx.send(Event::Update)?;
+                interval.tick();
+                tx.send(Event::Update(UpdateEvent::Connection(
+                    clash.get_connections()?,
+                )))?;
+                tx.send(Event::Update(UpdateEvent::Proxies(clash.get_proxies()?)))?;
             }
         });
 
@@ -282,7 +281,7 @@ pub struct Logger {
 
 impl Logger {
     pub fn new(sender: Sender<Event>) -> Self {
-        Self::new_with_level(sender, LevelFilter::Debug)
+        Self::new_with_level(sender, LevelFilter::Info)
     }
 
     pub fn new_with_level(sender: Sender<Event>, level: LevelFilter) -> Self {
@@ -303,8 +302,16 @@ impl log::Log for Logger {
         true
     }
     fn log(&self, record: &Record) {
-        let text = format!("{:?}", record.args());
-        self.sender.lock().unwrap().send(Event::Log(text)).unwrap()
+        let text = format!(
+            "{:<6}{:?}",
+            record.level().to_string().to_uppercase(),
+            record.args()
+        );
+        self.sender
+            .lock()
+            .unwrap()
+            .send(Event::Diagnostic(DiagnosticEvent::Log(text)))
+            .unwrap()
     }
     fn flush(&self) {}
 }

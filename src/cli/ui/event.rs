@@ -8,7 +8,7 @@ pub enum Event {
     Quit,
     Interface(InterfaceEvent),
     Update(UpdateEvent),
-    Log(String),
+    Diagnostic(DiagnosticEvent),
 }
 
 #[derive(Clone, Debug)]
@@ -26,6 +26,12 @@ pub enum UpdateEvent {
     Traffic(Traffic),
     Proxies(Proxies),
     Log(Log),
+}
+
+#[derive(Clone, Debug)]
+pub enum DiagnosticEvent {
+    Log(String),
+    BackgroundTick,
 }
 
 impl TryFrom<KeyCode> for Event {

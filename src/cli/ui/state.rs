@@ -1,8 +1,8 @@
 use std::time::Instant;
 
 use crate::{
-    cli::{Event, InterfaceEvent},
-    model::Traffic,
+    cli::{Event, InterfaceEvent, UpdateEvent},
+    model::{Connections, Traffic},
     Result,
 };
 
@@ -13,6 +13,7 @@ pub struct TuiStates {
     pub(crate) traffics: Vec<Traffic>,
     pub(crate) events: Vec<Event>,
     pub(crate) page_index: usize,
+    pub(crate) connection: Connections,
 }
 
 impl TuiStates {
@@ -25,16 +26,37 @@ impl TuiStates {
             traffics: Default::default(),
             events: Default::default(),
             page_index: Default::default(),
+            connection: Default::default(),
         }
     }
 
-    pub fn handle(&mut self, event: &Event) -> Result<()> {
+    pub fn handle(&mut self, event: Event) -> Result<()> {
+        self.events.push(event.to_owned());
         match event {
-            Event::Interface(InterfaceEvent::TabNext) => self.next(),
-            Event::Interface(InterfaceEvent::TabPrev) => self.prev(),
-            Event::Interface(InterfaceEvent::TabGoto(index)) => {
-                if index >= &1 && index <= &Self::TITLES.len() {
-                    self.page_index = *index - 1
+            Event::Interface(event) => self.handle_interface(event),
+            Event::Update(update) => self.handle_update(update),
+            _ => Ok(()),
+        }
+    }
+
+    fn handle_update(&mut self, update: UpdateEvent) -> Result<()> {
+        match update {
+            UpdateEvent::Connection(connection) => self.connection = connection,
+            UpdateEvent::Version(version) => {}
+            UpdateEvent::Traffic(traffic) => self.traffics.push(traffic),
+            UpdateEvent::Proxies(proxies) => {}
+            UpdateEvent::Log(_) => {}
+        }
+        Ok(())
+    }
+
+    fn handle_interface(&mut self, event: InterfaceEvent) -> Result<()> {
+        match event {
+            InterfaceEvent::TabNext => self.next_page(),
+            InterfaceEvent::TabPrev => self.prev_page(),
+            InterfaceEvent::TabGoto(index) => {
+                if index >= 1 && index <= Self::TITLES.len() {
+                    self.page_index = index - 1
                 }
             }
             _ => {}
@@ -42,16 +64,20 @@ impl TuiStates {
         Ok(())
     }
 
-    pub fn next(&mut self) {
+    fn next_page(&mut self) {
         self.page_index = (self.page_index + 1) % Self::TITLES.len();
     }
 
-    pub fn prev(&mut self) {
+    fn prev_page(&mut self) {
         if self.page_index > 0 {
             self.page_index -= 1;
         } else {
             self.page_index = Self::TITLES.len() - 1;
         }
+    }
+
+    pub fn new_tick(&mut self) {
+        self.ticks += 1
     }
 }
 
