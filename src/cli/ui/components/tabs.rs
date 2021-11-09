@@ -1,16 +1,23 @@
 use tui::style::{Color, Modifier, Style};
 use tui::text::{Span, Spans};
-use tui::widgets::{Block, BorderType, Borders, StatefulWidget, Tabs as TuiTabs, Widget};
+use tui::widgets::{StatefulWidget, Tabs as TuiTabs, Widget};
 
-use crate::cli::{Event, EventHandler};
+use crate::cli::{components::get_block, Event, EventHandler};
 
-#[derive(Default, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct TabState {
     pub index: usize,
 }
 
+#[allow(clippy::derivable_impls)]
+impl Default for TabState {
+    fn default() -> Self {
+        Self { index: 0 }
+    }
+}
+
 impl TabState {
-    pub const TITLES: [&'static str; 3] = ["Status", "Proxies", "Configs"];
+    pub const TITLES: [&'static str; 4] = ["Status", "Proxies", "Configs", "Debug"];
 
     pub fn title(&self) -> &str {
         Self::TITLES[self.index]
@@ -53,18 +60,13 @@ impl StatefulWidget for Tabs {
     ) {
         let titles = TabState::TITLES
             .iter()
-            .map(|t| Spans::from(Span::styled(*t, Style::default().fg(Color::Green))))
+            .map(|t| Spans::from(Span::styled(*t, Style::default().fg(Color::Gray))))
             .collect();
         let tabs = TuiTabs::new(titles)
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .border_type(BorderType::Rounded)
-                    .title(clap::crate_name!()),
-            )
+            .block(get_block("Clashctl"))
             .highlight_style(
                 Style::default()
-                    .fg(Color::Yellow)
+                    .fg(Color::White)
                     .add_modifier(Modifier::BOLD),
             )
             .select(state.index);
