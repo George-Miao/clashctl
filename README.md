@@ -2,7 +2,7 @@
 
 ## About <a name = "about"></a>
 
-Easy-to-use command line tool to interact with [Clash](https://https://github.com/Dreamacro/clash) RESTful API.
+Easy-to-use TUI & CLI to interact with [Clash](https://https://github.com/Dreamacro/clash) RESTful API.
 
 ## Getting Started <a name = "getting_started"></a>
 
@@ -24,15 +24,18 @@ selector            -       All
 ```
 
 ## Features
+
+- Pretty terminal UI
 - Change proxies
 - Display proxies, with filter and sorting supported, in both plain and grouped mode
 - Store and use multiple servers
 - Generate completion script (by [clap_generate](https://crates.io/crates/clap_generate))
-- Manage multiple servers 
+- Manage multiple servers
 
 ### TODO
-- [X] Manage servers
-- [X] Sort proxies
+
+- [x] Manage servers
+- [x] Sort proxies
 - [ ] Status panel (TUI)
 - [ ] Inspect rules
 - [ ] Inspect configs
@@ -48,7 +51,6 @@ $ cargo install clashctl
 
 ### Compile from source
 
-
 ```bash
 $ git clone https://github.com/George-Miao/clashctl.git
 $ cd clashctl
@@ -60,6 +62,7 @@ $ cargo install --features cli --path .
 You will need rust environment (Cargo & rustc) to compile and install
 
 ## MSRV
+
 Minimum supported rust version is `1.56.0`
 
 Test with cargo-msrv
@@ -101,7 +104,7 @@ SUBCOMMANDS:
 clashctl = "*"
 ```
 
-Then in your project: 
+Then in your project:
 
 ```rust
 use clashctl::Clash;
