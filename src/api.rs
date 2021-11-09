@@ -62,7 +62,7 @@ impl ClashBuilder {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Clash {
     url: Url,
     secret: Option<String>,
