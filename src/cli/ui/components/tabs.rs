@@ -42,8 +42,8 @@ impl EventHandler for TabState {
             Event::Interface(InterfaceEvent::TabNext) => self.next(),
             Event::Interface(InterfaceEvent::TabPrev) => self.prev(),
             Event::Interface(InterfaceEvent::TabGoto(index)) => {
-                if index < &Self::TITLES.len() {
-                    self.index = *index
+                if index >= &1 && index <= &Self::TITLES.len() {
+                    self.index = *index - 1
                 }
             }
             _ => {}
