@@ -1,5 +1,3 @@
-use std::time::Instant;
-
 use tui::layout::{Constraint, Layout};
 use tui::{
     text::Spans,
@@ -8,14 +6,14 @@ use tui::{
 
 use crate::cli::{
     components::{get_block, get_text_style},
-    Event, EventHandler,
+    TuiStates,
 };
 
 #[derive(Clone, Debug, Default)]
 pub struct DebugPage {}
 
 impl StatefulWidget for DebugPage {
-    type State = DebugState;
+    type State = TuiStates;
     fn render(
         self,
         area: tui::layout::Rect,
@@ -57,35 +55,5 @@ impl StatefulWidget for DebugPage {
 
         info.render(layout[0], buf);
         Widget::render(events, layout[1], buf)
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct DebugState {
-    ticks: u64,
-    events: Vec<Event>,
-    start_time: Instant,
-}
-
-impl DebugState {
-    pub fn new_tick(&mut self) {
-        self.ticks += 1
-    }
-}
-
-impl Default for DebugState {
-    fn default() -> Self {
-        Self {
-            ticks: 0,
-            events: vec![],
-            start_time: Instant::now(),
-        }
-    }
-}
-
-impl EventHandler for DebugState {
-    fn handle(&mut self, event: &crate::cli::Event) -> crate::Result<()> {
-        self.events.push(event.to_owned());
-        Ok(())
     }
 }

@@ -28,10 +28,6 @@ pub enum UpdateEvent {
     Log(Log),
 }
 
-pub trait EventHandler {
-    fn handle(&mut self, event: &Event) -> Result<()>;
-}
-
 impl TryFrom<KeyCode> for Event {
     type Error = Error;
     fn try_from(value: KeyCode) -> Result<Self> {

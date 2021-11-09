@@ -15,15 +15,12 @@ use tui::backend::CrosstermBackend;
 use tui::layout::{Constraint, Layout, Rect};
 use tui::{Frame, Terminal};
 
-use crate::cli::ui::{components::TabState, utils::Interval};
-use crate::cli::{components::*, Event, EventHandler, Flags};
+use crate::cli::{components::*, Event, Flags};
 use crate::cli::{
-    ui::pages::{
-        ConfigPage, ConfigState, DebugPage, DebugState, ProxiesPage, ProxiesState, StatusPage,
-        StatusState,
-    },
+    ui::pages::{ConfigPage, DebugPage, ProxiesPage, StatusPage},
     UpdateEvent,
 };
+use crate::cli::{ui::utils::Interval, TuiStates};
 use crate::{Error, Result};
 
 type Backend = CrosstermBackend<Stdout>;
@@ -53,15 +50,6 @@ impl Default for TuiOpt {
     fn default() -> Self {
         Self { interval: 5.0 }
     }
-}
-
-#[derive(Clone, Debug, Default)]
-pub struct TuiStates {
-    tab_state: TabState,
-    proxies_state: ProxiesState,
-    status_state: StatusState,
-    config_state: ConfigState,
-    debug_state: DebugState,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -123,7 +111,7 @@ impl TuiApp {
 
         loop {
             interval.tick();
-            self.state.debug_state.new_tick();
+            // self.state.debug_state.new_tick();
             terminal.draw(|f| self.render(f))?;
             if !servo_handle.is_running() {
                 Self::wrap_up(terminal)?;
@@ -151,22 +139,22 @@ impl TuiApp {
     }
 
     fn route(&mut self, area: Rect, f: &mut Frame<Backend>) {
-        match self.state.tab_state.index {
+        match self.state.page_index {
             0 => {
                 let page = StatusPage::default();
-                f.render_stateful_widget(page, area, &mut self.state.status_state)
+                f.render_stateful_widget(page, area, &mut self.state)
             }
             1 => {
                 let page = ProxiesPage::default();
-                f.render_stateful_widget(page, area, &mut self.state.proxies_state)
+                f.render_stateful_widget(page, area, &mut self.state)
             }
             2 => {
                 let page = ConfigPage::default();
-                f.render_stateful_widget(page, area, &mut self.state.config_state)
+                f.render_stateful_widget(page, area, &mut self.state)
             }
             3 => {
                 let page = DebugPage::default();
-                f.render_stateful_widget(page, area, &mut self.state.debug_state)
+                f.render_stateful_widget(page, area, &mut self.state)
             }
             _ => unreachable!(),
         }
@@ -178,7 +166,7 @@ impl TuiApp {
             .split(f.size());
 
         let tabs = Tabs::default();
-        f.render_stateful_widget(tabs, layout[0], &mut self.state.tab_state);
+        f.render_stateful_widget(tabs, layout[0], &mut self.state);
 
         let main = layout[1];
 
@@ -186,20 +174,10 @@ impl TuiApp {
     }
 
     fn handle(&mut self, event: &Event) -> Result<()> {
-        self.state.debug_state.handle(event)?;
         match event {
             Event::Quit => Err(Error::TuiInterupttedErr),
             Event::Log(_log) => Ok(()),
-            Event::Interface(_) => self.state.tab_state.handle(event),
-            Event::Update(_) => self
-                .state
-                .proxies_state
-                .handle(event)
-                .and_then(|_| self.state.status_state.handle(event))
-                .and_then(|_| self.state.config_state.handle(event))
-                .and_then(|_| self.state.debug_state.handle(event))
-                .and_then(|_| self.state.proxies_state.handle(event)),
-            _ => Ok(()),
+            _ => self.state.handle(event),
         }
     }
 

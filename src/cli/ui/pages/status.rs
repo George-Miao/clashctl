@@ -5,20 +5,17 @@ use tui::{
     widgets::{Paragraph, StatefulWidget, Widget},
 };
 
+use crate::cli::components::Traffics;
 use crate::cli::{
     components::{get_block, get_text_style},
-    EventHandler,
-};
-use crate::{
-    cli::components::{TrafficState, Traffics},
-    model::Traffic,
+    TuiStates,
 };
 
 #[derive(Clone, Debug, Default)]
 pub struct StatusPage {}
 
 impl StatefulWidget for StatusPage {
-    type State = StatusState;
+    type State = TuiStates;
     fn render(
         self,
         area: tui::layout::Rect,
@@ -31,7 +28,6 @@ impl StatefulWidget for StatusPage {
             .split(area);
 
         let last_traffic = state
-            .traffic
             .traffics
             .iter()
             .last()
@@ -55,18 +51,6 @@ impl StatefulWidget for StatusPage {
             .render(main[0], buf);
 
         let traffic = Traffics::default();
-        traffic.render(main[1], buf, &mut state.traffic)
-    }
-}
-
-#[derive(Clone, Debug, Default)]
-pub struct StatusState {
-    traffic: TrafficState,
-}
-
-impl EventHandler for StatusState {
-    fn handle(&mut self, event: &crate::cli::Event) -> crate::Result<()> {
-        self.traffic.handle(event)?;
-        Ok(())
+        traffic.render(main[1], buf, state)
     }
 }

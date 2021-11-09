@@ -13,4 +13,6 @@ pub use utils::*;
 #[cfg(feature = "ui")]
 mod ui;
 #[cfg(feature = "ui")]
-pub use ui::*;
+pub use ui::TuiOpt;
+#[cfg(feature = "ui")]
+pub(crate) use ui::*;

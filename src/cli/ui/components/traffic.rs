@@ -6,26 +6,9 @@ use tui::{
     symbols::bar::Set,
 };
 
-use crate::cli::{components::get_block, Event, EventHandler, UpdateEvent};
-use crate::model::Traffic;
+use crate::cli::{components::get_block, TuiStates};
 
 const TRAFFIC_SIZE: usize = 100;
-#[derive(Default, Clone, Debug)]
-pub struct TrafficState {
-    // pub traffics: Ring<Traffic, TRAFFIC_SIZE>,
-    pub traffics: Vec<Traffic>,
-}
-
-impl TrafficState {}
-
-impl EventHandler for TrafficState {
-    fn handle(&mut self, event: &Event) -> crate::Result<()> {
-        if let Event::Update(UpdateEvent::Traffic(traffic)) = event {
-            self.traffics.push(traffic.to_owned());
-        }
-        Ok(())
-    }
-}
 
 pub const DOTS: Set = Set {
     empty: " ",
@@ -43,7 +26,7 @@ pub const DOTS: Set = Set {
 pub struct Traffics {}
 
 impl StatefulWidget for Traffics {
-    type State = TrafficState;
+    type State = TuiStates;
     fn render(
         self,
         area: tui::layout::Rect,
