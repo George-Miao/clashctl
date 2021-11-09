@@ -28,6 +28,8 @@ impl Interval {
         }
     }
 
+    pub fn poll_tick(&self) {}
+
     pub fn tick(&mut self) {
         sleep(self.next_tick())
     }
@@ -39,4 +41,28 @@ fn test_interval() {
     assert!(interval.next_tick().as_millis().abs_diff(100) < 2);
     sleep(Duration::from_millis(50));
     assert!(interval.next_tick().as_millis().abs_diff(50) < 2);
+}
+
+pub struct Pulse {
+    pulse: u64,
+    counter: u64,
+}
+
+impl Pulse {
+    #[inline]
+    pub fn new(pulse: u64) -> Self {
+        Self { pulse, counter: 0 }
+    }
+
+    #[inline]
+    pub fn tick(&mut self) -> bool {
+        let ret = self.is_pulse();
+        self.counter += 1;
+        ret
+    }
+
+    #[inline]
+    pub fn is_pulse(&self) -> bool {
+        self.counter % self.pulse == 0
+    }
 }

@@ -15,7 +15,7 @@ use tui::backend::CrosstermBackend;
 use tui::layout::{Constraint, Layout, Rect};
 use tui::{Frame, Terminal};
 
-use crate::cli::{components::*, DiagnosticEvent, Event, Flags};
+use crate::cli::{components::*, ui::utils::Pulse, DiagnosticEvent, Event, Flags};
 use crate::cli::{
     ui::pages::{ConfigPage, DebugPage, ProxiesPage, StatusPage},
     UpdateEvent,
@@ -255,14 +255,25 @@ impl TuiApp {
 
         #[allow(unreachable_code)]
         let mut req_handle = run!({
-            let mut interval = Interval::every(Duration::from_millis(500));
+            let mut interval = Interval::every(Duration::from_millis(50));
+            let mut connection_pulse = Pulse::new(10); // Every 500 ms
+            let mut proxies_pulse = Pulse::new(40); // Every 2 s
+            let mut version_pulse = Pulse::new(200); // Every 10 s
+
             let clash = req_clash;
             loop {
+                if connection_pulse.tick() {
+                    tx.send(Event::Update(UpdateEvent::Connection(
+                        clash.get_connections()?,
+                    )))?;
+                }
+                if proxies_pulse.tick() {
+                    tx.send(Event::Update(UpdateEvent::Proxies(clash.get_proxies()?)))?;
+                }
+                if version_pulse.tick() {
+                    tx.send(Event::Update(UpdateEvent::Version(clash.get_version()?)))?;
+                }
                 interval.tick();
-                tx.send(Event::Update(UpdateEvent::Connection(
-                    clash.get_connections()?,
-                )))?;
-                tx.send(Event::Update(UpdateEvent::Proxies(clash.get_proxies()?)))?;
             }
         });
 

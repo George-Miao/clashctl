@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use crate::{
     cli::{Event, InterfaceEvent, UpdateEvent},
-    model::{Connections, Traffic},
+    model::{Connections, Log, Proxies, Traffic, Version},
     Result,
 };
 
@@ -12,8 +12,11 @@ pub struct TuiStates {
     pub(crate) start_time: Instant,
     pub(crate) traffics: Vec<Traffic>,
     pub(crate) events: Vec<Event>,
+    pub(crate) logs: Vec<Log>,
     pub(crate) page_index: usize,
     pub(crate) connection: Connections,
+    pub(crate) version: Version,
+    pub(crate) proxies: Proxies,
 }
 
 impl TuiStates {
@@ -22,11 +25,18 @@ impl TuiStates {
     pub fn new() -> Self {
         Self {
             ticks: Default::default(),
-            start_time: Instant::now(),
             traffics: Default::default(),
             events: Default::default(),
             page_index: Default::default(),
             connection: Default::default(),
+            proxies: Default::default(),
+            logs: Default::default(),
+
+            // Non-default
+            start_time: Instant::now(),
+            version: Version {
+                version: semver::Version::parse("0.0.0").unwrap(),
+            },
         }
     }
 
@@ -42,10 +52,10 @@ impl TuiStates {
     fn handle_update(&mut self, update: UpdateEvent) -> Result<()> {
         match update {
             UpdateEvent::Connection(connection) => self.connection = connection,
-            UpdateEvent::Version(version) => {}
+            UpdateEvent::Version(version) => self.version = version,
             UpdateEvent::Traffic(traffic) => self.traffics.push(traffic),
-            UpdateEvent::Proxies(proxies) => {}
-            UpdateEvent::Log(_) => {}
+            UpdateEvent::Proxies(proxies) => self.proxies = proxies,
+            UpdateEvent::Log(log) => self.logs.push(log),
         }
         Ok(())
     }
