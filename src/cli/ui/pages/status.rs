@@ -36,7 +36,7 @@ impl StatefulWidget for StatusPage {
             .iter()
             .last()
             .map(|x| x.to_owned())
-            .unwrap_or_else(Traffic::default);
+            .unwrap_or_default();
 
         let info = [
             ("▲", ByteSize(last_traffic.up).to_string_as(true) + "/s"),

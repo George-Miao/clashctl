@@ -60,7 +60,7 @@ impl StatefulWidget for Tabs {
     ) {
         let titles = TabState::TITLES
             .iter()
-            .map(|t| Spans::from(Span::styled(*t, Style::default().fg(Color::Gray))))
+            .map(|t| Spans::from(Span::styled(*t, Style::default().fg(Color::DarkGray))))
             .collect();
         let tabs = TuiTabs::new(titles)
             .block(get_block("Clashctl"))

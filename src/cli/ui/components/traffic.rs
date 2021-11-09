@@ -76,14 +76,14 @@ impl StatefulWidget for Traffics {
             .max(up_max)
             .bar_set(DOTS)
             .block(get_block(&up_title))
-            .style(Style::default().fg(Color::Blue));
+            .style(Style::default().fg(Color::Green));
 
         let down_line = Sparkline::default()
             .data(&down)
             .max(down_max)
             .bar_set(DOTS)
             .block(get_block(&down_title))
-            .style(Style::default().fg(Color::Red));
+            .style(Style::default().fg(Color::White));
 
         let layout = Layout::default()
             .direction(tui::layout::Direction::Vertical)
