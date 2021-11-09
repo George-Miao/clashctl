@@ -4,7 +4,7 @@ use std::ops::Deref;
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Proxies {
     pub proxies: HashMap<String, Proxy>,
 }
@@ -16,7 +16,7 @@ impl Deref for Proxies {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Proxy {
     #[serde(rename = "type")]
     pub proxy_type: ProxyType,
@@ -28,7 +28,7 @@ pub struct Proxy {
     pub now: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Eq)]
+#[derive(Serialize, Deserialize, Clone, Debug, Eq)]
 pub struct History {
     pub time: DateTime<Local>,
     pub delay: u64,
