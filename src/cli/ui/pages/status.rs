@@ -44,6 +44,14 @@ impl StatefulWidget for StatusPage {
                 "▼ Download",
                 ByteSize(last_traffic.down).to_string_as(true) + "/s",
             ),
+            (
+                "▲ Max",
+                ByteSize(state.max_traffic.up).to_string_as(true) + "/s",
+            ),
+            (
+                "▼ Max",
+                ByteSize(state.max_traffic.down).to_string_as(true) + "/s",
+            ),
             ("▲ Total", ByteSize(con.upload_total).to_string_as(true)),
             ("▼ Total", ByteSize(con.download_total).to_string_as(true)),
             ("Connection #", con.connections.len().to_string()),
@@ -53,8 +61,8 @@ impl StatefulWidget for StatusPage {
         .into_iter()
         .map(|(title, content)| format!(" {:<15}{:>11} ", title, content))
         .fold(String::with_capacity(255), |mut a, b| {
-            a.push('\n');
             a.push_str(&b);
+            a.push('\n');
             a
         });
 
