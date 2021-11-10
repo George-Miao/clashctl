@@ -57,12 +57,7 @@ impl TuiApp {
         let mut key_handle = run!({
             loop {
                 match crossterm::event::read() {
-                    Ok(CrossTermEvent::Key(event)) => {
-                        if let Ok(event) = Event::try_from(event) {
-                            key_tx.send(event)?
-                        }
-                    }
-
+                    Ok(CrossTermEvent::Key(event)) => key_tx.send(Event::from(event))?,
                     Err(_) => {
                         key_tx.send(Event::Quit)?;
                         break;

@@ -60,14 +60,6 @@ impl TuiStates {
 
     fn handle_interface(&mut self, event: InterfaceEvent) -> Result<()> {
         match event {
-            InterfaceEvent::TabNext => {
-                self.focus = false;
-                self.next_page()
-            }
-            InterfaceEvent::TabPrev => {
-                self.focus = false;
-                self.prev_page()
-            }
             InterfaceEvent::TabGoto(index) => {
                 self.focus = false;
                 if index >= 1
@@ -90,18 +82,6 @@ impl TuiStates {
             _ => {}
         }
         Ok(())
-    }
-
-    fn next_page(&mut self) {
-        self.page_index = (self.page_index + 1) % self.page_len();
-    }
-
-    fn prev_page(&mut self) {
-        if self.page_index > 0 {
-            self.page_index -= 1;
-        } else {
-            self.page_index = self.page_len() - 1;
-        }
     }
 
     fn debug_page_index(&self) -> usize {

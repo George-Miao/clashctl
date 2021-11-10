@@ -15,11 +15,10 @@ pub enum Event {
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum InterfaceEvent {
-    TabNext,
-    TabPrev,
     TabGoto(usize),
     ToggleDebug,
     ToggleFocus,
+    Other(KeyEvent),
 }
 
 #[derive(Clone, Debug)]
@@ -46,8 +45,6 @@ impl TryFrom<KeyCode> for Event {
             KeyCode::Char(' ') | KeyCode::Enter => {
                 Ok(Event::Interface(InterfaceEvent::ToggleFocus))
             }
-            KeyCode::Right => Ok(Event::Interface(InterfaceEvent::TabNext)),
-            KeyCode::Left => Ok(Event::Interface(InterfaceEvent::TabPrev)),
             KeyCode::Char(char) => char
                 .to_digit(10)
                 .ok_or(Error::TuiInternalErr)
@@ -57,16 +54,17 @@ impl TryFrom<KeyCode> for Event {
     }
 }
 
-impl TryFrom<KeyEvent> for Event {
-    type Error = Error;
-    fn try_from(value: KeyEvent) -> Result<Self> {
+impl From<KeyEvent> for Event {
+    fn from(value: KeyEvent) -> Self {
         match (value.modifiers, value.code) {
-            (KeyModifiers::CONTROL, KeyCode::Char('c')) => Ok(Self::Quit),
+            (KeyModifiers::CONTROL, KeyCode::Char('c')) => Self::Quit,
             (KeyModifiers::CONTROL, KeyCode::Char('d')) => {
-                Ok(Self::Interface(InterfaceEvent::ToggleDebug))
+                Self::Interface(InterfaceEvent::ToggleDebug)
             }
-            (KeyModifiers::NONE, key_code) => key_code.try_into(),
-            _ => Err(Error::TuiInternalErr),
+            (KeyModifiers::NONE, key_code) => key_code
+                .try_into()
+                .unwrap_or_else(|_| Self::Interface(InterfaceEvent::Other(value))),
+            _ => Self::Interface(InterfaceEvent::Other(value)),
         }
     }
 }
