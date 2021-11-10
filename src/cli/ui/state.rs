@@ -23,6 +23,7 @@ pub struct TuiStates {
     pub(crate) traffics: Vec<Traffic>,
     pub(crate) max_traffic: Traffic,
     pub(crate) events: Vec<Event>,
+    pub(crate) all_events_recv: usize,
     pub(crate) logs: Vec<Log>,
     pub(crate) page_index: usize,
     pub(crate) connection: Connections,
@@ -43,6 +44,10 @@ impl TuiStates {
     }
 
     pub fn handle(&mut self, event: Event) -> Result<()> {
+        self.all_events_recv += 1;
+        if self.events.len() >= 300 {
+            let _ = self.drop_events(100);
+        }
         self.events.push(event.to_owned());
         if self.debug_list_offset.hold {
             self.debug_list_offset.y += 1;
@@ -107,6 +112,10 @@ impl TuiStates {
 
     pub fn title(&self) -> &str {
         Self::TITLES[self.page_index]
+    }
+
+    pub fn drop_events(&mut self, num: usize) -> impl Iterator<Item = Event> + '_ {
+        self.events.drain(..num)
     }
 
     fn handle_list(&mut self, event: KeyEvent, mut offset: Coord) -> Coord {

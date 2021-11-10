@@ -1,3 +1,5 @@
+use std::iter::repeat;
+
 use bytesize::ByteSize;
 use clap::crate_version;
 use tui::{
@@ -34,45 +36,76 @@ impl StatefulWidget for StatusPage {
             .map(|x| x.to_owned())
             .unwrap_or_default();
 
+        let (up_avg, down_avg) = match state.start_time {
+            Some(time) if time.elapsed().as_secs() == 0 => ("?".to_string(), "?".to_string()),
+            None => ("?".to_string(), "?".to_string()),
+            Some(time) => {
+                let elapsed = time.elapsed().as_secs();
+                let (up_all, down_all) =
+                    state.traffics.iter().fold((0, 0), |(up, down), traffic| {
+                        (up + traffic.up, down + traffic.down)
+                    });
+
+                (
+                    ByteSize(up_all / elapsed).to_string_as(true) + "/s",
+                    ByteSize(down_all / elapsed).to_string_as(true),
+                )
+            }
+        };
+
         let con = &state.connection;
+        let con_num = con.connections.len().to_string();
+        let height = main[0].height;
+        let clash_ver = state
+            .version
+            .to_owned()
+            .map_or_else(|| "?".to_owned(), |v| v.version.to_string());
+
+        let tails = [
+            ("Clash Ver.", clash_ver.as_str()),
+            ("Clashctl Ver.", crate_version!()),
+        ];
+
         let info = [
+            ("⇉ Connections", con_num.as_str()),
             (
                 "▲ Upload",
-                ByteSize(last_traffic.up).to_string_as(true) + "/s",
+                &(ByteSize(last_traffic.up).to_string_as(true) + "/s"),
             ),
             (
                 "▼ Download",
-                ByteSize(last_traffic.down).to_string_as(true) + "/s",
+                &(ByteSize(last_traffic.down).to_string_as(true) + "/s"),
             ),
+            ("▲ Avg.", &up_avg),
+            ("▼ Avg.", &down_avg),
             (
                 "▲ Max",
-                ByteSize(state.max_traffic.up).to_string_as(true) + "/s",
+                &(ByteSize(state.max_traffic.up).to_string_as(true) + "/s"),
             ),
             (
                 "▼ Max",
-                ByteSize(state.max_traffic.down).to_string_as(true) + "/s",
+                &(ByteSize(state.max_traffic.down).to_string_as(true) + "/s"),
             ),
-            ("▲ Total", ByteSize(con.upload_total).to_string_as(true)),
-            ("▼ Total", ByteSize(con.download_total).to_string_as(true)),
-            ("Connection #", con.connections.len().to_string()),
-            (
-                "Clash Ver.",
-                state
-                    .version
-                    .to_owned()
-                    .map_or_else(|| "?".to_owned(), |v| v.version.to_string()),
-            ),
-            ("Clashctl Ver.", crate_version!().to_owned()),
-        ]
-        .into_iter()
-        .map(|(title, content)| format!(" {:<15}{:>11} ", title, content))
-        .fold(String::with_capacity(255), |mut a, b| {
-            a.push_str(&b);
-            a.push('\n');
-            a
-        });
+            ("▲ Total", &ByteSize(con.upload_total).to_string_as(true)),
+            ("▼ Total", &ByteSize(con.download_total).to_string_as(true)),
+            ("", ""),
+        ];
 
-        Paragraph::new(info)
+        let info_str = info
+            .into_iter()
+            .chain(
+                repeat(("", ""))
+                    .take((height as usize).saturating_sub(info.len() + tails.len() + 2)),
+            )
+            .chain(tails.into_iter())
+            .map(|(title, content)| format!(" {:<15}{:>11} ", title, content))
+            .fold(String::with_capacity((30 * height).into()), |mut a, b| {
+                a.push_str(&b);
+                a.push('\n');
+                a
+            });
+
+        Paragraph::new(info_str)
             .block(get_block("Info"))
             .style(get_text_style())
             .render(main[0], buf);

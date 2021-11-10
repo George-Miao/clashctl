@@ -1,3 +1,4 @@
+use hhmmss::Hhmmss;
 use tui::layout::{Constraint, Layout};
 use tui::widgets::{Paragraph, StatefulWidget, Widget};
 
@@ -39,7 +40,8 @@ impl StatefulWidget for DebugPage {
         let offset = state.debug_list_offset;
 
         let debug_info = [
-            ("Event #:", event_num.to_string()),
+            ("Event In Mem:", event_num.to_string()),
+            ("Event All #:", state.all_events_recv.to_string()),
             ("Event rate:", event_rate),
             ("Tick #:", state.ticks.to_string()),
             ("Tick rate:", tick_rate),
@@ -50,6 +52,13 @@ impl StatefulWidget for DebugPage {
                 } else {
                     "?".to_owned()
                 },
+            ),
+            (
+                "Run time:",
+                state
+                    .start_time
+                    .map(|x| x.elapsed().hhmmss())
+                    .unwrap_or_else(|| "?".to_owned()),
             ),
         ]
         .into_iter()
@@ -70,7 +79,7 @@ impl StatefulWidget for DebugPage {
             .map(|x| format!("{:?}", x))
             .collect::<Vec<_>>();
 
-        let events = MovableList::new();
+        let events = MovableList::new("Events");
         let mut list_state = MovableListState {
             items,
             offset: state.debug_list_offset,
