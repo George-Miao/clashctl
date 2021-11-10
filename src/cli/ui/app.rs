@@ -59,7 +59,7 @@ impl TuiApp {
     pub fn from_opt(opt: TuiOpt) -> Self {
         Self {
             opt,
-            ..Default::default()
+            state: TuiStates::new(),
         }
     }
 

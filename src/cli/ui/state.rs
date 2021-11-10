@@ -6,20 +6,21 @@ use crate::{
     Result,
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct TuiStates {
+    pub(crate) start_time: Option<Instant>,
+    pub(crate) version: Option<Version>,
     pub(crate) ticks: u64,
-    pub(crate) start_time: Instant,
     pub(crate) traffics: Vec<Traffic>,
     pub(crate) max_traffic: Traffic,
     pub(crate) events: Vec<Event>,
     pub(crate) logs: Vec<Log>,
     pub(crate) page_index: usize,
     pub(crate) connection: Connections,
-    pub(crate) version: Version,
     pub(crate) proxies: Proxies,
     pub(crate) show_debug: bool,
     pub(crate) focus: bool,
+    pub(crate) log_page_offset: u64,
 }
 
 impl TuiStates {
@@ -27,22 +28,8 @@ impl TuiStates {
 
     pub fn new() -> Self {
         Self {
-            ticks: Default::default(),
-            traffics: Default::default(),
-            max_traffic: Default::default(),
-            events: Default::default(),
-            page_index: Default::default(),
-            connection: Default::default(),
-            proxies: Default::default(),
-            logs: Default::default(),
-            show_debug: Default::default(),
-            focus: Default::default(),
-
-            // Non-default
-            start_time: Instant::now(),
-            version: Version {
-                version: semver::Version::parse("0.0.0").unwrap(),
-            },
+            start_time: Some(Instant::now()),
+            ..Default::default()
         }
     }
 
@@ -58,7 +45,7 @@ impl TuiStates {
     fn handle_update(&mut self, update: UpdateEvent) -> Result<()> {
         match update {
             UpdateEvent::Connection(connection) => self.connection = connection,
-            UpdateEvent::Version(version) => self.version = version,
+            UpdateEvent::Version(version) => self.version = Some(version),
             UpdateEvent::Traffic(traffic) => {
                 let Traffic { up, down } = traffic;
                 self.max_traffic.up = self.max_traffic.up.max(up);
@@ -131,11 +118,5 @@ impl TuiStates {
         } else {
             Self::TITLES.len() - 1
         }
-    }
-}
-
-impl Default for TuiStates {
-    fn default() -> Self {
-        Self::new()
     }
 }
