@@ -21,21 +21,32 @@ impl StatefulWidget for DebugPage {
         state: &mut Self::State,
     ) {
         let layout = Layout::default()
-            .constraints([Constraint::Percentage(20), Constraint::Percentage(80)])
+            .constraints([Constraint::Length(30), Constraint::Min(0)])
             .direction(tui::layout::Direction::Horizontal)
             .split(area);
 
-        let debug_info = vec![
-            format!("Event #: {}", state.events.len()),
-            format!("Tick #: {}", state.ticks),
-            format!(
-                "Tick rate: {}",
-                (state.ticks as f64 / state.start_time.elapsed().as_secs_f64()) as usize
+        let event_num = state.events.len();
+        let elapsed = state.start_time.elapsed().as_secs_f64();
+
+        let debug_info = [
+            ("Event #:", event_num.to_string()),
+            (
+                "Event rate:",
+                format!("{:.2}/s", event_num as f64 / elapsed),
+            ),
+            ("Tick #:", state.ticks.to_string()),
+            (
+                "Tick rate:",
+                format!("{:.2}/s", state.ticks as f64 / elapsed),
             ),
         ]
         .into_iter()
-        .map(Spans::from)
-        .collect::<Vec<_>>();
+        .map(|(title, content)| format!(" {:<15}{:>11} ", title, content))
+        .fold(String::with_capacity(255), |mut a, b| {
+            a.push_str(&b);
+            a.push('\n');
+            a
+        });
 
         let info = Paragraph::new(debug_info)
             .block(get_block("Debug Info"))
