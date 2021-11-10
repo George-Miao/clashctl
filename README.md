@@ -41,6 +41,7 @@ selector            -       All
 - [x] Manage servers
 - [x] Sort proxies
 - [ ] Status panel (TUI)
+  - [ ] Separate render and event handle into two threads
   - [ ] Proxies
   - [ ] Configs
   - [ ] Rules
