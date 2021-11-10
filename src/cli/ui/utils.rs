@@ -32,8 +32,6 @@ impl Interval {
         }
     }
 
-    pub fn poll_tick(&self) {}
-
     pub fn tick(&mut self) {
         sleep(self.next_tick())
     }

@@ -1,5 +1,4 @@
 use tui::{
-    layout::Rect,
     style::Style,
     text::{Span, Spans, Text},
     widgets::{List, ListItem, StatefulWidget, Widget},
@@ -7,7 +6,7 @@ use tui::{
 
 use crate::{
     cli::{
-        components::{get_block, get_focused_block, get_text_style},
+        components::{get_block, get_text_style},
         TuiStates,
     },
     model::Log,
@@ -24,17 +23,13 @@ impl StatefulWidget for LogPage {
         buf: &mut tui::buffer::Buffer,
         state: &mut Self::State,
     ) {
-        let block = if state.focus {
-            get_focused_block("Logs")
-        } else {
-            get_block("Logs")
-        };
+        let block = get_block("Logs");
 
         let to_spans = |val: Log| -> Text {
             let color = val.log_type.clone().into();
             Spans::from(vec![
                 Span::styled(
-                    val.log_type.to_string().to_uppercase(),
+                    format!("{:^7}", val.log_type.to_string().to_uppercase()),
                     Style::default().fg(color),
                 ),
                 Span::raw(" "),

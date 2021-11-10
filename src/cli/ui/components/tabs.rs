@@ -1,5 +1,3 @@
-use std::ops::Range;
-
 use tui::style::{Color, Modifier, Style};
 use tui::text::{Span, Spans};
 use tui::widgets::{StatefulWidget, Tabs as TuiTabs, Widget};

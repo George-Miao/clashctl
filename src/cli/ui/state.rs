@@ -19,8 +19,7 @@ pub struct TuiStates {
     pub(crate) connection: Connections,
     pub(crate) proxies: Proxies,
     pub(crate) show_debug: bool,
-    pub(crate) focus: bool,
-    pub(crate) log_page_offset: u64,
+    pub(crate) log_page_offset: (u64, u64),
 }
 
 impl TuiStates {
@@ -61,7 +60,6 @@ impl TuiStates {
     fn handle_interface(&mut self, event: InterfaceEvent) -> Result<()> {
         match event {
             InterfaceEvent::TabGoto(index) => {
-                self.focus = false;
                 if index >= 1
                     && index <= Self::TITLES.len()
                     && (index - 1 != self.debug_page_index() || self.show_debug)
@@ -78,7 +76,6 @@ impl TuiStates {
                     self.page_index = self.debug_page_index()
                 }
             }
-            InterfaceEvent::ToggleFocus => self.focus = !self.focus,
             _ => {}
         }
         Ok(())

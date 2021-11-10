@@ -14,10 +14,6 @@ pub fn get_block(title: &str) -> Block {
         ))
 }
 
-pub fn get_focused_block(title: &str) -> Block {
-    get_block(title).style(Style::default().fg(Color::Green))
-}
-
 pub fn get_text_style() -> Style {
     Style::default().fg(Color::White)
 }
