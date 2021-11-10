@@ -32,11 +32,20 @@ selector            -       All
 - Generate completion script (by [clap_generate](https://crates.io/crates/clap_generate))
 - Manage multiple servers
 
+- TUI
+  - Status (info & traffic)
+  - Logs
+
 ### TODO
 
 - [x] Manage servers
 - [x] Sort proxies
 - [ ] Status panel (TUI)
+  - [ ] Proxies
+  - [ ] Configs
+  - [ ] Rules
+  - [ ] Search
+  - [ ] (Maybe?) mouse support
 - [ ] Inspect rules
 - [ ] Inspect configs
 - [ ] Update configs
