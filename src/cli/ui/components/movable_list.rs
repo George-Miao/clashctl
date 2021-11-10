@@ -7,11 +7,15 @@ use crate::cli::{
 };
 
 #[derive(Clone, Debug)]
-pub struct MovableList;
+pub struct MovableList {
+    title: String,
+}
 
 impl MovableList {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new<T: Into<String>>(title: T) -> Self {
+        Self {
+            title: title.into(),
+        }
     }
 }
 
@@ -29,14 +33,23 @@ impl StatefulWidget for MovableList {
         buf: &mut tui::buffer::Buffer,
         state: &mut Self::State,
     ) {
+        let height = (area.height as usize).saturating_sub(2);
+        let num = state.items.len();
+
+        let y_offset = if height + state.offset.y > num {
+            num.saturating_sub(height)
+        } else {
+            state.offset.y
+        };
+
         let items = state
             .items
             .iter()
             .rev()
-            .skip(state.offset.y)
+            .skip(y_offset)
             .take(area.height as usize);
 
-        let offset = state.offset.x.min(
+        let x_offset = state.offset.x.min(
             state
                 .items
                 .iter()
@@ -45,7 +58,8 @@ impl StatefulWidget for MovableList {
                 .unwrap_or_default(),
         );
 
-        state.offset.x = offset;
+        state.offset.x = x_offset;
+        state.offset.y = y_offset;
 
         let block = if state.offset.hold {
             get_focused_block("Events")
@@ -55,7 +69,7 @@ impl StatefulWidget for MovableList {
 
         let items = List::new(
             items
-                .map(|x| ListItem::new(x.split_at(offset).1.to_owned()))
+                .map(|x| ListItem::new(x.split_at(x_offset).1.to_owned()))
                 .collect::<Vec<_>>(),
         )
         .block(block)
