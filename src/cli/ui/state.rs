@@ -97,7 +97,7 @@ impl TuiStates {
                 }
             }
             InterfaceEvent::Other(event) => match self.title() {
-                "Log" => self.log_list_offset = self.handle_list(event, self.log_list_offset),
+                "Logs" => self.log_list_offset = self.handle_list(event, self.log_list_offset),
                 "Debug" => self.debug_list_offset = self.handle_list(event, self.debug_list_offset),
                 _ => {}
             },
