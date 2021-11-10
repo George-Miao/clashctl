@@ -59,6 +59,18 @@ fn test_configs() {
 }
 
 #[test]
+fn test_traffic() {
+    let clash = init();
+    clash.get_traffic().unwrap().next();
+}
+
+#[test]
+fn test_log() {
+    let clash = init();
+    clash.get_log().unwrap().next();
+}
+
+#[test]
 fn test_connections() {
     let clash = init();
     clash.get_connections().unwrap();

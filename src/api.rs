@@ -181,7 +181,7 @@ impl Clash {
     }
 
     pub fn get_log(&self) -> Result<LongHaul<Log>> {
-        self.longhaul_req("log", "GET")
+        self.longhaul_req("logs", "GET")
     }
 
     pub fn get_proxy_delay(&self, proxy: &str, test_url: &str, timeout: u64) -> Result<Delay> {
