@@ -1,3 +1,5 @@
+use std::ops::Range;
+
 use tui::style::{Color, Modifier, Style};
 use tui::text::{Span, Spans};
 use tui::widgets::{StatefulWidget, Tabs as TuiTabs, Widget};
@@ -15,7 +17,9 @@ impl StatefulWidget for Tabs {
         buf: &mut tui::buffer::Buffer,
         state: &mut Self::State,
     ) {
-        let titles = TuiStates::TITLES
+        let len = TuiStates::TITLES.len();
+        let range = if state.show_debug { 0..len } else { 0..len - 1 };
+        let titles = TuiStates::TITLES[range]
             .iter()
             .map(|t| Spans::from(Span::styled(*t, Style::default().fg(Color::DarkGray))))
             .collect();
