@@ -1,8 +1,5 @@
 use tui::layout::{Constraint, Layout};
-use tui::{
-    text::Spans,
-    widgets::{List, ListItem, Paragraph, StatefulWidget, Widget},
-};
+use tui::widgets::{List, ListItem, Paragraph, StatefulWidget, Widget};
 
 use crate::cli::{
     components::{get_block, get_text_style},
@@ -26,19 +23,24 @@ impl StatefulWidget for DebugPage {
             .split(area);
 
         let event_num = state.events.len();
-        let elapsed = state.start_time.elapsed().as_secs_f64();
+        let elapsed = state.start_time.map(|x| x.elapsed().as_secs_f64());
+
+        let event_rate = if let Some(elapsed) = elapsed {
+            format!("{:.2}/s", event_num as f64 / elapsed)
+        } else {
+            "?".to_owned()
+        };
+        let tick_rate = if let Some(elapsed) = elapsed {
+            format!("{:.2}/s", state.ticks as f64 / elapsed)
+        } else {
+            "?".to_owned()
+        };
 
         let debug_info = [
             ("Event #:", event_num.to_string()),
-            (
-                "Event rate:",
-                format!("{:.2}/s", event_num as f64 / elapsed),
-            ),
+            ("Event rate:", event_rate),
             ("Tick #:", state.ticks.to_string()),
-            (
-                "Tick rate:",
-                format!("{:.2}/s", state.ticks as f64 / elapsed),
-            ),
+            ("Tick rate:", tick_rate),
         ]
         .into_iter()
         .map(|(title, content)| format!(" {:<15}{:>11} ", title, content))

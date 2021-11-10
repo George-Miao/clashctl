@@ -55,7 +55,13 @@ impl StatefulWidget for StatusPage {
             ("▲ Total", ByteSize(con.upload_total).to_string_as(true)),
             ("▼ Total", ByteSize(con.download_total).to_string_as(true)),
             ("Connection #", con.connections.len().to_string()),
-            ("Clash Ver.", state.version.version.to_string()),
+            (
+                "Clash Ver.",
+                state
+                    .version
+                    .to_owned()
+                    .map_or_else(|| "?".to_owned(), |v| v.version.to_string()),
+            ),
             ("Clashctl Ver.", crate_version!().to_owned()),
         ]
         .into_iter()
