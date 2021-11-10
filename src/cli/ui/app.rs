@@ -15,7 +15,10 @@ use tui::backend::CrosstermBackend;
 use tui::layout::{Constraint, Layout, Rect};
 use tui::{Frame, Terminal};
 
-use crate::cli::ui::pages::{ConfigPage, DebugPage, ProxiesPage, StatusPage};
+use crate::cli::ui::{
+    pages::{ConfigPage, DebugPage, ProxiesPage, StatusPage},
+    servo::servo,
+};
 use crate::cli::{components::*, ui::pages::LogPage, DiagnosticEvent, Event, Flags};
 use crate::cli::{ui::utils::Interval, TuiStates};
 use crate::{Error, Result};
@@ -100,7 +103,7 @@ impl TuiApp {
         let (tx, rx) = channel();
         let opt = self.opt.clone();
         let flag = flag.clone();
-        let servo_handle = spawn(move || Self::servo(tx, &opt, &flag));
+        let servo_handle = spawn(move || servo(tx, &opt, &flag));
 
         let mut terminal = Self::setup()?;
 
