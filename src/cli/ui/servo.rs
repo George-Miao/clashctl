@@ -66,6 +66,30 @@ pub(super) fn servo(tx: Sender<Event>, opt: &TuiOpt, flags: &Flags) -> Result<()
         }
     });
 
+    #[allow(unreachable_code)]
+    let mut req_handle = run!({
+        let mut interval = Interval::every(Duration::from_millis(50));
+        let mut connection_pulse = Pulse::new(40); // Every > 2 s
+        let mut proxies_pulse = Pulse::new(100); // Every > 5 s
+        let mut version_pulse = Pulse::new(200); // Every > 10 s
+
+        let clash = req_clash;
+        loop {
+            if version_pulse.tick() {
+                tx.send(Event::Update(UpdateEvent::Version(clash.get_version()?)))?;
+            }
+            if connection_pulse.tick() {
+                tx.send(Event::Update(UpdateEvent::Connection(
+                    clash.get_connections()?,
+                )))?;
+            }
+            if proxies_pulse.tick() {
+                tx.send(Event::Update(UpdateEvent::Proxies(clash.get_proxies()?)))?;
+            }
+            interval.tick();
+        }
+    });
+
     let mut traffics = clash.get_traffic()?;
     #[allow(unreachable_code)]
     let mut traffic_handle = run!({
@@ -90,30 +114,6 @@ pub(super) fn servo(tx: Sender<Event>, opt: &TuiOpt, flags: &Flags) -> Result<()
                 Some(Err(e)) => warn!("{:?}", e),
                 None => warn!("No more traffic"),
             }
-        }
-    });
-
-    #[allow(unreachable_code)]
-    let mut req_handle = run!({
-        let mut interval = Interval::every(Duration::from_millis(50));
-        let mut connection_pulse = Pulse::new(10); // Every 500 ms
-        let mut proxies_pulse = Pulse::new(40); // Every 2 s
-        let mut version_pulse = Pulse::new(200); // Every 10 s
-
-        let clash = req_clash;
-        loop {
-            if version_pulse.tick() {
-                tx.send(Event::Update(UpdateEvent::Version(clash.get_version()?)))?;
-            }
-            if connection_pulse.tick() {
-                tx.send(Event::Update(UpdateEvent::Connection(
-                    clash.get_connections()?,
-                )))?;
-            }
-            if proxies_pulse.tick() {
-                tx.send(Event::Update(UpdateEvent::Proxies(clash.get_proxies()?)))?;
-            }
-            interval.tick();
         }
     });
 
