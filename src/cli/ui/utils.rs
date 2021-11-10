@@ -3,6 +3,10 @@ use std::{
     time::{Duration, Instant},
 };
 
+use tui::style::Color;
+
+use crate::model;
+
 pub struct Interval {
     interval: Duration,
     deadline: Option<Instant>,
@@ -64,5 +68,16 @@ impl Pulse {
     #[inline]
     pub fn is_pulse(&self) -> bool {
         self.counter % self.pulse == 0
+    }
+}
+
+impl From<model::Level> for Color {
+    fn from(val: model::Level) -> Self {
+        match val {
+            model::Level::Debug => Color::Gray,
+            model::Level::Info => Color::Blue,
+            model::Level::Warning => Color::Yellow,
+            model::Level::Error => Color::Red,
+        }
     }
 }
