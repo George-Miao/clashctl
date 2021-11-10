@@ -79,9 +79,8 @@ impl StatefulWidget for DebugPage {
             .map(|x| format!("{:?}", x))
             .collect::<Vec<_>>();
 
-        let events = MovableList::new("Events");
+        let events = MovableList::new(items, "Events");
         let mut list_state = MovableListState {
-            items,
             offset: state.debug_list_offset,
         };
 

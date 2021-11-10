@@ -1,12 +1,12 @@
 use tui::{
     style::Style,
-    text::{Span, Spans, Text},
-    widgets::{List, ListItem, StatefulWidget, Widget},
+    text::{Span, Spans},
+    widgets::StatefulWidget,
 };
 
 use crate::{
     cli::{
-        components::{get_block, get_text_style},
+        components::{MovableList, MovableListState},
         TuiStates,
     },
     model::Log,
@@ -23,9 +23,7 @@ impl StatefulWidget for LogPage {
         buf: &mut tui::buffer::Buffer,
         state: &mut Self::State,
     ) {
-        let block = get_block("Logs");
-
-        let to_spans = |val: Log| -> Text {
+        let to_spans = |val: &Log| -> Spans {
             let color = val.log_type.clone().into();
             Spans::from(vec![
                 Span::styled(
@@ -33,26 +31,18 @@ impl StatefulWidget for LogPage {
                     Style::default().fg(color),
                 ),
                 Span::raw(" "),
-                Span::raw(val.payload),
+                Span::raw(val.payload.to_owned()),
             ])
-            .into()
         };
 
-        let list = List::new(
-            state
-                .logs
-                .iter()
-                .rev()
-                .take(block.inner(area).height as usize)
-                .cloned()
-                .map(|x| ListItem::new(to_spans(x)))
-                .collect::<Vec<_>>(),
-        )
-        .style(get_text_style());
+        let items = state.logs.iter().map(to_spans).collect::<Vec<_>>();
 
-        let inner = block.inner(area);
+        let list = MovableList::new(items, "Logs");
+        let mut list_state = MovableListState {
+            offset: state.log_list_offset,
+        };
 
-        block.render(area, buf);
-        Widget::render(list, inner, buf);
+        StatefulWidget::render(list, area, buf, &mut list_state);
+        state.log_list_offset = list_state.offset;
     }
 }
