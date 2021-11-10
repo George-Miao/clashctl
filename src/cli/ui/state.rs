@@ -96,11 +96,8 @@ impl TuiStates {
                     self.page_index = self.debug_page_index()
                 }
             }
-            InterfaceEvent::Other(event) => match self.title() {
-                "Logs" => self.log_list_offset = self.handle_list(event, self.log_list_offset),
-                "Debug" => self.debug_list_offset = self.handle_list(event, self.debug_list_offset),
-                _ => {}
-            },
+            InterfaceEvent::ToggleHold => self.hold(),
+            InterfaceEvent::Other(event) => self.handle_list(event),
             _ => {}
         }
         Ok(())
@@ -118,19 +115,31 @@ impl TuiStates {
         self.events.drain(..num)
     }
 
-    fn handle_list(&mut self, event: KeyEvent, mut offset: Coord) -> Coord {
-        // No longer holding
+    fn hold(&mut self) {
+        match self.title() {
+            "Logs" => self.log_list_offset.hold ^= true,
+            "Debug" => self.debug_list_offset.hold ^= true,
+            _ => {}
+        }
+    }
+
+    fn handle_list(&mut self, event: KeyEvent) {
+        let mut offset = match self.title() {
+            "Logs" => &mut self.log_list_offset,
+            "Debug" => &mut self.debug_list_offset,
+            _ => return,
+        };
+
         if offset.hold && matches!(event.code, KeyCode::Char(' ') | KeyCode::Enter) {
-            Coord::default()
-        // Start holding
+            // No longer holding
+            *offset = Coord::default()
         } else if matches!(event.code, KeyCode::Char(' ') | KeyCode::Enter) {
+            // Start holding
             offset.hold = true;
-            offset
-        // Other type of input when not holding
         } else if !offset.hold {
-            offset
-        // Other type of input when holding
+            // Other type of input when not holding
         } else {
+            // Other type of input when holding
             match (event.modifiers, event.code) {
                 (KeyModifiers::SHIFT | KeyModifiers::CONTROL, KeyCode::Left) => {
                     offset.x = offset.x.saturating_sub(5)
@@ -150,7 +159,6 @@ impl TuiStates {
                 (_, KeyCode::Down) => offset.y = offset.y.saturating_add(1),
                 _ => {}
             }
-            offset
         }
     }
 

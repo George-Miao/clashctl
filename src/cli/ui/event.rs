@@ -17,6 +17,7 @@ pub enum Event {
 pub enum InterfaceEvent {
     TabGoto(usize),
     ToggleDebug,
+    ToggleHold,
     Other(KeyEvent),
 }
 
@@ -41,6 +42,7 @@ impl TryFrom<KeyCode> for Event {
     fn try_from(value: KeyCode) -> Result<Self> {
         match value {
             KeyCode::Char('q') | KeyCode::Char('x') => Ok(Event::Quit),
+            KeyCode::Char(' ') | KeyCode::Enter => Ok(Event::Interface(InterfaceEvent::ToggleHold)),
             KeyCode::Char(char) => char
                 .to_digit(10)
                 .ok_or(Error::TuiInternalErr)
