@@ -1,10 +1,19 @@
 use std::time::Instant;
 
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+
 use crate::{
     cli::{Event, InterfaceEvent, UpdateEvent},
     model::{Connections, Log, Proxies, Traffic, Version},
     Result,
 };
+
+#[derive(Copy, Clone, Debug, Default)]
+pub struct Coord {
+    pub x: usize,
+    pub y: usize,
+    pub hold: bool,
+}
 
 #[derive(Clone, Debug, Default)]
 pub struct TuiStates {
@@ -19,7 +28,8 @@ pub struct TuiStates {
     pub(crate) connection: Connections,
     pub(crate) proxies: Proxies,
     pub(crate) show_debug: bool,
-    pub(crate) log_page_offset: (u64, u64),
+    pub(crate) debug_list_offset: Coord,
+    pub(crate) log_list_offset: Coord,
 }
 
 impl TuiStates {
@@ -34,6 +44,9 @@ impl TuiStates {
 
     pub fn handle(&mut self, event: Event) -> Result<()> {
         self.events.push(event.to_owned());
+        if self.debug_list_offset.hold {
+            self.debug_list_offset.y += 1;
+        }
         match event {
             Event::Interface(event) => self.handle_interface(event),
             Event::Update(update) => self.handle_update(update),
@@ -60,6 +73,8 @@ impl TuiStates {
     fn handle_interface(&mut self, event: InterfaceEvent) -> Result<()> {
         match event {
             InterfaceEvent::TabGoto(index) => {
+                self.debug_list_offset = Coord::default();
+                self.log_list_offset = Coord::default();
                 if index >= 1
                     && index <= Self::TITLES.len()
                     && (index - 1 != self.debug_page_index() || self.show_debug)
@@ -76,9 +91,58 @@ impl TuiStates {
                     self.page_index = self.debug_page_index()
                 }
             }
+            InterfaceEvent::Other(event) => match self.title() {
+                "Log" => self.log_list_offset = self.handle_list(event, self.log_list_offset),
+                "Debug" => self.debug_list_offset = self.handle_list(event, self.debug_list_offset),
+                _ => {}
+            },
             _ => {}
         }
         Ok(())
+    }
+
+    pub fn get_index(page_name: &str) -> Option<usize> {
+        Self::TITLES.iter().position(|x| *x == page_name)
+    }
+
+    pub fn title(&self) -> &str {
+        Self::TITLES[self.page_index]
+    }
+
+    fn handle_list(&mut self, event: KeyEvent, mut offset: Coord) -> Coord {
+        // No longer holding
+        if offset.hold && matches!(event.code, KeyCode::Char(' ') | KeyCode::Enter) {
+            Coord::default()
+        // Start holding
+        } else if matches!(event.code, KeyCode::Char(' ') | KeyCode::Enter) {
+            offset.hold = true;
+            offset
+        // Other type of input when not holding
+        } else if !offset.hold {
+            offset
+        // Other type of input when holding
+        } else {
+            match (event.modifiers, event.code) {
+                (KeyModifiers::SHIFT | KeyModifiers::CONTROL, KeyCode::Left) => {
+                    offset.x = offset.x.saturating_sub(5)
+                }
+                (KeyModifiers::SHIFT | KeyModifiers::CONTROL, KeyCode::Right) => {
+                    offset.x = offset.x.saturating_add(5)
+                }
+                (KeyModifiers::SHIFT | KeyModifiers::CONTROL, KeyCode::Up) => {
+                    offset.y = offset.y.saturating_sub(5)
+                }
+                (KeyModifiers::SHIFT | KeyModifiers::CONTROL, KeyCode::Down) => {
+                    offset.y = offset.y.saturating_add(5)
+                }
+                (_, KeyCode::Left) => offset.x = offset.x.saturating_sub(1),
+                (_, KeyCode::Right) => offset.x = offset.x.saturating_add(1),
+                (_, KeyCode::Up) => offset.y = offset.y.saturating_sub(1),
+                (_, KeyCode::Down) => offset.y = offset.y.saturating_add(1),
+                _ => {}
+            }
+            offset
+        }
     }
 
     fn debug_page_index(&self) -> usize {

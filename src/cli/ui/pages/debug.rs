@@ -1,8 +1,8 @@
 use tui::layout::{Constraint, Layout};
-use tui::widgets::{List, ListItem, Paragraph, StatefulWidget, Widget};
+use tui::widgets::{Paragraph, StatefulWidget, Widget};
 
 use crate::cli::{
-    components::{get_block, get_text_style},
+    components::{get_block, get_text_style, MovableList, MovableListState},
     TuiStates,
 };
 
@@ -36,11 +36,21 @@ impl StatefulWidget for DebugPage {
             "?".to_owned()
         };
 
+        let offset = state.debug_list_offset;
+
         let debug_info = [
             ("Event #:", event_num.to_string()),
             ("Event rate:", event_rate),
             ("Tick #:", state.ticks.to_string()),
             ("Tick rate:", tick_rate),
+            (
+                "List offset: ",
+                if offset.hold {
+                    format!("({}, {})", offset.x, offset.y)
+                } else {
+                    "?".to_owned()
+                },
+            ),
         ]
         .into_iter()
         .map(|(title, content)| format!(" {:<15}{:>11} ", title, content))
@@ -54,19 +64,20 @@ impl StatefulWidget for DebugPage {
             .block(get_block("Debug Info"))
             .style(get_text_style());
 
-        let events = List::new(
-            state
-                .events
-                .iter()
-                .rev()
-                .take(layout[1].height as usize)
-                .map(|x| ListItem::new(format!("{:?}", x)))
-                .collect::<Vec<_>>(),
-        )
-        .block(get_block("Events"))
-        .style(get_text_style());
+        let items = state
+            .events
+            .iter()
+            .map(|x| format!("{:?}", x))
+            .collect::<Vec<_>>();
+
+        let events = MovableList::new();
+        let mut list_state = MovableListState {
+            items,
+            offset: state.debug_list_offset,
+        };
 
         info.render(layout[0], buf);
-        Widget::render(events, layout[1], buf)
+        StatefulWidget::render(events, layout[1], buf, &mut list_state);
+        state.debug_list_offset = list_state.offset;
     }
 }
