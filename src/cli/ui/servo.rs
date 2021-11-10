@@ -49,6 +49,7 @@ impl TuiApp {
 
         let key_tx = tx.clone();
         let traffic_tx = tx.clone();
+        let log_tx = tx.clone();
 
         let clash = flags.connect_server_from_config()?;
         let req_clash = clash.clone();
@@ -71,14 +72,27 @@ impl TuiApp {
             }
         });
 
+        let mut traffics = clash.get_traffic()?;
         #[allow(unreachable_code)]
         let mut traffic_handle = run!({
-            let mut traffics = clash.get_traffic()?;
             loop {
                 match traffics.next() {
                     Some(Ok(traffic)) => {
                         traffic_tx.send(Event::Update(UpdateEvent::Traffic(traffic)))?
                     }
+                    // Some(Ok(traffic)) => info!("{}", traffic),
+                    Some(Err(e)) => warn!("{:?}", e),
+                    None => warn!("No more traffic"),
+                }
+            }
+        });
+
+        let mut logs = clash.get_log()?;
+        #[allow(unreachable_code)]
+        let mut log_handle = run!({
+            loop {
+                match logs.next() {
+                    Some(Ok(log)) => log_tx.send(Event::Update(UpdateEvent::Log(log)))?,
                     // Some(Ok(traffic)) => info!("{}", traffic),
                     Some(Err(e)) => warn!("{:?}", e),
                     None => warn!("No more traffic"),
@@ -95,6 +109,9 @@ impl TuiApp {
 
             let clash = req_clash;
             loop {
+                if version_pulse.tick() {
+                    tx.send(Event::Update(UpdateEvent::Version(clash.get_version()?)))?;
+                }
                 if connection_pulse.tick() {
                     tx.send(Event::Update(UpdateEvent::Connection(
                         clash.get_connections()?,
@@ -103,9 +120,6 @@ impl TuiApp {
                 if proxies_pulse.tick() {
                     tx.send(Event::Update(UpdateEvent::Proxies(clash.get_proxies()?)))?;
                 }
-                if version_pulse.tick() {
-                    tx.send(Event::Update(UpdateEvent::Version(clash.get_version()?)))?;
-                }
                 interval.tick();
             }
         });
@@ -113,6 +127,7 @@ impl TuiApp {
         loop {
             watch!("key", key_handle);
             watch!("traffic", traffic_handle);
+            watch!("log", log_handle);
             watch!("request", req_handle);
         }
     }
