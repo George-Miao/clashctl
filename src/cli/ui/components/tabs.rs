@@ -21,7 +21,13 @@ impl StatefulWidget for Tabs {
         let range = if state.show_debug { 0..len } else { 0..len - 1 };
         let titles = TuiStates::TITLES[range]
             .iter()
-            .map(|t| Spans::from(Span::styled(*t, Style::default().fg(Color::DarkGray))))
+            .enumerate()
+            .map(|(i, t)| {
+                Spans::from(Span::styled(
+                    format!("{} {}", i + 1, t),
+                    Style::default().fg(Color::DarkGray),
+                ))
+            })
             .collect();
         let tabs = TuiTabs::new(titles)
             .block(get_block("Clashctl"))
