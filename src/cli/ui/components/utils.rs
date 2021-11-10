@@ -14,6 +14,16 @@ pub fn get_block(title: &str) -> Block {
         ))
 }
 
+pub fn get_focused_block(title: &str) -> Block {
+    Block::default()
+        .borders(Borders::ALL)
+        .title(Span::styled(
+            format!(" {} ", title),
+            Style::default().fg(Color::LightGreen),
+        ))
+        .style(Style::default().fg(Color::Green))
+}
+
 pub fn get_text_style() -> Style {
     Style::default().fg(Color::White)
 }
