@@ -27,7 +27,7 @@ cli = [
   "ron",
 ]
 ring = ["array-init"]
-ui = ["ring", "bytesize", "cli"]
+ui = ["ring", "bytesize", "cli", "hhmmss"]
 
 [profile.release]
 lto = true
@@ -68,6 +68,7 @@ crossterm     = { version = "~0.22.1", optional = true }
 # Dependencies required by UI
 array-init = { version = "~2.0.0", optional = true }
 bytesize   = { version = "~1.1.0", optional = true }
+hhmmss = { version = "~0.1.0", optional = true }
 
 [dev-dependencies]
 simple_logger = "1.13.0"
