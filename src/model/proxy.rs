@@ -9,6 +9,30 @@ pub struct Proxies {
     pub proxies: HashMap<String, Proxy>,
 }
 
+impl Proxies {
+    pub fn proxies(&self) -> impl Iterator<Item = (&String, &Proxy)> {
+        self.proxies
+            .iter()
+            .filter(|(_, x)| x.proxy_type.is_normal())
+    }
+
+    pub fn groups(&self) -> impl Iterator<Item = (&String, &Proxy)> {
+        self.proxies.iter().filter(|(_, x)| x.proxy_type.is_group())
+    }
+
+    pub fn selectors(&self) -> impl Iterator<Item = (&String, &Proxy)> {
+        self.proxies
+            .iter()
+            .filter(|(_, x)| x.proxy_type.is_selector())
+    }
+
+    pub fn built_ins(&self) -> impl Iterator<Item = (&String, &Proxy)> {
+        self.proxies
+            .iter()
+            .filter(|(_, x)| x.proxy_type.is_built_in())
+    }
+}
+
 impl Deref for Proxies {
     type Target = HashMap<String, Proxy>;
     fn deref(&self) -> &Self::Target {
@@ -23,7 +47,7 @@ pub struct Proxy {
     pub history: Vec<History>,
     pub udp: bool,
 
-    // Only present in Selector & URLTest
+    // Only present in ProxyGroups
     pub all: Option<Vec<String>>,
     pub now: Option<String>,
 }
