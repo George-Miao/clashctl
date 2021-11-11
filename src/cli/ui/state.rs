@@ -3,7 +3,7 @@ use std::time::Instant;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 use crate::{
-    cli::{Event, InterfaceEvent, UpdateEvent},
+    cli::{components::MovableListState, Event, InterfaceEvent, UpdateEvent},
     model::{Connections, Log, Proxies, Traffic, Version},
     Result,
 };
@@ -15,6 +15,15 @@ pub struct Coord {
     pub hold: bool,
 }
 
+impl Coord {
+    pub fn toggle(&mut self) {
+        if self.hold {
+            *self = Self::default()
+        } else {
+            self.hold = true
+        }
+    }
+}
 #[derive(Clone, Debug, Default)]
 pub struct TuiStates {
     pub(crate) start_time: Option<Instant>,
@@ -80,10 +89,7 @@ impl TuiStates {
             InterfaceEvent::TabGoto(index) => {
                 self.debug_list_offset = Coord::default();
                 self.log_list_offset = Coord::default();
-                if index >= 1
-                    && index <= Self::TITLES.len()
-                    && (index - 1 != self.debug_page_index() || self.show_debug)
-                {
+                if index >= 1 && index <= self.page_len() {
                     self.page_index = index - 1
                 }
             }
@@ -96,7 +102,7 @@ impl TuiStates {
                     self.page_index = self.debug_page_index()
                 }
             }
-            InterfaceEvent::ToggleHold => self.hold(),
+            InterfaceEvent::ToggleHold => self.toggle_hold(),
             InterfaceEvent::Other(event) => self.handle_list(event),
             _ => {}
         }
@@ -115,10 +121,10 @@ impl TuiStates {
         self.events.drain(..num)
     }
 
-    fn hold(&mut self) {
+    fn toggle_hold(&mut self) {
         match self.title() {
-            "Logs" => self.log_list_offset.hold ^= true,
-            "Debug" => self.debug_list_offset.hold ^= true,
+            "Logs" => self.log_list_offset.toggle(),
+            "Debug" => self.debug_list_offset.toggle(),
             _ => {}
         }
     }
