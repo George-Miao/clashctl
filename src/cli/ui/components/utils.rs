@@ -1,6 +1,8 @@
 use std::ops::Range;
 
 use tui::{
+    buffer::Buffer,
+    layout::Rect,
     style::{Color, Style},
     text::{Span, Spans},
     widgets::{Block, Borders},
@@ -76,18 +78,50 @@ pub fn get_text_style() -> Style {
     Style::default().fg(Color::White)
 }
 
-pub fn split(content: &str, index: usize) -> Option<(&str, &str)> {
-    content
-        .char_indices()
-        .map(|(i, _)| i)
-        .nth(index)
-        .map(|x| content.split_at(x))
+#[test]
+fn test_into_span() {
+    let style_blue = Style::default().fg(Color::Blue);
+    let style_plain = Style::default();
+    let style_red = Style::default().fg(Color::Red);
+
+    let chars_blue = "Hello".chars().map(|c| StyledChar {
+        content: c,
+        style: style_blue,
+    });
+    let chars_plain = StyledChar {
+        content: ' ',
+        style: style_plain,
+    };
+    let chars_red = "World 中文测试".chars().map(|c| StyledChar {
+        content: c,
+        style: style_red,
+    });
+    let spans = chars_blue
+        .chain(std::iter::once(chars_plain))
+        .chain(chars_red)
+        .collect::<Vec<_>>()
+        .into_span();
+
+    assert_eq!(
+        spans,
+        Spans::from(vec![
+            Span {
+                content: "Hello".into(),
+                style: style_blue
+            },
+            Span {
+                content: " ".into(),
+                style: style_plain
+            },
+            Span {
+                content: "World 中文测试".into(),
+                style: style_red
+            },
+        ])
+    )
 }
 
-pub fn get_raw(content: &Spans) -> String {
-    content
-        .0
-        .iter()
-        .map(|x| &x.content)
-        .fold(String::with_capacity(content.width() * 2), |acc, x| acc + x)
+pub trait GenericStatefulWidget<T> {
+    type State;
+    fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State);
 }

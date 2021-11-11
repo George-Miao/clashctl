@@ -3,7 +3,7 @@ use tui::layout::{Constraint, Layout};
 use tui::widgets::{Paragraph, StatefulWidget, Widget};
 
 use crate::cli::{
-    components::{get_block, get_text_style, MovableList, MovableListState},
+    components::{get_block, get_text_style, GenericStatefulWidget, MovableList, MovableListState},
     TuiStates,
 };
 
@@ -24,27 +24,14 @@ impl StatefulWidget for DebugPage {
             .split(area);
 
         let event_num = state.events.len();
-        let elapsed = state.start_time.map(|x| x.elapsed().as_secs_f64());
 
-        let event_rate = if let Some(elapsed) = elapsed {
-            format!("{:.2}/s", event_num as f64 / elapsed)
-        } else {
-            "?".to_owned()
-        };
-        let tick_rate = if let Some(elapsed) = elapsed {
-            format!("{:.2}/s", state.ticks as f64 / elapsed)
-        } else {
-            "?".to_owned()
-        };
-
-        let offset = state.debug_list_offset;
+        let offset = &mut state.debug_list_offset;
 
         let debug_info = [
             ("Event In Mem:", event_num.to_string()),
             ("Event All #:", state.all_events_recv.to_string()),
-            ("Event rate:", event_rate),
             ("Tick #:", state.ticks.to_string()),
-            ("Tick rate:", tick_rate),
+            ("Logs #:", state.logs.len().to_string()),
             (
                 "List offset: ",
                 if offset.hold {
@@ -79,13 +66,10 @@ impl StatefulWidget for DebugPage {
             .map(|x| format!("{:?}", x))
             .collect::<Vec<_>>();
 
-        let events = MovableList::new(items, "Events");
-        let mut list_state = MovableListState {
-            offset: state.debug_list_offset,
-        };
+        let events = MovableList::new("Events");
+        let mut list_state = MovableListState::new(items, offset);
 
         info.render(layout[0], buf);
-        StatefulWidget::render(events, layout[1], buf, &mut list_state);
-        state.debug_list_offset = list_state.offset;
+        GenericStatefulWidget::<String>::render(events, layout[1], buf, &mut list_state);
     }
 }

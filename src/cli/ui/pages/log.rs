@@ -6,7 +6,7 @@ use tui::{
 
 use crate::{
     cli::{
-        components::{MovableList, MovableListState},
+        components::{GenericStatefulWidget, MovableList, MovableListState},
         TuiStates,
     },
     model::Log,
@@ -37,12 +37,9 @@ impl StatefulWidget for LogPage {
 
         let items = state.logs.iter().map(to_spans).collect::<Vec<_>>();
 
-        let list = MovableList::new(items, "Logs");
-        let mut list_state = MovableListState {
-            offset: state.log_list_offset,
-        };
+        let list = MovableList::new("Logs");
+        let mut list_state = MovableListState::new(items, &mut state.log_list_offset);
 
-        StatefulWidget::render(list, area, buf, &mut list_state);
-        state.log_list_offset = list_state.offset;
+        GenericStatefulWidget::<Spans>::render(list, area, buf, &mut list_state);
     }
 }
