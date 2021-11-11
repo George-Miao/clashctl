@@ -1,3 +1,4 @@
+#![feature(extend_one)]
 #![feature(int_abs_diff)]
 #![feature(slice_group_by)]
 #![feature(thread_is_running)]
