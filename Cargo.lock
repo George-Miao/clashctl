@@ -163,6 +163,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tui",
+ "unicode-width",
  "ureq",
  "url",
 ]
