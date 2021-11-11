@@ -10,7 +10,7 @@ pub struct Proxies {
 }
 
 impl Proxies {
-    pub fn proxies(&self) -> impl Iterator<Item = (&String, &Proxy)> {
+    pub fn normal(&self) -> impl Iterator<Item = (&String, &Proxy)> {
         self.proxies
             .iter()
             .filter(|(_, x)| x.proxy_type.is_normal())
@@ -138,4 +138,65 @@ impl ProxyType {
                 | ProxyType::Socks5
         )
     }
+}
+
+#[test]
+fn test_proxies() {
+    let proxy_kv = [
+        (
+            "test_a".to_owned(),
+            Proxy {
+                proxy_type: ProxyType::Direct,
+                history: vec![],
+                udp: false,
+                all: None,
+                now: None,
+            },
+        ),
+        (
+            "test_b".to_owned(),
+            Proxy {
+                proxy_type: ProxyType::Selector,
+                history: vec![],
+                udp: false,
+                all: Some(vec!["test_c".into()]),
+                now: Some("test_c".into()),
+            },
+        ),
+        (
+            "test_c".to_owned(),
+            Proxy {
+                proxy_type: ProxyType::Shadowsocks,
+                history: vec![],
+                udp: false,
+                all: None,
+                now: None,
+            },
+        ),
+        (
+            "test_d".to_owned(),
+            Proxy {
+                proxy_type: ProxyType::Fallback,
+                history: vec![],
+                udp: false,
+                all: Some(vec!["test_c".into()]),
+                now: Some("test_c".into()),
+            },
+        ),
+    ];
+    let proxies = Proxies {
+        proxies: HashMap::from(proxy_kv),
+    };
+    assert_eq!(
+        proxies.groups().map(|x| x.0).collect::<Vec<_>>(),
+        vec!["test_b", "test_d"]
+    );
+    assert_eq!(
+        proxies.built_ins().map(|x| x.0).collect::<Vec<_>>(),
+        vec!["test_a"]
+    );
+    assert_eq!(
+        proxies.normal().map(|x| x.0).collect::<Vec<_>>(),
+        vec!["test_c"]
+    );
 }

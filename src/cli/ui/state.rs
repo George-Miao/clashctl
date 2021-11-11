@@ -4,8 +4,11 @@ use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use tui::text::Spans;
 
 use crate::{
-    cli::{components::MovableListState, Event, InterfaceEvent, UpdateEvent},
-    model::{Connections, Log, Proxies, Traffic, Version},
+    cli::{
+        components::{MovableListState, ProxyTree},
+        Event, InterfaceEvent, UpdateEvent,
+    },
+    model::{Connections, Traffic, Version},
     Result,
 };
 
@@ -25,6 +28,7 @@ impl Coord {
         }
     }
 }
+
 #[derive(Debug, Default, Clone)]
 pub struct TuiStates<'a> {
     pub(crate) start_time: Option<Instant>,
@@ -36,8 +40,8 @@ pub struct TuiStates<'a> {
     pub(crate) all_events_recv: usize,
     pub(crate) page_index: usize,
     pub(crate) connection: Connections,
-    pub(crate) proxies: Proxies,
     pub(crate) show_debug: bool,
+    pub(crate) proxy_tree: ProxyTree<'a>,
     pub(crate) debug_state: MovableListState<'a, String>,
     pub(crate) log_state: MovableListState<'a, Spans<'a>>,
 }
@@ -79,7 +83,9 @@ impl<'a> TuiStates<'a> {
                 self.max_traffic.down = self.max_traffic.down.max(down);
                 self.traffics.push(traffic)
             }
-            UpdateEvent::Proxies(proxies) => self.proxies = proxies,
+            UpdateEvent::Proxies(proxies) => {
+                self.proxy_tree = proxies.into();
+            }
             UpdateEvent::Log(log) => {
                 self.log_state.items.push(log.into());
             }
@@ -112,7 +118,7 @@ impl<'a> TuiStates<'a> {
         Ok(())
     }
 
-    pub fn get_index(page_name: &str) -> Option<usize> {
+    pub fn _get_index(page_name: &str) -> Option<usize> {
         Self::TITLES.iter().position(|x| *x == page_name)
     }
 
