@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use tui::{
     style::Style,
     text::{Span, Spans},
@@ -6,40 +8,26 @@ use tui::{
 
 use crate::{
     cli::{
-        components::{GenericStatefulWidget, MovableList, MovableListState},
+        components::{GenericStatefulWidget, MovableList},
         TuiStates,
     },
     model::Log,
 };
 
 #[derive(Clone, Debug, Default)]
-pub struct LogPage {}
+pub struct LogPage<'a> {
+    _life: PhantomData<&'a ()>,
+}
 
-impl StatefulWidget for LogPage {
-    type State = TuiStates;
+impl<'a> StatefulWidget for LogPage<'a> {
+    type State = TuiStates<'a>;
     fn render(
         self,
         area: tui::layout::Rect,
         buf: &mut tui::buffer::Buffer,
         state: &mut Self::State,
     ) {
-        let to_spans = |val: &Log| -> Spans {
-            let color = val.log_type.clone().into();
-            Spans::from(vec![
-                Span::styled(
-                    format!("{:^7}", val.log_type.to_string().to_uppercase()),
-                    Style::default().fg(color),
-                ),
-                Span::raw(" "),
-                Span::raw(val.payload.to_owned()),
-            ])
-        };
-
-        let items = state.logs.iter().map(to_spans).collect::<Vec<_>>();
-
         let list = MovableList::new("Logs");
-        let mut list_state = MovableListState::new(items, &mut state.log_list_offset);
-
-        GenericStatefulWidget::<Spans>::render(list, area, buf, &mut list_state);
+        GenericStatefulWidget::<Spans>::render(list, area, buf, &mut state.log_state);
     }
 }

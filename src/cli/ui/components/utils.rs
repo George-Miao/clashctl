@@ -8,6 +8,8 @@ use tui::{
     widgets::{Block, Borders},
 };
 
+use crate::model::Log;
+
 pub struct StyledChar {
     content: char,
     style: Style,
@@ -37,6 +39,11 @@ impl IntoSpan for Vec<StyledChar> {
             .collect::<Vec<_>>()
             .into()
     }
+}
+
+pub fn get_substring(string: &str, index: usize) -> Option<&str> {
+    let index = string.char_indices().nth(index)?.0;
+    Some(&string[index..])
 }
 
 pub fn spans_window(spans: Spans, range: Range<usize>) -> Spans {
@@ -76,6 +83,34 @@ pub fn get_focused_block(title: &str) -> Block {
 
 pub fn get_text_style() -> Style {
     Style::default().fg(Color::White)
+}
+
+impl<'a> From<Log> for Spans<'a> {
+    fn from(val: Log) -> Self {
+        let color = val.log_type.clone().into();
+        Spans::from(vec![
+            Span::styled(
+                format!(" {:<5}", val.log_type.to_string().to_uppercase()),
+                Style::default().fg(color),
+            ),
+            Span::raw(" "),
+            Span::raw(val.payload),
+        ])
+    }
+}
+
+impl<'a> From<&Log> for Spans<'a> {
+    fn from(val: &Log) -> Self {
+        let color = val.log_type.clone().into();
+        Spans::from(vec![
+            Span::styled(
+                format!(" {:<5}", val.log_type.to_string().to_uppercase()),
+                Style::default().fg(color),
+            ),
+            Span::raw(" "),
+            Span::raw(val.payload.to_owned()),
+        ])
+    }
 }
 
 #[test]

@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use bytesize::ByteSize;
 use tui::style::{Color, Style};
 use tui::widgets::{Sparkline, StatefulWidget, Widget};
@@ -23,10 +25,12 @@ pub const DOTS: Set = Set {
 };
 
 #[derive(Default, Clone, Debug)]
-pub struct Traffics {}
+pub struct Traffics<'a> {
+    _life: PhantomData<&'a ()>,
+}
 
-impl StatefulWidget for Traffics {
-    type State = TuiStates;
+impl<'a> StatefulWidget for Traffics<'a> {
+    type State = TuiStates<'a>;
     fn render(
         self,
         area: tui::layout::Rect,

@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use tui::style::{Color, Modifier, Style};
 use tui::text::{Span, Spans};
 use tui::widgets::{StatefulWidget, Tabs as TuiTabs, Widget};
@@ -5,10 +7,12 @@ use tui::widgets::{StatefulWidget, Tabs as TuiTabs, Widget};
 use crate::cli::{components::get_block, TuiStates};
 
 #[derive(Default, Clone, Debug)]
-pub struct Tabs {}
+pub struct Tabs<'a> {
+    _life: PhantomData<&'a ()>,
+}
 
-impl StatefulWidget for Tabs {
-    type State = TuiStates;
+impl<'a> StatefulWidget for Tabs<'a> {
+    type State = TuiStates<'a>;
     fn render(
         self,
         area: tui::layout::Rect,

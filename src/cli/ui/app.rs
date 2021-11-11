@@ -37,7 +37,7 @@ pub struct TuiOpt {
 }
 
 impl TuiOpt {
-    pub fn into_app(self) -> Result<TuiApp> {
+    pub fn into_app<'a>(self) -> Result<TuiApp<'a>> {
         Ok(TuiApp::from_opt(self))
     }
 
@@ -53,12 +53,12 @@ impl Default for TuiOpt {
 }
 
 #[derive(Clone, Debug, Default)]
-pub struct TuiApp {
+pub struct TuiApp<'a> {
     opt: TuiOpt,
-    state: TuiStates,
+    state: TuiStates<'a>,
 }
 
-impl TuiApp {
+impl<'a> TuiApp<'a> {
     pub fn from_opt(opt: TuiOpt) -> Self {
         Self {
             opt,

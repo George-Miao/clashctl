@@ -1,4 +1,4 @@
-use std::iter::repeat;
+use std::{iter::repeat, marker::PhantomData};
 
 use bytesize::ByteSize;
 use clap::crate_version;
@@ -14,10 +14,12 @@ use crate::cli::{
 };
 
 #[derive(Clone, Debug, Default)]
-pub struct StatusPage {}
+pub struct StatusPage<'a> {
+    _life: PhantomData<&'a ()>,
+}
 
-impl StatefulWidget for StatusPage {
-    type State = TuiStates;
+impl<'a> StatefulWidget for StatusPage<'a> {
+    type State = TuiStates<'a>;
     fn render(
         self,
         area: tui::layout::Rect,

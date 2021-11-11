@@ -1,17 +1,21 @@
+use std::marker::PhantomData;
+
 use hhmmss::Hhmmss;
 use tui::layout::{Constraint, Layout};
 use tui::widgets::{Paragraph, StatefulWidget, Widget};
 
 use crate::cli::{
-    components::{get_block, get_text_style, GenericStatefulWidget, MovableList, MovableListState},
+    components::{get_block, get_text_style, GenericStatefulWidget, MovableList},
     TuiStates,
 };
 
 #[derive(Clone, Debug, Default)]
-pub struct DebugPage {}
+pub struct DebugPage<'a> {
+    _life: PhantomData<&'a ()>,
+}
 
-impl StatefulWidget for DebugPage {
-    type State = TuiStates;
+impl<'a> StatefulWidget for DebugPage<'a> {
+    type State = TuiStates<'a>;
     fn render(
         self,
         area: tui::layout::Rect,
@@ -25,13 +29,13 @@ impl StatefulWidget for DebugPage {
 
         let event_num = state.events.len();
 
-        let offset = &mut state.debug_list_offset;
+        let offset = &mut state.debug_state.offset;
 
         let debug_info = [
             ("Event In Mem:", event_num.to_string()),
             ("Event All #:", state.all_events_recv.to_string()),
             ("Tick #:", state.ticks.to_string()),
-            ("Logs #:", state.logs.len().to_string()),
+            ("Logs #:", state.log_state.len().to_string()),
             (
                 "List offset: ",
                 if offset.hold {
@@ -60,16 +64,9 @@ impl StatefulWidget for DebugPage {
             .block(get_block("Debug Info"))
             .style(get_text_style());
 
-        let items = state
-            .events
-            .iter()
-            .map(|x| format!("{:?}", x))
-            .collect::<Vec<_>>();
-
         let events = MovableList::new("Events");
-        let mut list_state = MovableListState::new(items, offset);
 
         info.render(layout[0], buf);
-        GenericStatefulWidget::<String>::render(events, layout[1], buf, &mut list_state);
+        GenericStatefulWidget::<String>::render(events, layout[1], buf, &mut state.debug_state);
     }
 }

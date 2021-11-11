@@ -1,12 +1,16 @@
+use std::marker::PhantomData;
+
 use tui::widgets::StatefulWidget;
 
 use crate::cli::TuiStates;
 
 #[derive(Clone, Debug, Default)]
-pub struct ConfigPage {}
+pub struct ConfigPage<'a> {
+    _life: PhantomData<&'a ()>,
+}
 
-impl StatefulWidget for ConfigPage {
-    type State = TuiStates;
+impl<'a> StatefulWidget for ConfigPage<'a> {
+    type State = TuiStates<'a>;
     fn render(
         self,
         _area: tui::layout::Rect,
