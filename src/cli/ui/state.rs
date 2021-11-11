@@ -1,6 +1,7 @@
 use std::time::Instant;
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use tui::text::Spans;
 
 use crate::{
     cli::{components::MovableListState, Event, InterfaceEvent, UpdateEvent},
@@ -24,8 +25,8 @@ impl Coord {
         }
     }
 }
-#[derive(Clone, Debug, Default)]
-pub struct TuiStates {
+#[derive(Debug, Default, Clone)]
+pub struct TuiStates<'a> {
     pub(crate) start_time: Option<Instant>,
     pub(crate) version: Option<Version>,
     pub(crate) ticks: u64,
@@ -33,16 +34,15 @@ pub struct TuiStates {
     pub(crate) max_traffic: Traffic,
     pub(crate) events: Vec<Event>,
     pub(crate) all_events_recv: usize,
-    pub(crate) logs: Vec<Log>,
     pub(crate) page_index: usize,
     pub(crate) connection: Connections,
     pub(crate) proxies: Proxies,
     pub(crate) show_debug: bool,
-    pub(crate) debug_list_offset: Coord,
-    pub(crate) log_list_offset: Coord,
+    pub(crate) debug_state: MovableListState<'a, String>,
+    pub(crate) log_state: MovableListState<'a, Spans<'a>>,
 }
 
-impl TuiStates {
+impl<'a> TuiStates<'a> {
     pub const TITLES: &'static [&'static str] = &["Status", "Proxies", "Logs", "Configs", "Debug"];
 
     pub fn new() -> Self {
@@ -58,8 +58,9 @@ impl TuiStates {
             let _ = self.drop_events(100);
         }
         self.events.push(event.to_owned());
-        if self.debug_list_offset.hold {
-            self.debug_list_offset.y += 1;
+        self.debug_state.items.push(format!("{:?}", event));
+        if self.debug_state.offset.hold {
+            self.debug_state.offset.y += 1;
         }
         match event {
             Event::Interface(event) => self.handle_interface(event),
@@ -79,7 +80,9 @@ impl TuiStates {
                 self.traffics.push(traffic)
             }
             UpdateEvent::Proxies(proxies) => self.proxies = proxies,
-            UpdateEvent::Log(log) => self.logs.push(log),
+            UpdateEvent::Log(log) => {
+                self.log_state.items.push(log.into());
+            }
         }
         Ok(())
     }
@@ -87,8 +90,8 @@ impl TuiStates {
     fn handle_interface(&mut self, event: InterfaceEvent) -> Result<()> {
         match event {
             InterfaceEvent::TabGoto(index) => {
-                self.debug_list_offset = Coord::default();
-                self.log_list_offset = Coord::default();
+                self.debug_state.offset = Coord::default();
+                self.log_state.offset = Coord::default();
                 if index >= 1 && index <= self.page_len() {
                     self.page_index = index - 1
                 }
@@ -123,16 +126,16 @@ impl TuiStates {
 
     fn toggle_hold(&mut self) {
         match self.title() {
-            "Logs" => self.log_list_offset.toggle(),
-            "Debug" => self.debug_list_offset.toggle(),
+            "Logs" => self.log_state.offset.toggle(),
+            "Debug" => self.debug_state.offset.toggle(),
             _ => {}
         }
     }
 
     fn handle_list(&mut self, event: KeyEvent) {
         let mut offset = match self.title() {
-            "Logs" => &mut self.log_list_offset,
-            "Debug" => &mut self.debug_list_offset,
+            "Logs" => &mut self.log_state.offset,
+            "Debug" => &mut self.debug_state.offset,
             _ => return,
         };
 

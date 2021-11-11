@@ -1,6 +1,10 @@
 use std::marker::PhantomData;
 
-use tui::widgets::List;
+use tui::{
+    style::{Color, Modifier, Style},
+    text::Span,
+    widgets::{Block, List},
+};
 use tui::{
     text::Spans,
     widgets::{ListItem, Widget},
@@ -9,7 +13,8 @@ use unicode_width::UnicodeWidthStr;
 
 use crate::cli::{
     components::{
-        get_block, get_focused_block, get_text_style, spans_window, GenericStatefulWidget,
+        get_block, get_focused_block, get_substring, get_text_style, spans_window,
+        GenericStatefulWidget,
     },
     Coord,
 };
@@ -30,28 +35,115 @@ where
             _life: PhantomData,
         }
     }
+
+    fn render_index(&self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer, pos: Coord) {
+        let index_content = format!(" Ln {}, Col {} ", pos.y, pos.x);
+        let width = index_content.len();
+        let index = Span::styled(
+            index_content,
+            Style::default()
+                .fg(if pos.hold { Color::Green } else { Color::Blue })
+                .add_modifier(Modifier::REVERSED),
+        );
+
+        if pos.hold {
+            let help = Span::styled(
+                " [^] ▲ ▼ ◀ ▶ Move ",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::REVERSED),
+            );
+            let mode = Span::styled(
+                " HOLD ",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::REVERSED),
+            );
+            buf.set_span(
+                area.x + 2,
+                area.y + area.height - 1,
+                &help,
+                help.width() as u16,
+            );
+            buf.set_span(
+                area.x
+                    + (area.width as u16).saturating_sub(width.try_into().unwrap_or(u16::MAX) + 9),
+                area.y + area.height - 1,
+                &mode,
+                width.try_into().unwrap_or(u16::MAX),
+            );
+        }
+
+        buf.set_span(
+            area.x + (area.width as u16).saturating_sub(width.try_into().unwrap_or(u16::MAX) + 2),
+            area.y + area.height - 1,
+            &index,
+            width.try_into().unwrap_or(u16::MAX),
+        );
+    }
+
+    fn prepare<'b, F>(
+        &self,
+        area: &tui::layout::Rect,
+        state: &'b mut MovableListState<T>,
+        width_fn: F,
+    ) -> (impl Iterator<Item = &'b T>, Block, usize, usize)
+    where
+        F: Fn(&T) -> usize,
+    {
+        let height = (area.height as usize).saturating_sub(2);
+        let num = state.items.len();
+
+        let block = if state.offset.hold {
+            get_focused_block(&self.title)
+        } else {
+            get_block(&self.title)
+        };
+
+        // Calculate which portion of the list will be displayed
+        let y_offset = if height + state.offset.y > num {
+            num.saturating_sub(height)
+        } else {
+            state.offset.y
+        };
+
+        // Get that portion of items
+        let items = state
+            .items
+            .iter()
+            .rev()
+            .skip(y_offset)
+            .take(area.height as usize);
+        // Calculate what is current x offset
+        // A.K.A. which part will be hidden
+        let x_offset = state.offset.x.min(
+            items
+                .clone()
+                .map(width_fn)
+                .min()
+                .unwrap_or_default()
+                .saturating_sub(1),
+        );
+
+        // Limit how many chars will be hidden overall
+        // Apply offsets back so the offset is being limited to current one
+        // Even for next tick
+        state.offset.x = x_offset;
+        state.offset.y = y_offset;
+        (items, block, x_offset, y_offset)
+    }
 }
 
-#[derive(Debug)]
-pub struct MovableListState<'a, T>
-where
-    T: Into<Spans<'a>>,
-{
-    pub offset: &'a mut Coord,
+#[derive(Debug, Default, Clone)]
+pub struct MovableListState<'a, T> {
+    pub offset: Coord,
     pub items: Vec<T>,
     _life: PhantomData<&'a T>,
 }
 
-impl<'a, T> MovableListState<'a, T>
-where
-    T: Into<Spans<'a>>,
-{
-    pub fn new(items: Vec<T>, offset: &'a mut Coord) -> Self {
-        Self {
-            offset,
-            items,
-            _life: PhantomData,
-        }
+impl<'a, T> MovableListState<'a, T> {
+    pub fn len(&self) -> usize {
+        self.items.len()
     }
 }
 
@@ -63,110 +155,34 @@ impl<'a> GenericStatefulWidget<String> for MovableList<'a, String> {
         buf: &mut tui::buffer::Buffer,
         state: &mut Self::State,
     ) {
-        let height = (area.height as usize).saturating_sub(2);
-        let num = state.items.len();
+        let (items, block, x_offset, y_offset) = self.prepare(&area, state, |x| x.width());
 
-        // Calculate which portion of the list will be displayed
-        let y_offset = if height + state.offset.y > num {
-            num.saturating_sub(height)
-        } else {
-            state.offset.y
-        };
-
-        // Get that portion of items
-        let items = state
-            .items
-            .iter()
-            .rev()
-            .skip(y_offset)
-            .take(area.height as usize)
-            .clone();
-
-        // Calculate what is current x offset
-        // A.K.A. which part will be hidden
-        let x_offset = state.offset.x.min(
+        let list = List::new(
             items
-                .clone()
-                .map(|x| x.width())
-                .min()
-                .unwrap_or_default()
-                .saturating_sub(1),
-        );
+                .map(|x| -> Spans { get_substring(x, x_offset).unwrap().into() })
+                .map(ListItem::new)
+                .collect::<Vec<_>>(),
+        )
+        .block(block)
+        .style(get_text_style());
 
-        let items = items.map(|x| -> Spans { x.split_at(x_offset).1.into() });
-
-        // Limit how many chars will be hidden overall
-        // Apply offsets back so the offset is being limited to current one
-        // Even for next tick
-        state.offset.x = x_offset;
-        state.offset.y = y_offset;
-
-        let block = if state.offset.hold {
-            get_focused_block(&self.title)
-        } else {
-            get_block(&self.title)
+        Widget::render(list, area, buf);
+        let pos = Coord {
+            x: x_offset,
+            y: (state.items.len() - y_offset + 2).saturating_sub(area.height as usize),
+            hold: state.offset.hold,
         };
-
-        // Spans window is expensive
-        // However it is needed to display part of spans while keeping its style
-        let items = List::new(items.map(ListItem::new).collect::<Vec<_>>())
-            .block(block)
-            .style(get_text_style());
-
-        Widget::render(items, area, buf)
+        self.render_index(area, buf, pos)
     }
 }
 
 impl<'a> GenericStatefulWidget<Spans<'a>> for MovableList<'a, Spans<'a>> {
     type State = MovableListState<'a, Spans<'a>>;
-    fn render(
-        self,
-        area: tui::layout::Rect,
-        buf: &mut tui::buffer::Buffer,
-        state: &mut Self::State,
-    ) {
-        let height = (area.height as usize).saturating_sub(2);
-        let num = state.items.len();
-
-        // Calculate which portion of the list will be displayed
-        let y_offset = if height + state.offset.y > num {
-            num.saturating_sub(height)
-        } else {
-            state.offset.y
-        };
-
-        // Get that portion of items
-        let items = state
-            .items
-            .iter()
-            .rev()
-            .skip(y_offset)
-            .take(area.height as usize)
-            .to_owned();
-
-        // Calculate what is current x offset
-        // A.K.A. which part will be hidden
-        let x_offset = state.offset.x.min(
-            items
-                .clone()
-                .map(|x| x.width())
-                .min()
-                .unwrap_or_default()
-                .saturating_sub(1),
-        );
-
-        // Limit how many chars will be hidden overall
-        // Apply offsets back so the offset is being limited to current one
-        // Even for next tick
-        state.offset.x = x_offset;
-        state.offset.y = y_offset;
-
-        let block = if state.offset.hold {
-            get_focused_block(&self.title)
-        } else {
-            get_block(&self.title)
-        };
-
+    fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer, state: &mut Self::State)
+    where
+        Self: 'a,
+    {
+        let (items, block, x_offset, y_offset) = self.prepare(&area, state, |x| x.width());
         // Spans window is expensive
         // However it is needed to display part of spans while keeping its style
         let items = List::new(
@@ -182,6 +198,12 @@ impl<'a> GenericStatefulWidget<Spans<'a>> for MovableList<'a, Spans<'a>> {
         .block(block)
         .style(get_text_style());
 
-        Widget::render(items, area, buf)
+        Widget::render(items, area, buf);
+        let pos = Coord {
+            x: x_offset,
+            y: (state.items.len() - y_offset + 2).saturating_sub(area.height as usize),
+            hold: state.offset.hold,
+        };
+        self.render_index(area, buf, pos)
     }
 }
