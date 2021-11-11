@@ -10,6 +10,27 @@ use tui::{
 
 use crate::model::Log;
 
+#[macro_export]
+macro_rules! define_widget {
+    ($name:ident) => {
+        #[allow(dead_code)]
+        #[derive(Clone, Debug)]
+        pub struct $name<'a> {
+            state: &'a $crate::cli::ui::TuiStates<'a>,
+            _life: PhantomData<&'a ()>,
+        }
+
+        impl<'a> $name<'a> {
+            pub fn new(state: &'a $crate::cli::ui::TuiStates<'a>) -> Self {
+                Self {
+                    _life: PhantomData,
+                    state,
+                }
+            }
+        }
+    };
+}
+
 pub struct StyledChar {
     content: char,
     style: Style,
@@ -158,5 +179,9 @@ fn test_into_span() {
 
 pub trait GenericStatefulWidget<T> {
     type State;
-    fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State);
+    fn render(self, area: Rect, buf: &mut Buffer, state: &Self::State);
+}
+
+pub trait GenericWidget<T> {
+    fn render(self, area: Rect, buf: &mut Buffer);
 }

@@ -13,8 +13,7 @@ use unicode_width::UnicodeWidthStr;
 
 use crate::cli::{
     components::{
-        get_block, get_focused_block, get_substring, get_text_style, spans_window,
-        GenericStatefulWidget,
+        get_block, get_focused_block, get_substring, get_text_style, spans_window, GenericWidget,
     },
     Coord,
 };
@@ -22,6 +21,7 @@ use crate::cli::{
 #[derive(Clone, Debug)]
 pub struct MovableList<'a, T> {
     title: String,
+    state: &'a MovableListState<'a, T>,
     _life: PhantomData<&'a T>,
 }
 
@@ -29,8 +29,9 @@ impl<'a, T> MovableList<'a, T>
 where
     T: Into<Spans<'a>>,
 {
-    pub fn new<TITLE: Into<String>>(title: TITLE) -> Self {
+    pub fn new<TITLE: Into<String>>(title: TITLE, state: &'a MovableListState<'a, T>) -> Self {
         Self {
+            state,
             title: title.into(),
             _life: PhantomData,
         }
@@ -85,7 +86,7 @@ where
     fn prepare<'b, F>(
         &self,
         area: &tui::layout::Rect,
-        state: &'b mut MovableListState<T>,
+        state: &'b MovableListState<T>,
         width_fn: F,
     ) -> (impl Iterator<Item = &'b T>, Block, usize, usize)
     where
@@ -128,8 +129,10 @@ where
         // Limit how many chars will be hidden overall
         // Apply offsets back so the offset is being limited to current one
         // Even for next tick
-        state.offset.x = x_offset;
-        state.offset.y = y_offset;
+
+        // TODO: move offset limit logic to event handler
+        // state.offset.x = x_offset;
+        // state.offset.y = y_offset;
         (items, block, x_offset, y_offset)
     }
 }
@@ -147,15 +150,9 @@ impl<'a, T> MovableListState<'a, T> {
     }
 }
 
-impl<'a> GenericStatefulWidget<String> for MovableList<'a, String> {
-    type State = MovableListState<'a, String>;
-    fn render(
-        self,
-        area: tui::layout::Rect,
-        buf: &mut tui::buffer::Buffer,
-        state: &mut Self::State,
-    ) {
-        let (items, block, x_offset, y_offset) = self.prepare(&area, state, |x| x.width());
+impl<'a> GenericWidget<String> for MovableList<'a, String> {
+    fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer) {
+        let (items, block, x_offset, y_offset) = self.prepare(&area, self.state, |x| x.width());
 
         let list = List::new(
             items
@@ -169,20 +166,19 @@ impl<'a> GenericStatefulWidget<String> for MovableList<'a, String> {
         Widget::render(list, area, buf);
         let pos = Coord {
             x: x_offset,
-            y: (state.items.len() - y_offset + 2).saturating_sub(area.height as usize),
-            hold: state.offset.hold,
+            y: (self.state.items.len() - y_offset + 2).saturating_sub(area.height as usize),
+            hold: self.state.offset.hold,
         };
         self.render_index(area, buf, pos)
     }
 }
 
-impl<'a> GenericStatefulWidget<Spans<'a>> for MovableList<'a, Spans<'a>> {
-    type State = MovableListState<'a, Spans<'a>>;
-    fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer, state: &mut Self::State)
+impl<'a> GenericWidget<Spans<'a>> for MovableList<'a, Spans<'a>> {
+    fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer)
     where
         Self: 'a,
     {
-        let (items, block, x_offset, y_offset) = self.prepare(&area, state, |x| x.width());
+        let (items, block, x_offset, y_offset) = self.prepare(&area, self.state, |x| x.width());
         // Spans window is expensive
         // However it is needed to display part of spans while keeping its style
         let items = List::new(
@@ -201,8 +197,8 @@ impl<'a> GenericStatefulWidget<Spans<'a>> for MovableList<'a, Spans<'a>> {
         Widget::render(items, area, buf);
         let pos = Coord {
             x: x_offset,
-            y: (state.items.len() - y_offset + 2).saturating_sub(area.height as usize),
-            hold: state.offset.hold,
+            y: (self.state.items.len() - y_offset + 2).saturating_sub(area.height as usize),
+            hold: self.state.offset.hold,
         };
         self.render_index(area, buf, pos)
     }

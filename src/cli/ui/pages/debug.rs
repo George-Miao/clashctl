@@ -2,40 +2,35 @@ use std::marker::PhantomData;
 
 use hhmmss::Hhmmss;
 use tui::layout::{Constraint, Layout};
-use tui::widgets::{Paragraph, StatefulWidget, Widget};
+use tui::widgets::{Paragraph, Widget};
 
-use crate::cli::{
-    components::{get_block, get_text_style, GenericStatefulWidget, MovableList},
-    TuiStates,
+use crate::{
+    cli::components::{get_block, get_text_style, GenericWidget, MovableList},
+    define_widget,
 };
 
-#[derive(Clone, Debug, Default)]
-pub struct DebugPage<'a> {
-    _life: PhantomData<&'a ()>,
-}
+define_widget!(DebugPage);
 
-impl<'a> StatefulWidget for DebugPage<'a> {
-    type State = TuiStates<'a>;
-    fn render(
-        self,
-        area: tui::layout::Rect,
-        buf: &mut tui::buffer::Buffer,
-        state: &mut Self::State,
-    ) {
+impl<'a> Widget for DebugPage<'a> {
+    fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer) {
         let layout = Layout::default()
             .constraints([Constraint::Length(30), Constraint::Min(0)])
             .direction(tui::layout::Direction::Horizontal)
             .split(area);
 
-        let event_num = state.events.len();
+        let event_num = self.state.events.len();
 
-        let offset = &mut state.debug_state.offset;
+        let offset = &self.state.debug_state.offset;
 
         let debug_info = [
             ("Event In Mem:", event_num.to_string()),
-            ("Event All #:", state.all_events_recv.to_string()),
-            ("Tick #:", state.ticks.to_string()),
-            ("Logs #:", state.log_state.len().to_string()),
+            ("Event All #:", self.state.all_events_recv.to_string()),
+            ("Tick #:", self.state.ticks.to_string()),
+            ("Logs #:", self.state.log_state.len().to_string()),
+            (
+                "Proxy group #",
+                self.state.proxy_tree.groups.len().to_string(),
+            ),
             (
                 "List offset: ",
                 if offset.hold {
@@ -46,7 +41,7 @@ impl<'a> StatefulWidget for DebugPage<'a> {
             ),
             (
                 "Run time:",
-                state
+                self.state
                     .start_time
                     .map(|x| x.elapsed().hhmmss())
                     .unwrap_or_else(|| "?".to_owned()),
@@ -64,9 +59,9 @@ impl<'a> StatefulWidget for DebugPage<'a> {
             .block(get_block("Debug Info"))
             .style(get_text_style());
 
-        let events = MovableList::new("Events");
+        let events = MovableList::new("Events", &self.state.debug_state);
 
         info.render(layout[0], buf);
-        GenericStatefulWidget::<String>::render(events, layout[1], buf, &mut state.debug_state);
+        GenericWidget::<String>::render(events, layout[1], buf);
     }
 }

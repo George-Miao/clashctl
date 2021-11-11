@@ -2,13 +2,13 @@ use std::marker::PhantomData;
 
 use bytesize::ByteSize;
 use tui::style::{Color, Style};
-use tui::widgets::{Sparkline, StatefulWidget, Widget};
+use tui::widgets::{Sparkline, Widget};
 use tui::{
     layout::{Constraint, Layout},
     symbols::bar::Set,
 };
 
-use crate::cli::{components::get_block, TuiStates};
+use crate::{cli::components::get_block, define_widget};
 
 const TRAFFIC_SIZE: usize = 100;
 
@@ -24,23 +24,21 @@ pub const DOTS: Set = Set {
     full: "⣿",
 };
 
-#[derive(Default, Clone, Debug)]
-pub struct Traffics<'a> {
-    _life: PhantomData<&'a ()>,
-}
+define_widget!(Traffics);
 
-impl<'a> StatefulWidget for Traffics<'a> {
-    type State = TuiStates<'a>;
-    fn render(
-        self,
-        area: tui::layout::Rect,
-        buf: &mut tui::buffer::Buffer,
-        state: &mut Self::State,
-    ) {
+impl<'a> Widget for Traffics<'a> {
+    fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer) {
         let half = Constraint::Percentage(50);
 
         let (mut up, mut down) = ([0; TRAFFIC_SIZE], [0; TRAFFIC_SIZE]);
-        for (index, item) in state.traffics.iter().rev().take(TRAFFIC_SIZE).enumerate() {
+        for (index, item) in self
+            .state
+            .traffics
+            .iter()
+            .rev()
+            .take(TRAFFIC_SIZE)
+            .enumerate()
+        {
             up[index] = item.up;
             down[index] = item.down;
         }
