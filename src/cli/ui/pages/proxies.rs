@@ -8,7 +8,6 @@ define_widget!(ProxiesPage);
 
 impl<'a> Widget for ProxiesPage<'a> {
     fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer) {
-        let widget = ProxyTreeWidget::new(&self.state.proxy_tree);
-        widget.render(area, buf)
+        ProxyTreeWidget::new(&self.state.proxy_tree).render(area, buf);
     }
 }

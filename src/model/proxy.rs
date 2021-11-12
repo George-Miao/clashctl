@@ -80,7 +80,7 @@ impl Ord for History {
 #[cfg_attr(
     feature = "cli",
     derive(strum::EnumString, strum::Display, strum::EnumVariantNames),
-    strum(ascii_case_insensitive, serialize_all = "lowercase")
+    strum(ascii_case_insensitive)
 )]
 pub enum ProxyType {
     // Built-In types
