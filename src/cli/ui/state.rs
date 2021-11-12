@@ -1,12 +1,12 @@
 use std::time::Instant;
 
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::KeyCode;
 use tui::text::Spans;
 
 use crate::{
     cli::{
         components::{MovableListState, ProxyTree},
-        Event, InterfaceEvent, UpdateEvent,
+        Event, InterfaceEvent, ListEvent, UpdateEvent,
     },
     model::{Connections, Traffic, Version},
     Result,
@@ -73,6 +73,26 @@ impl<'a> TuiStates<'a> {
         }
     }
 
+    pub fn new_tick(&mut self) {
+        self.ticks += 1
+    }
+
+    pub fn page_len(&mut self) -> usize {
+        if self.show_debug {
+            Self::TITLES.len()
+        } else {
+            Self::TITLES.len() - 1
+        }
+    }
+
+    pub fn _get_index(page_name: &str) -> Option<usize> {
+        Self::TITLES.iter().position(|x| *x == page_name)
+    }
+
+    pub fn title(&self) -> &str {
+        Self::TITLES[self.page_index]
+    }
+
     fn handle_update(&mut self, update: UpdateEvent) -> Result<()> {
         match update {
             UpdateEvent::Connection(connection) => self.connection = connection,
@@ -84,7 +104,7 @@ impl<'a> TuiStates<'a> {
                 self.traffics.push(traffic)
             }
             UpdateEvent::Proxies(proxies) => {
-                self.proxy_tree = proxies.into();
+                self.proxy_tree.groups = Into::<ProxyTree>::into(proxies).groups;
             }
             UpdateEvent::Log(log) => {
                 self.log_state.items.push(log.into());
@@ -96,8 +116,6 @@ impl<'a> TuiStates<'a> {
     fn handle_interface(&mut self, event: InterfaceEvent) -> Result<()> {
         match event {
             InterfaceEvent::TabGoto(index) => {
-                self.debug_state.offset = Coord::default();
-                self.log_state.offset = Coord::default();
                 if index >= 1 && index <= self.page_len() {
                     self.page_index = index - 1
                 }
@@ -107,71 +125,82 @@ impl<'a> TuiStates<'a> {
                 // On the debug page
                 if self.page_index == Self::TITLES.len() - 1 {
                     self.page_index -= 1;
-                } else {
+                } else if self.show_debug {
                     self.page_index = self.debug_page_index()
                 }
             }
-            InterfaceEvent::ToggleHold => self.toggle_hold(),
-            InterfaceEvent::Other(event) => self.handle_list(event),
+            InterfaceEvent::ToggleHold => match self.title() {
+                "Logs" => self.log_state.offset.toggle(),
+                "Debug" => self.debug_state.offset.toggle(),
+                "Proxies" => self.proxy_tree.expand_state.toggle(),
+                _ => {}
+            },
+            InterfaceEvent::List(list_event) => match self.title() {
+                "Proxies" => self.handle_proxies_select(list_event),
+                _ => self.handle_list(list_event),
+            },
+            // InterfaceEvent::Other(event) => self.handle_list(event),
             _ => {}
         }
         Ok(())
     }
 
-    pub fn _get_index(page_name: &str) -> Option<usize> {
-        Self::TITLES.iter().position(|x| *x == page_name)
-    }
-
-    pub fn title(&self) -> &str {
-        Self::TITLES[self.page_index]
-    }
-
-    pub fn drop_events(&mut self, num: usize) -> impl Iterator<Item = Event> + '_ {
+    fn drop_events(&mut self, num: usize) -> impl Iterator<Item = Event> + '_ {
         self.events.drain(..num)
     }
 
-    fn toggle_hold(&mut self) {
-        match self.title() {
-            "Logs" => self.log_state.offset.toggle(),
-            "Debug" => self.debug_state.offset.toggle(),
-            _ => {}
+    fn handle_proxies_select(&mut self, event: ListEvent) {
+        let mut tree = &mut self.proxy_tree;
+        if tree.expand_state.expanded {
+            let expand = &mut tree.expand_state;
+            let all = &tree.groups[tree.cursor].members;
+            match event.code {
+                KeyCode::Up => {
+                    if expand.cursor > 0 {
+                        expand.cursor = expand.cursor.saturating_sub(1)
+                    }
+                }
+                KeyCode::Down => {
+                    if expand.cursor < all.len() - 1 {
+                        expand.cursor = expand.cursor.saturating_add(1)
+                    }
+                }
+                _ => {}
+            }
+        } else {
+            match event.code {
+                KeyCode::Up => {
+                    if tree.cursor > 0 {
+                        tree.cursor = tree.cursor.saturating_sub(1)
+                    }
+                }
+                KeyCode::Down => {
+                    if tree.cursor < tree.groups.len() - 1 {
+                        tree.cursor = tree.cursor.saturating_add(1)
+                    }
+                }
+                _ => {}
+            }
         }
     }
 
-    fn handle_list(&mut self, event: KeyEvent) {
+    fn handle_list(&mut self, event: ListEvent) {
         let mut offset = match self.title() {
             "Logs" => &mut self.log_state.offset,
             "Debug" => &mut self.debug_state.offset,
             _ => return,
         };
 
-        if offset.hold && matches!(event.code, KeyCode::Char(' ') | KeyCode::Enter) {
-            // No longer holding
-            *offset = Coord::default()
-        } else if matches!(event.code, KeyCode::Char(' ') | KeyCode::Enter) {
-            // Start holding
-            offset.hold = true;
-        } else if !offset.hold {
-            // Other type of input when not holding
-        } else {
-            // Other type of input when holding
-            match (event.modifiers, event.code) {
-                (KeyModifiers::SHIFT | KeyModifiers::CONTROL, KeyCode::Left) => {
-                    offset.x = offset.x.saturating_sub(5)
-                }
-                (KeyModifiers::SHIFT | KeyModifiers::CONTROL, KeyCode::Right) => {
-                    offset.x = offset.x.saturating_add(5)
-                }
-                (KeyModifiers::SHIFT | KeyModifiers::CONTROL, KeyCode::Up) => {
-                    offset.y = offset.y.saturating_sub(5)
-                }
-                (KeyModifiers::SHIFT | KeyModifiers::CONTROL, KeyCode::Down) => {
-                    offset.y = offset.y.saturating_add(5)
-                }
-                (_, KeyCode::Left) => offset.x = offset.x.saturating_sub(1),
-                (_, KeyCode::Right) => offset.x = offset.x.saturating_add(1),
-                (_, KeyCode::Up) => offset.y = offset.y.saturating_sub(1),
-                (_, KeyCode::Down) => offset.y = offset.y.saturating_add(1),
+        if offset.hold {
+            match (event.fast, event.code) {
+                (true, KeyCode::Left) => offset.x = offset.x.saturating_sub(5),
+                (true, KeyCode::Right) => offset.x = offset.x.saturating_add(5),
+                (true, KeyCode::Up) => offset.y = offset.y.saturating_sub(5),
+                (true, KeyCode::Down) => offset.y = offset.y.saturating_add(5),
+                (false, KeyCode::Left) => offset.x = offset.x.saturating_sub(1),
+                (false, KeyCode::Right) => offset.x = offset.x.saturating_add(1),
+                (false, KeyCode::Up) => offset.y = offset.y.saturating_sub(1),
+                (false, KeyCode::Down) => offset.y = offset.y.saturating_add(1),
                 _ => {}
             }
         }
@@ -179,17 +208,5 @@ impl<'a> TuiStates<'a> {
 
     fn debug_page_index(&self) -> usize {
         Self::TITLES.len() - 1
-    }
-
-    pub fn new_tick(&mut self) {
-        self.ticks += 1
-    }
-
-    pub fn page_len(&mut self) -> usize {
-        if self.show_debug {
-            Self::TITLES.len()
-        } else {
-            Self::TITLES.len() - 1
-        }
     }
 }
