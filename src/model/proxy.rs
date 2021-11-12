@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::ops::Deref;
 
-use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -52,28 +51,11 @@ pub struct Proxy {
     pub now: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Eq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, PartialOrd, Eq, Ord)]
+#[cfg_attr(feature = "ui", derive(Hash))]
 pub struct History {
-    pub time: DateTime<Local>,
+    pub time: String,
     pub delay: u64,
-}
-
-impl PartialEq for History {
-    fn eq(&self, other: &Self) -> bool {
-        self.delay.eq(&other.delay)
-    }
-}
-
-impl PartialOrd for History {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.delay.partial_cmp(&other.delay)
-    }
-}
-
-impl Ord for History {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.delay.cmp(&other.delay)
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, PartialOrd, Eq, Ord, Clone, Copy)]
@@ -82,6 +64,7 @@ impl Ord for History {
     derive(strum::EnumString, strum::Display, strum::EnumVariantNames),
     strum(ascii_case_insensitive)
 )]
+#[cfg_attr(feature = "ui", derive(Hash))]
 pub enum ProxyType {
     // Built-In types
     Direct,

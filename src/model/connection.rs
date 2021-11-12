@@ -1,4 +1,3 @@
-use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 
 use crate::model::Rule;
@@ -20,7 +19,7 @@ pub struct Connection {
     pub metadata: Metadata,
     pub rule: Rule,
     pub rule_payload: String,
-    pub start: DateTime<Local>,
+    pub start: String,
     pub chains: Vec<String>,
 }
 
