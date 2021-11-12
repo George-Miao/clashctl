@@ -11,7 +11,7 @@ use tui::{
 };
 use unicode_width::UnicodeWidthStr;
 
-use crate::cli::{
+use crate::ui::{
     components::{
         get_block, get_focused_block, get_substring, get_text_style, spans_window, GenericWidget,
     },

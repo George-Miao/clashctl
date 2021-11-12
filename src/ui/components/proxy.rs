@@ -7,8 +7,8 @@ use tui::{
 };
 
 use crate::{
-    cli::components::{get_block, get_focused_block, get_text_style},
     model::{History, Proxies, Proxy, ProxyType},
+    ui::components::{get_block, get_focused_block, get_text_style},
 };
 
 #[derive(Clone, Debug)]

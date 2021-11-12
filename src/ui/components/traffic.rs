@@ -8,7 +8,7 @@ use tui::{
     symbols::bar::Set,
 };
 
-use crate::{cli::components::get_block, define_widget};
+use crate::{define_widget, ui::components::get_block};
 
 const TRAFFIC_SIZE: usize = 100;
 

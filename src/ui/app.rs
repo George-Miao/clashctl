@@ -17,13 +17,16 @@ use tui::backend::CrosstermBackend;
 use tui::layout::{Constraint, Layout, Rect};
 use tui::{Frame, Terminal};
 
-use crate::cli::ui::{
+use crate::ui::{
     pages::{ConfigPage, DebugPage, ProxiesPage, StatusPage},
     servo::servo,
 };
-use crate::cli::{components::*, ui::pages::LogPage, DiagnosticEvent, Event, Flags};
-use crate::cli::{ui::utils::Interval, TuiStates};
+use crate::ui::{utils::Interval, TuiStates};
 use crate::Result;
+use crate::{
+    cli::Flags,
+    ui::{components::*, pages::LogPage, DiagnosticEvent, Event},
+};
 
 type Backend = CrosstermBackend<Stdout>;
 

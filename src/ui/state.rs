@@ -4,11 +4,11 @@ use crossterm::event::KeyCode;
 use tui::text::Spans;
 
 use crate::{
-    cli::{
+    model::{Connections, Traffic, Version},
+    ui::{
         components::{MovableListState, ProxyTree},
         Event, InterfaceEvent, ListEvent, UpdateEvent,
     },
-    model::{Connections, Traffic, Version},
     Result,
 };
 

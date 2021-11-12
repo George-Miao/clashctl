@@ -3,8 +3,8 @@ use std::marker::PhantomData;
 use tui::{text::Spans, widgets::Widget};
 
 use crate::{
-    cli::components::{GenericWidget, MovableList},
     define_widget,
+    ui::components::{GenericWidget, MovableList},
 };
 
 define_widget!(LogPage);

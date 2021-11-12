@@ -13,7 +13,8 @@ use log::debug;
 pub use proxy::*;
 pub use server::*;
 
-use crate::cli::{Config, TuiOpt};
+use crate::cli::Config;
+use crate::ui::TuiOpt;
 use crate::{Clash, Error, Result};
 
 #[derive(Parser, Debug)]

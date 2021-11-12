@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use tui::widgets::Widget;
 
-use crate::{cli::components::ProxyTreeWidget, define_widget};
+use crate::{define_widget, ui::components::ProxyTreeWidget};
 
 define_widget!(ProxiesPage);
 

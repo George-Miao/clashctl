@@ -17,3 +17,10 @@ pub mod model;
 
 pub use api::*;
 pub use error::*;
+
+#[cfg(feature = "ui")]
+mod ui;
+#[cfg(feature = "ui")]
+pub use ui::TuiOpt;
+#[cfg(feature = "ui")]
+pub(crate) use ui::*;

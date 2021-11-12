@@ -16,12 +16,12 @@ macro_rules! define_widget {
         #[allow(dead_code)]
         #[derive(Clone, Debug)]
         pub struct $name<'a> {
-            state: &'a $crate::cli::ui::TuiStates<'a>,
+            state: &'a $crate::ui::TuiStates<'a>,
             _life: PhantomData<&'a ()>,
         }
 
         impl<'a> $name<'a> {
-            pub fn new(state: &'a $crate::cli::ui::TuiStates<'a>) -> Self {
+            pub fn new(state: &'a $crate::ui::TuiStates<'a>) -> Self {
                 Self {
                     _life: PhantomData,
                     state,

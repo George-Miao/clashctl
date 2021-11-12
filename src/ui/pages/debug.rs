@@ -5,8 +5,8 @@ use tui::layout::{Constraint, Layout};
 use tui::widgets::{Paragraph, Widget};
 
 use crate::{
-    cli::components::{get_block, get_text_style, GenericWidget, MovableList},
     define_widget,
+    ui::components::{get_block, get_text_style, GenericWidget, MovableList},
 };
 
 define_widget!(DebugPage);

@@ -5,8 +5,8 @@ use tui::text::{Span, Spans};
 use tui::widgets::{Tabs as TuiTabs, Widget};
 
 use crate::{
-    cli::{components::get_block, TuiStates},
     define_widget,
+    ui::{components::get_block, TuiStates},
 };
 
 define_widget!(Tabs);
