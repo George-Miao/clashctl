@@ -26,8 +26,7 @@ cli = [
   "home",
   "ron",
 ]
-ring = ["array-init"]
-ui = ["ring", "bytesize", "cli", "hhmmss", "unicode-width", "crossbeam"]
+ui = ["cli", "hhmmss", "unicode-width"]
 
 [profile.release]
 lto = true
@@ -66,12 +65,11 @@ tui           = { version = "~0.16.0", optional = true, default-features = false
 crossterm     = { version = "~0.22.1", optional = true }
 
 # Dependencies required by UI
-array-init    = { version = "~2.0.0", optional = true }
 bytesize      = { version = "~1.1.0", optional = true }
 hhmmss        = { version = "~0.1.0", optional = true }
 unicode-width = { version = "~0.1.9", optional = true }
-crossbeam     = { version = "~0.8.1", optional = true }
 
 [dev-dependencies]
+rand = "0.8.4"
 simple_logger = "1.13.0"
 
