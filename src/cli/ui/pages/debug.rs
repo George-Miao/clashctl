@@ -40,6 +40,14 @@ impl<'a> Widget for DebugPage<'a> {
                 },
             ),
             (
+                "Proxy tree:",
+                format!(
+                    "{} / {}",
+                    self.state.proxy_tree.cursor,
+                    self.state.proxy_tree.groups.len()
+                ),
+            ),
+            (
                 "Run time:",
                 self.state
                     .start_time
