@@ -7,6 +7,7 @@ use crate::{Error, Result};
 #[non_exhaustive]
 pub enum Event {
     Quit,
+
     Interface(InterfaceEvent),
     Update(UpdateEvent),
     Diagnostic(DiagnosticEvent),
@@ -15,10 +16,18 @@ pub enum Event {
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum InterfaceEvent {
+    Esc,
     TabGoto(usize),
     ToggleDebug,
     ToggleHold,
+    List(ListEvent),
     Other(KeyEvent),
+}
+
+#[derive(Clone, Debug)]
+pub struct ListEvent {
+    pub fast: bool,
+    pub code: KeyCode,
 }
 
 #[derive(Clone, Debug)]
@@ -42,8 +51,9 @@ impl TryFrom<KeyCode> for Event {
     fn try_from(value: KeyCode) -> Result<Self> {
         match value {
             KeyCode::Char('q') | KeyCode::Char('x') => Ok(Event::Quit),
+            KeyCode::Esc => Ok(Event::Interface(InterfaceEvent::Esc)),
             KeyCode::Char(' ') | KeyCode::Enter => Ok(Event::Interface(InterfaceEvent::ToggleHold)),
-            KeyCode::Char(char) => char
+            KeyCode::Char(char) if char.is_ascii_digit() => char
                 .to_digit(10)
                 .ok_or(Error::TuiInternalErr)
                 .map(|x| Event::Interface(InterfaceEvent::TabGoto(x as usize))),
@@ -58,6 +68,12 @@ impl From<KeyEvent> for Event {
             (KeyModifiers::CONTROL, KeyCode::Char('c')) => Self::Quit,
             (KeyModifiers::CONTROL, KeyCode::Char('d')) => {
                 Self::Interface(InterfaceEvent::ToggleDebug)
+            }
+            bind @ (modifier, KeyCode::Left | KeyCode::Right | KeyCode::Up | KeyCode::Down) => {
+                Event::Interface(InterfaceEvent::List(ListEvent {
+                    fast: matches!(modifier, KeyModifiers::CONTROL | KeyModifiers::SHIFT),
+                    code: bind.1,
+                }))
             }
             (KeyModifiers::NONE, key_code) => key_code
                 .try_into()
