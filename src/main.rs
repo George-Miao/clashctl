@@ -1,4 +1,7 @@
-use clashctl::cli::{init_logger, Cmd, Flags, Opts, TuiOpt};
+use clashctl::{
+    cli::{init_logger, Cmd, Flags, Opts},
+    TuiOpt,
+};
 
 use clap::Parser;
 use log::{debug, warn, LevelFilter};
