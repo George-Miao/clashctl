@@ -1,3 +1,5 @@
+#![allow(soft_unstable)]
+#![feature(test)]
 #![feature(extend_one)]
 #![feature(int_abs_diff)]
 #![feature(slice_group_by)]

@@ -26,7 +26,7 @@ cli = [
   "home",
   "ron",
 ]
-ui = ["cli", "hhmmss", "unicode-width"]
+ui = ["cli", "hhmmss", "unicode-width", "bytesize"]
 
 [profile.release]
 lto = true
@@ -44,9 +44,7 @@ log        = "~0.4"
 serde_json = "~1.0"
 thiserror  = "~1.0"
 ureq       = { version = "~2.3.0", default-features = false }
-chrono     = { version = "~0.4", features = ["serde"] }
 serde      = { version = "~1.0", features = ["derive"] }
-tokio      = { version = "~1.12", features = ["macros"] }
 url        = { version = "~2.2", features = ["serde"] }
 semver     = { version = "~1.0", features = ["serde"] }
 
@@ -70,6 +68,6 @@ hhmmss        = { version = "~0.1.0", optional = true }
 unicode-width = { version = "~0.1.9", optional = true }
 
 [dev-dependencies]
-rand = "0.8.4"
+rand          = { version = "0.8.4", features = ["small_rng"] }
 simple_logger = "1.13.0"
 
