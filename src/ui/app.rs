@@ -1,8 +1,7 @@
 use std::io::{self, Stdout};
-use std::sync::Mutex;
 use std::time::Duration;
 use std::{
-    sync::mpsc::{channel, Sender, TryRecvError},
+    sync::mpsc::{channel, TryRecvError},
     thread::spawn,
 };
 
@@ -12,7 +11,6 @@ use crossterm::execute;
 use crossterm::terminal::{
     disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
-use log::{LevelFilter, Record};
 use tui::backend::CrosstermBackend;
 use tui::layout::{Constraint, Layout, Rect};
 use tui::{Frame, Terminal};
@@ -21,11 +19,14 @@ use crate::ui::{
     pages::{ConfigPage, DebugPage, ProxiesPage, StatusPage},
     servo::servo,
 };
-use crate::ui::{utils::Interval, TuiStates};
+use crate::ui::{
+    utils::{Interval, Logger},
+    TuiStates,
+};
 use crate::Result;
 use crate::{
     cli::Flags,
-    ui::{components::*, pages::LogPage, DiagnosticEvent, Event},
+    ui::{components::*, pages::LogPage, Event},
 };
 
 type Backend = CrosstermBackend<Stdout>;
@@ -88,6 +89,8 @@ pub fn main_loop(opt: TuiOpt, flag: &Flags) -> Result<()> {
 
     let (tx, rx) = channel();
     let flag_clone = flag.clone();
+
+    Logger::new(tx.clone()).apply()?;
     spawn(move || servo(tx, &opt, &flag_clone));
 
     let mut state = TuiStates::new();
@@ -136,46 +139,4 @@ fn render(state: &TuiStates, f: &mut Frame<Backend>) {
     let main = layout[1];
 
     route(state, main, f);
-}
-
-pub struct Logger {
-    sender: Mutex<Sender<Event>>,
-    level: LevelFilter,
-}
-
-impl Logger {
-    pub fn new(sender: Sender<Event>) -> Self {
-        Self::new_with_level(sender, LevelFilter::Info)
-    }
-
-    pub fn new_with_level(sender: Sender<Event>, level: LevelFilter) -> Self {
-        Self {
-            sender: Mutex::new(sender),
-            level,
-        }
-    }
-
-    pub fn apply(self) -> std::result::Result<(), log::SetLoggerError> {
-        let level = self.level;
-        log::set_boxed_logger(Box::new(self)).map(|()| log::set_max_level(level))
-    }
-}
-
-impl log::Log for Logger {
-    fn enabled(&self, _metadata: &log::Metadata) -> bool {
-        true
-    }
-    fn log(&self, record: &Record) {
-        let text = format!(
-            "{:<6}{:?}",
-            record.level().to_string().to_uppercase(),
-            record.args()
-        );
-        self.sender
-            .lock()
-            .unwrap()
-            .send(Event::Diagnostic(DiagnosticEvent::Log(text)))
-            .unwrap()
-    }
-    fn flush(&self) {}
 }

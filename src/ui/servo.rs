@@ -8,7 +8,7 @@ use crate::{
     cli::Flags,
     ui::{
         utils::{Interval, Pulse},
-        Event, Logger, TuiOpt, UpdateEvent,
+        Event, TuiOpt, UpdateEvent,
     },
     Result,
 };
@@ -42,8 +42,6 @@ pub(super) fn servo(tx: Sender<Event>, opt: &TuiOpt, flags: &Flags) -> Result<()
                 }
             };
         }
-
-    Logger::new(tx.clone()).apply().unwrap();
 
     info!("Logger set");
 

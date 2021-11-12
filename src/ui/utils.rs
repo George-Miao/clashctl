@@ -1,11 +1,13 @@
 use std::{
+    sync::{mpsc::Sender, Mutex},
     thread::sleep,
     time::{Duration, Instant},
 };
 
+use log::{LevelFilter, Record};
 use tui::style::Color;
 
-use crate::model;
+use crate::{model, DiagnosticEvent, Event, Result};
 
 pub struct Interval {
     interval: Duration,
@@ -78,4 +80,46 @@ impl From<model::Level> for Color {
             model::Level::Error => Color::Red,
         }
     }
+}
+
+pub struct Logger {
+    sender: Mutex<Sender<Event>>,
+    level: LevelFilter,
+}
+
+impl Logger {
+    pub fn new(sender: Sender<Event>) -> Self {
+        Self::new_with_level(sender, LevelFilter::Info)
+    }
+
+    pub fn new_with_level(sender: Sender<Event>, level: LevelFilter) -> Self {
+        Self {
+            sender: Mutex::new(sender),
+            level,
+        }
+    }
+
+    pub fn apply(self) -> Result<()> {
+        let level = self.level;
+        Ok(log::set_boxed_logger(Box::new(self)).map(|()| log::set_max_level(level))?)
+    }
+}
+
+impl log::Log for Logger {
+    fn enabled(&self, _metadata: &log::Metadata) -> bool {
+        true
+    }
+    fn log(&self, record: &Record) {
+        let text = format!(
+            "{:<6}{:?}",
+            record.level().to_string().to_uppercase(),
+            record.args()
+        );
+        self.sender
+            .lock()
+            .unwrap()
+            .send(Event::Diagnostic(DiagnosticEvent::Log(text)))
+            .unwrap()
+    }
+    fn flush(&self) {}
 }

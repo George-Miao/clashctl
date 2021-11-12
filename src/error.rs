@@ -62,6 +62,10 @@ pub enum Error {
     #[error("TUI internal error")]
     TuiInternalErr,
 
+    #[cfg(feature = "ui")]
+    #[error("TUI internal error")]
+    SetLoggerError(#[from] log::SetLoggerError),
+
     #[error("Other errors ({0})")]
     Other(String),
 }
