@@ -63,7 +63,6 @@ fn setup() -> Result<Terminal<Backend>> {
     Ok(terminal)
 }
 
-// TODO: wrap up
 fn wrap_up(mut terminal: Terminal<Backend>) -> Result<()> {
     execute!(
         terminal.backend_mut(),
