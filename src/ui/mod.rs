@@ -1,5 +1,5 @@
 mod app;
-pub(super) mod components;
+pub mod components;
 mod event;
 mod pages;
 mod servo;

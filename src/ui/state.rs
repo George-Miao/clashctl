@@ -1,4 +1,8 @@
-use std::time::Instant;
+use std::{
+    collections::VecDeque,
+    sync::mpsc::Sender,
+    time::{Instant, SystemTime, UNIX_EPOCH},
+};
 
 use crossterm::event::KeyCode;
 use tui::text::Spans;
@@ -7,7 +11,7 @@ use crate::{
     model::{Connections, Traffic, Version},
     ui::{
         components::{MovableListState, ProxyTree},
-        Event, InterfaceEvent, ListEvent, UpdateEvent,
+        Event, Input, ListEvent, UpdateEvent,
     },
     Result,
 };
@@ -29,11 +33,17 @@ impl Coord {
     }
 }
 
+/// # Warn
+/// DO NOT USE [`Default::default`] TO INITIALIZE
+/// USE [`TuiStates::new`] instead
+/// As during runtime we assume all Option field is Some
+/// So [`Default`] can be automatically derived2
 #[derive(Debug, Default, Clone)]
-pub struct TuiStates<'a> {
+pub(crate) struct TuiStates<'a> {
     pub(crate) start_time: Option<Instant>,
     pub(crate) version: Option<Version>,
     pub(crate) ticks: u64,
+    pub(crate) tick_counter: VecDeque<u64>,
     pub(crate) traffics: Vec<Traffic>,
     pub(crate) max_traffic: Traffic,
     pub(crate) events: Vec<Event>,
@@ -44,14 +54,16 @@ pub struct TuiStates<'a> {
     pub(crate) proxy_tree: ProxyTree<'a>,
     pub(crate) debug_state: MovableListState<'a, String>,
     pub(crate) log_state: MovableListState<'a, Spans<'a>>,
+    pub(crate) tx: Option<Sender<Event>>,
 }
 
 impl<'a> TuiStates<'a> {
     pub const TITLES: &'static [&'static str] = &["Status", "Proxies", "Logs", "Configs", "Debug"];
 
-    pub fn new() -> Self {
+    pub fn new(tx: Sender<Event>) -> Self {
         Self {
             start_time: Some(Instant::now()),
+            tx: Some(tx),
             ..Default::default()
         }
     }
@@ -67,14 +79,26 @@ impl<'a> TuiStates<'a> {
             self.debug_state.offset.y += 1;
         }
         match event {
-            Event::Interface(event) => self.handle_interface(event),
+            Event::Interface(event) => self.handle_input(event),
             Event::Update(update) => self.handle_update(update),
             _ => Ok(()),
         }
     }
 
     pub fn new_tick(&mut self) {
-        self.ticks += 1
+        self.ticks += 1;
+        self.tick_counter.push_front(
+            Instant::now()
+                .duration_since(self.start_time.unwrap())
+                .as_millis()
+                .try_into()
+                .expect(
+                    "Hey anyone who sees this as a panic message. Is the universe still there?",
+                ),
+        );
+        if self.tick_counter.len() > 150 {
+            self.tick_counter.drain(100..);
+        }
     }
 
     pub fn page_len(&mut self) -> usize {
@@ -104,7 +128,8 @@ impl<'a> TuiStates<'a> {
                 self.traffics.push(traffic)
             }
             UpdateEvent::Proxies(proxies) => {
-                self.proxy_tree.groups = Into::<ProxyTree>::into(proxies).groups;
+                let new_tree = Into::<ProxyTree>::into(proxies);
+                self.proxy_tree.merge(new_tree)
             }
             UpdateEvent::Log(log) => {
                 self.log_state.items.push(log.into());
@@ -113,14 +138,14 @@ impl<'a> TuiStates<'a> {
         Ok(())
     }
 
-    fn handle_interface(&mut self, event: InterfaceEvent) -> Result<()> {
+    fn handle_input(&mut self, event: Input) -> Result<()> {
         match event {
-            InterfaceEvent::TabGoto(index) => {
+            Input::TabGoto(index) => {
                 if index >= 1 && index <= self.page_len() {
                     self.page_index = index - 1
                 }
             }
-            InterfaceEvent::ToggleDebug => {
+            Input::ToggleDebug => {
                 self.show_debug = !self.show_debug;
                 // On the debug page
                 if self.page_index == Self::TITLES.len() - 1 {
@@ -129,13 +154,13 @@ impl<'a> TuiStates<'a> {
                     self.page_index = self.debug_page_index()
                 }
             }
-            InterfaceEvent::ToggleHold => match self.title() {
+            Input::ToggleHold => match self.title() {
                 "Logs" => self.log_state.offset.toggle(),
                 "Debug" => self.debug_state.offset.toggle(),
-                "Proxies" => self.proxy_tree.expand_state.toggle(),
+                "Proxies" => self.proxy_tree.toggle(),
                 _ => {}
             },
-            InterfaceEvent::List(list_event) => match self.title() {
+            Input::List(list_event) => match self.title() {
                 "Proxies" => self.handle_proxies_select(list_event),
                 _ => self.handle_list(list_event),
             },
@@ -151,18 +176,19 @@ impl<'a> TuiStates<'a> {
 
     fn handle_proxies_select(&mut self, event: ListEvent) {
         let mut tree = &mut self.proxy_tree;
-        if tree.expand_state.expanded {
-            let expand = &mut tree.expand_state;
-            let all = &tree.groups[tree.cursor].members;
+        if tree.expanded {
+            let step = if event.fast { 3 } else { 1 };
+            let group = &mut tree.groups[tree.cursor];
             match event.code {
                 KeyCode::Up => {
-                    if expand.cursor > 0 {
-                        expand.cursor = expand.cursor.saturating_sub(1)
+                    if group.cursor > 0 {
+                        group.cursor = group.cursor.saturating_sub(step)
                     }
                 }
                 KeyCode::Down => {
-                    if expand.cursor < all.len() - 1 {
-                        expand.cursor = expand.cursor.saturating_add(1)
+                    let left = group.members.len().saturating_sub(group.cursor + 1);
+                    if left > 0 {
+                        group.cursor += left.min(step)
                     }
                 }
                 _ => {}

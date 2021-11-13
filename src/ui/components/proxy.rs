@@ -1,3 +1,4 @@
+use std::{collections::HashMap, hash::Hash};
 use std::{fmt::Debug, marker::PhantomData};
 
 use tui::{
@@ -7,18 +8,25 @@ use tui::{
 };
 
 use crate::{
-    components::Consts,
+    components::{get_hash, Consts},
     model::{History, Proxies, Proxy, ProxyType},
     ui::components::{get_block, get_focused_block, get_text_style},
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Hash)]
 pub struct ProxyGroup<'a> {
     pub name: String,
     pub proxy_type: ProxyType,
     pub members: Vec<ProxyItem>,
     pub current: Option<usize>,
-    _life: PhantomData<&'a ()>,
+    pub cursor: usize,
+    pub(crate) _life: PhantomData<&'a ()>,
+}
+
+pub enum ProxyGroupFocusStatus {
+    None,
+    Focused,
+    Expanded,
 }
 
 impl<'a> ProxyGroup<'a> {
@@ -38,17 +46,16 @@ impl<'a> ProxyGroup<'a> {
     pub(crate) fn get_widget(
         &'a self,
         width: usize,
-        expanded: bool,
-        focused: bool,
+        status: ProxyGroupFocusStatus,
     ) -> Vec<Spans<'a>> {
         let delimiter = Span::raw(" ");
-        let prefix = if focused {
+        let prefix = if matches!(status, ProxyGroupFocusStatus::Focused) {
             Consts::FOCUSED_INDICATOR_SPAN
         } else {
             Consts::UNFOCUSED_INDICATOR_SPAN
         };
         let name = Span::styled(
-            self.name.to_owned(),
+            &self.name,
             Style::default()
                 .fg(Color::White)
                 .add_modifier(Modifier::BOLD),
@@ -56,12 +63,21 @@ impl<'a> ProxyGroup<'a> {
 
         let proxy_type = Span::styled(self.proxy_type.to_string(), Consts::PROXY_TYPE_STYLE);
 
+        let count = self.members.len();
         let proxy_count = Span::styled(
-            self.members.len().to_string(),
+            if matches!(status, ProxyGroupFocusStatus::Expanded) {
+                format!("{}/{}", self.cursor + 1, count)
+            } else {
+                count.to_string()
+            },
             Style::default().fg(Color::Green),
         );
 
-        let mut ret = Vec::with_capacity(if expanded { self.members.len() + 1 } else { 2 });
+        let mut ret = Vec::with_capacity(if matches!(status, ProxyGroupFocusStatus::Expanded) {
+            self.members.len() + 1
+        } else {
+            2
+        });
 
         ret.push(Spans::from(vec![
             prefix.clone(),
@@ -72,23 +88,27 @@ impl<'a> ProxyGroup<'a> {
             proxy_count,
         ]));
 
-        if expanded {
-            let expand_prefix = if focused {
-                Consts::FOCUSED_EXPANDED_INDICATOR_SPAN
-            } else {
-                Consts::UNFOCUSED_EXPANDED_INDICATOR_SPAN
-            };
-
+        if matches!(status, ProxyGroupFocusStatus::Expanded) {
+            let skipped = self.cursor.saturating_sub(4);
             let text_style = get_text_style();
-            let is_current = |index: usize| self.current.map(|x| x == index).unwrap_or(false);
+            let is_current =
+                |index: usize| self.current.map(|x| x == index + skipped).unwrap_or(false);
+            let is_pointed = |index: usize| self.cursor == index + skipped;
 
-            ret.extend(self.members.iter().enumerate().map(|(i, x)| {
+            let lines = self.members.iter().skip(skipped).enumerate().map(|(i, x)| {
+                let prefix = if self.cursor == i + skipped {
+                    Consts::EXPANDED_FOCUSED_INDICATOR_SPAN
+                } else {
+                    Consts::EXPANDED_INDICATOR_SPAN
+                };
                 let name = Span::styled(
                     &x.name,
                     if is_current(i) {
                         Style::default()
                             .fg(Color::Blue)
                             .add_modifier(Modifier::BOLD)
+                    } else if is_pointed(i) {
+                        text_style.fg(Color::LightBlue)
                     } else {
                         text_style
                     },
@@ -114,7 +134,7 @@ impl<'a> ProxyGroup<'a> {
                         }
                     });
                 vec![
-                    expand_prefix.clone(),
+                    prefix,
                     Consts::DELIMITER_SPAN.clone(),
                     name,
                     Consts::DELIMITER_SPAN.clone(),
@@ -123,7 +143,8 @@ impl<'a> ProxyGroup<'a> {
                     delay_span,
                 ]
                 .into()
-            }))
+            });
+            ret.extend(lines);
         } else {
             ret.extend(
                 self.get_summary_widget()
@@ -134,7 +155,7 @@ impl<'a> ProxyGroup<'a> {
                             .saturating_div(2),
                     )
                     .map(|x| {
-                        std::iter::once(if focused {
+                        std::iter::once(if matches!(status, ProxyGroupFocusStatus::Focused) {
                             Consts::FOCUSED_INDICATOR_SPAN
                         } else {
                             Consts::UNFOCUSED_INDICATOR_SPAN
@@ -175,12 +196,13 @@ impl<'a> Default for ProxyGroup<'a> {
             current: None,
             proxy_type: ProxyType::Selector,
             name: String::new(),
+            cursor: 0,
             _life: PhantomData,
         }
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Hash)]
 pub struct ProxyItem {
     pub name: String,
     pub proxy_type: ProxyType,
@@ -200,23 +222,42 @@ impl<'a> From<(&'a str, &'a Proxy)> for ProxyItem {
     }
 }
 
-#[derive(Copy, Clone, Debug, Default)]
-pub struct ProxyExpandState {
-    pub cursor: usize,
-    pub expanded: bool,
-}
-
-impl ProxyExpandState {
-    pub fn toggle(&mut self) {
-        self.expanded = !self.expanded
-    }
-}
-
 #[derive(Clone, Debug, Default)]
 pub struct ProxyTree<'a> {
     pub groups: Vec<ProxyGroup<'a>>,
-    pub expand_state: ProxyExpandState,
+    pub expanded: bool,
     pub cursor: usize,
+}
+
+impl<'a> ProxyTree<'a> {
+    pub fn toggle(&mut self) {
+        self.expanded = !self.expanded
+    }
+
+    pub fn merge(&mut self, other: ProxyTree<'a>) {
+        if get_hash(&self.groups) == get_hash(&other.groups) {
+            return;
+        }
+
+        let mut map: HashMap<_, _> =
+            FromIterator::from_iter(other.groups.into_iter().map(|x| (x.name.to_owned(), x)));
+
+        for group in self.groups.iter_mut() {
+            if let Some(other_group) = map.remove(&group.name) {
+                if get_hash(group) == get_hash(&other_group) {
+                    continue;
+                }
+                *group = ProxyGroup {
+                    cursor: group.cursor,
+                    ..other_group
+                }
+            }
+        }
+
+        for (_, group) in map.into_iter() {
+            self.groups.push(group)
+        }
+    }
 }
 
 impl<'a> From<Proxies> for ProxyTree<'a> {
@@ -252,6 +293,7 @@ impl<'a> From<Proxies> for ProxyTree<'a> {
                 _life: PhantomData,
                 name: name.to_owned(),
                 proxy_type: group.proxy_type,
+                cursor: current.unwrap_or_default(),
                 current,
                 members,
             })
@@ -264,7 +306,6 @@ impl<'a> From<Proxies> for ProxyTree<'a> {
 #[derive(Clone, Debug)]
 pub struct ProxyTreeWidget<'a> {
     state: &'a ProxyTree<'a>,
-
     _life: PhantomData<&'a ()>,
 }
 
@@ -280,8 +321,11 @@ impl<'a> ProxyTreeWidget<'a> {
 impl<'a> Widget for ProxyTreeWidget<'a> {
     fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer) {
         let cursor = &self.state.cursor;
-        let offset = &self.state.expand_state;
-        let skip = cursor.saturating_sub(2);
+        let skip = if self.state.expanded {
+            *cursor
+        } else {
+            cursor.saturating_sub(2)
+        };
         let text = self
             .state
             .groups
@@ -291,8 +335,11 @@ impl<'a> Widget for ProxyTreeWidget<'a> {
             .map(|(i, x)| {
                 x.get_widget(
                     area.width as usize,
-                    offset.expanded && *cursor == i + skip,
-                    i == cursor - skip,
+                    match (self.state.expanded, *cursor == i + skip) {
+                        (true, true) => ProxyGroupFocusStatus::Expanded,
+                        (false, true) => ProxyGroupFocusStatus::Focused,
+                        _ => ProxyGroupFocusStatus::None,
+                    },
                 )
             })
             .reduce(|mut a, b| {
@@ -304,13 +351,13 @@ impl<'a> Widget for ProxyTreeWidget<'a> {
             .take(area.height as usize)
             .collect::<Vec<_>>();
 
-        let block = if self.state.expand_state.expanded {
+        let block = if self.state.expanded {
             get_focused_block("Proxies")
         } else {
             get_block("Proxies")
         };
 
-        let mut inner = block.inner(area);
+        let inner = block.inner(area);
         // if area.height > 12 {
         //     inner.x += 1;
         //     inner.width -= 2;

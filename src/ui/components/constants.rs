@@ -20,7 +20,7 @@ impl Consts {
 
     pub const UNFOCUSED_INDICATOR: &'static str = "   ";
 
-    pub const UNFOCUSED_EXPANDED_INDICATOR: &'static str = "    ";
+    pub const EXPANDED_FOCUSED_INDICATOR: &'static str = "🮇  ➤";
 
     pub const DEFAULT_STYLE: Style = Style {
         add_modifier: Modifier::empty(),
@@ -93,7 +93,12 @@ impl Consts {
         },
     };
 
-    pub const FOCUSED_EXPANDED_INDICATOR_SPAN: Span<'static> = Span {
+    pub const UNFOCUSED_INDICATOR_SPAN: Span<'static> = Span {
+        content: Cow::Borrowed(Self::UNFOCUSED_INDICATOR),
+        style: Self::DEFAULT_STYLE,
+    };
+
+    pub const EXPANDED_INDICATOR_SPAN: Span<'static> = Span {
         content: Cow::Borrowed(Self::FOCUSED_EXPANDED_INDICATOR),
         style: Style {
             fg: Some(Color::LightYellow),
@@ -101,13 +106,8 @@ impl Consts {
         },
     };
 
-    pub const UNFOCUSED_INDICATOR_SPAN: Span<'static> = Span {
-        content: Cow::Borrowed(Self::UNFOCUSED_INDICATOR),
-        style: Self::DEFAULT_STYLE,
-    };
-
-    pub const UNFOCUSED_EXPANDED_INDICATOR_SPAN: Span<'static> = Span {
-        content: Cow::Borrowed(Self::UNFOCUSED_EXPANDED_INDICATOR),
+    pub const EXPANDED_FOCUSED_INDICATOR_SPAN: Span<'static> = Span {
+        content: Cow::Borrowed(Self::EXPANDED_FOCUSED_INDICATOR),
         style: Style {
             fg: Some(Color::LightYellow),
             ..Self::DEFAULT_STYLE

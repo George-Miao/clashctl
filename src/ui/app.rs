@@ -91,12 +91,12 @@ pub fn main_loop(opt: TuiOpt, flag: &Flags) -> Result<()> {
     let flag_clone = flag.clone();
 
     Logger::new(tx.clone()).apply()?;
-    spawn(move || servo(tx, &opt, &flag_clone));
 
-    let mut state = TuiStates::new();
-    let mut interval = Interval::every(Duration::from_millis(50));
+    let servo_tx = tx.clone();
+    spawn(move || servo(servo_tx, &opt, &flag_clone));
+
+    let mut state = TuiStates::new(tx);
     loop {
-        interval.tick();
         terminal.draw(|f| render(&state, f)).unwrap();
         state.new_tick();
         match rx.try_recv() {

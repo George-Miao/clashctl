@@ -1,4 +1,8 @@
-use std::ops::Range;
+use std::{
+    collections::hash_map::DefaultHasher,
+    hash::{Hash, Hasher},
+    ops::Range,
+};
 
 use tui::{
     buffer::Buffer,
@@ -15,13 +19,13 @@ macro_rules! define_widget {
     ($name:ident) => {
         #[allow(dead_code)]
         #[derive(Clone, Debug)]
-        pub struct $name<'a> {
+        pub(crate) struct $name<'a> {
             state: &'a $crate::ui::TuiStates<'a>,
             _life: PhantomData<&'a ()>,
         }
 
         impl<'a> $name<'a> {
-            pub fn new(state: &'a $crate::ui::TuiStates<'a>) -> Self {
+            pub(crate) fn new(state: &'a $crate::ui::TuiStates<'a>) -> Self {
                 Self {
                     _life: PhantomData,
                     state,
@@ -104,6 +108,12 @@ pub fn get_focused_block(title: &str) -> Block {
 
 pub fn get_text_style() -> Style {
     Style::default().fg(Color::White)
+}
+
+pub fn get_hash<T: Hash>(val: &T) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    val.hash(&mut hasher);
+    hasher.finish()
 }
 
 impl<'a> From<Log> for Spans<'a> {
