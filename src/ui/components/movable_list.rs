@@ -55,9 +55,6 @@ pub struct MovableList<'a, T> {
     _life: PhantomData<&'a T>,
 }
 
-// TODO move offset limit logic to event handler
-// state.offset.x = x_offset;
-// state.offset.y = y_offset;
 impl<'a, T> MovableList<'a, T>
 where
     T: Into<Spans<'a>>,

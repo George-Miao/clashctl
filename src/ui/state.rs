@@ -57,6 +57,9 @@ pub(crate) struct TuiStates<'a> {
     pub(crate) tx: Option<Sender<Event>>,
 }
 
+// TODO impl offset limit in event handling
+// Requires MovableListItem to be implemented first
+// So content width can be inferred
 impl<'a> TuiStates<'a> {
     pub const TITLES: &'static [&'static str] = &["Status", "Proxies", "Logs", "Configs", "Debug"];
 
