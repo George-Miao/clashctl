@@ -1,5 +1,4 @@
 use std::io::{self, Stdout};
-use std::time::Duration;
 use std::{
     sync::mpsc::{channel, TryRecvError},
     thread::spawn,
@@ -19,10 +18,7 @@ use crate::ui::{
     pages::{ConfigPage, DebugPage, ProxiesPage, StatusPage},
     servo::servo,
 };
-use crate::ui::{
-    utils::{Interval, Logger},
-    TuiStates,
-};
+use crate::ui::{utils::Logger, TuiStates};
 use crate::Result;
 use crate::{
     cli::Flags,

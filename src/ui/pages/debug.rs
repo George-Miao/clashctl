@@ -26,6 +26,12 @@ impl<'a> Widget for DebugPage<'a> {
             ("Event In Mem:", event_num.to_string()),
             ("Event All #:", self.state.all_events_recv.to_string()),
             ("Tick #:", self.state.ticks.to_string()),
+            (
+                "Tick Rate:",
+                self.state
+                    .tick_rate()
+                    .map_or_else(|| "?".to_owned(), |rate| format!("{:.0}", rate)),
+            ),
             ("Logs #:", self.state.log_state.len().to_string()),
             (
                 "Proxy group #",

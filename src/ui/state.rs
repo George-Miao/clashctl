@@ -99,9 +99,22 @@ impl<'a> TuiStates<'a> {
                     "Hey anyone who sees this as a panic message. Is the universe still there?",
                 ),
         );
-        if self.tick_counter.len() > 150 {
+        if self.tick_counter.len() > 1000 {
             self.tick_counter.drain(100..);
         }
+    }
+
+    pub fn tick_rate(&self) -> Option<f64> {
+        if self.tick_counter.len() <= 2 {
+            return None;
+        }
+        let (new, old) = (
+            self.tick_counter.get(0).unwrap(),
+            self.tick_counter.back().unwrap(),
+        );
+
+        let span_s = (new - old) / 1000;
+        Some((self.tick_counter.len() as f64) / (span_s as f64))
     }
 
     pub fn page_len(&mut self) -> usize {
