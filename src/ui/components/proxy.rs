@@ -222,6 +222,18 @@ impl<'a> From<(&'a str, &'a Proxy)> for ProxyItem {
     }
 }
 
+// TODO Proxy tree furthur functions
+//
+// - Right & Enter can be used to apply selection
+// - Esc for exist expand mode
+// - T for test latency of current group
+// - S for switch between sorting strategies
+// - / for searching
+//
+// In order for functions to be implemented, these are required:
+// - Remove Enter from InterfaceEvent::ToggleHold
+// - Maybe a new InterfaceEvent::Confirm correstponds to Enter
+// - `T`, `S`, '/' in proxy event handling
 #[derive(Clone, Debug, Default)]
 pub struct ProxyTree<'a> {
     pub groups: Vec<ProxyGroup<'a>>,
