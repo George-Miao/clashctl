@@ -1,19 +1,18 @@
-use std::{
-    collections::VecDeque,
-    sync::mpsc::Sender,
-    time::{Instant, SystemTime, UNIX_EPOCH},
-};
+use std::time::Instant;
 
 use crossterm::event::KeyCode;
-use tui::text::Spans;
+use tui::{layout::Rect, text::Spans, Frame};
 
 use crate::{
-    model::{Connections, Traffic, Version},
+    model::{Connections, Rule, Rules, Traffic, Version},
     ui::{
         components::{MovableListState, ProxyTree},
+        pages::{
+            ConfigPage, ConnectionsPage, DebugPage, LogPage, ProxiesPage, RulesPage, StatusPage,
+        },
         Event, Input, ListEvent, UpdateEvent,
     },
-    Result,
+    Backend, Result,
 };
 
 #[derive(Copy, Clone, Debug, Default)]
@@ -35,15 +34,15 @@ impl Coord {
 
 /// # Warn
 /// DO NOT USE [`Default::default`] TO INITIALIZE
+///
 /// USE [`TuiStates::new`] instead
-/// As during runtime we assume all Option field is Some
+///
+/// As during runtime we assume all Option field is Some.
 /// So [`Default`] can be automatically derived2
 #[derive(Debug, Default, Clone)]
 pub(crate) struct TuiStates<'a> {
     pub(crate) start_time: Option<Instant>,
     pub(crate) version: Option<Version>,
-    pub(crate) ticks: u64,
-    pub(crate) tick_counter: VecDeque<u64>,
     pub(crate) traffics: Vec<Traffic>,
     pub(crate) max_traffic: Traffic,
     pub(crate) events: Vec<Event>,
@@ -54,19 +53,22 @@ pub(crate) struct TuiStates<'a> {
     pub(crate) proxy_tree: ProxyTree<'a>,
     pub(crate) debug_state: MovableListState<'a, String>,
     pub(crate) log_state: MovableListState<'a, Spans<'a>>,
-    pub(crate) tx: Option<Sender<Event>>,
+    pub(crate) rules: Rules,
+    // pub(crate) tx: Option<Sender<Event>>,
 }
 
 // TODO impl offset limit in event handling
 // Requires MovableListItem to be implemented first
 // So content width can be inferred
 impl<'a> TuiStates<'a> {
-    pub const TITLES: &'static [&'static str] = &["Status", "Proxies", "Logs", "Configs", "Debug"];
+    pub const TITLES: &'static [&'static str] = &[
+        "Status", "Proxies", "Rules", "Conns", "Logs", "Configs", "Debug",
+    ];
 
-    pub fn new(tx: Sender<Event>) -> Self {
+    pub fn new() -> Self {
         Self {
             start_time: Some(Instant::now()),
-            tx: Some(tx),
+            // tx: Some(tx),
             ..Default::default()
         }
     }
@@ -88,35 +90,6 @@ impl<'a> TuiStates<'a> {
         }
     }
 
-    pub fn new_tick(&mut self) {
-        self.ticks += 1;
-        self.tick_counter.push_front(
-            Instant::now()
-                .duration_since(self.start_time.unwrap())
-                .as_millis()
-                .try_into()
-                .expect(
-                    "Hey anyone who sees this as a panic message. Is the universe still there?",
-                ),
-        );
-        if self.tick_counter.len() > 1000 {
-            self.tick_counter.drain(100..);
-        }
-    }
-
-    pub fn tick_rate(&self) -> Option<f64> {
-        if self.tick_counter.len() <= 2 {
-            return None;
-        }
-        let (new, old) = (
-            self.tick_counter.get(0).unwrap(),
-            self.tick_counter.back().unwrap(),
-        );
-
-        let span_s = (new - old) / 1000;
-        Some((self.tick_counter.len() as f64) / (span_s as f64))
-    }
-
     pub fn page_len(&mut self) -> usize {
         if self.show_debug {
             Self::TITLES.len()
@@ -131,6 +104,19 @@ impl<'a> TuiStates<'a> {
 
     pub fn title(&self) -> &str {
         Self::TITLES[self.page_index]
+    }
+
+    pub fn render_route(&self, area: Rect, f: &mut Frame<Backend>) {
+        match self.page_index {
+            0 => f.render_widget(StatusPage::new(self), area),
+            1 => f.render_widget(ProxiesPage::new(self), area),
+            2 => f.render_widget(RulesPage::new(self), area),
+            3 => f.render_widget(ConnectionsPage::new(self), area),
+            4 => f.render_widget(LogPage::new(self), area),
+            5 => f.render_widget(ConfigPage::new(self), area),
+            6 => f.render_widget(DebugPage::new(self), area),
+            _ => unreachable!(),
+        };
     }
 
     fn handle_update(&mut self, update: UpdateEvent) -> Result<()> {
@@ -149,6 +135,9 @@ impl<'a> TuiStates<'a> {
             }
             UpdateEvent::Log(log) => {
                 self.log_state.items.push(log.into());
+            }
+            UpdateEvent::Rules(rules) => {
+                self.rules = rules;
             }
         }
         Ok(())

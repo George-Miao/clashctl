@@ -7,6 +7,7 @@ use tui::widgets::{Paragraph, Widget};
 use crate::{
     define_widget,
     ui::components::{get_block, get_text_style, GenericWidget, MovableList},
+    TICK_COUNTER,
 };
 
 define_widget!(DebugPage);
@@ -22,15 +23,22 @@ impl<'a> Widget for DebugPage<'a> {
 
         let offset = &self.state.debug_state.offset;
 
+        let mut tick = 0;
+        let mut tick_rate = None;
+
+        TICK_COUNTER.with(|t| {
+            let counter = t.borrow();
+            tick = counter.tick_num();
+            tick_rate = counter.tick_rate();
+        });
+
         let debug_info = [
             ("Event In Mem:", event_num.to_string()),
             ("Event All #:", self.state.all_events_recv.to_string()),
-            ("Tick #:", self.state.ticks.to_string()),
+            ("Tick #:", tick.to_string()),
             (
                 "Tick Rate:",
-                self.state
-                    .tick_rate()
-                    .map_or_else(|| "?".to_owned(), |rate| format!("{:.0}", rate)),
+                tick_rate.map_or_else(|| "?".to_owned(), |rate| format!("{:.0}", rate)),
             ),
             ("Logs #:", self.state.log_state.len().to_string()),
             (
