@@ -5,9 +5,9 @@ mod tabs;
 mod traffic;
 mod utils;
 
-pub use constants::*;
-pub use movable_list::*;
-pub use proxy::*;
-pub use tabs::*;
-pub use traffic::*;
-pub use utils::*;
+pub(crate) use constants::*;
+pub(crate) use movable_list::*;
+pub(crate) use proxy::*;
+pub(crate) use tabs::*;
+pub(crate) use traffic::*;
+pub(crate) use utils::*;

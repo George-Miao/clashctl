@@ -1,12 +1,12 @@
 use clashctl::{
     cli::{init_logger, Cmd, Flags, Opts},
-    TuiOpt,
+    Result, TuiOpt,
 };
 
 use clap::Parser;
-use log::{debug, warn, LevelFilter};
+use log::{debug, LevelFilter};
 
-fn main() {
+fn main() -> Result<()> {
     if std::env::args().len() == 1 {
         TuiOpt::default().run(&Flags::default())
     } else {
@@ -31,5 +31,4 @@ fn main() {
             }
         }
     }
-    .unwrap_or_else(|e| warn!("{}", e))
 }

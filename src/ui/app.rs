@@ -1,7 +1,7 @@
 use std::{
     cell::RefCell,
     io::{self, Stdout},
-    sync::{Arc, RwLock},
+    sync::{Arc, Mutex, RwLock},
     time::{Duration, Instant},
 };
 use std::{sync::mpsc::channel, thread::spawn};
@@ -93,14 +93,23 @@ pub fn main_loop(opt: TuiOpt, flag: &Flags) -> Result<()> {
     spawn(move || servo(tx, &opt, &flag_clone));
 
     let state = Arc::new(RwLock::new(TuiStates::new()));
+    let error = Arc::new(Mutex::new(None));
 
     let event_state = state.clone();
+    let event_error = error.clone();
 
     let handle = spawn(move || {
         while let Ok(event) = rx.recv() {
             let is_quit = event.is_quit();
             let mut state = event_state.write().unwrap();
-            if state.handle(event).is_err() || is_quit {
+            if let Err(e) = state.handle(event) {
+                match event_error.lock() {
+                    Ok(mut write) => write.replace(e),
+                    Err(e) => panic!("Error: {}", e),
+                };
+                break;
+            }
+            if is_quit {
                 break;
             }
         }
@@ -116,7 +125,11 @@ pub fn main_loop(opt: TuiOpt, flag: &Flags) -> Result<()> {
             break;
         }
         TICK_COUNTER.with(|t| t.borrow_mut().new_tick());
-        if terminal.draw(|f| render(&state, f)).is_err() {
+        if let Err(e) = terminal.draw(|f| render(&state, f)) {
+            match error.lock() {
+                Ok(mut write) => write.replace(e.into()),
+                Err(e) => panic!("Error: {}", e),
+            };
             break;
         }
         drop(state);
@@ -125,6 +138,15 @@ pub fn main_loop(opt: TuiOpt, flag: &Flags) -> Result<()> {
     drop(handle);
 
     wrap_up(terminal)?;
+
+    match error.lock() {
+        Ok(mut guard) => {
+            if let Some(error) = guard.take() {
+                return Err(error);
+            }
+        }
+        Err(e) => panic!("{}", e),
+    }
 
     Ok(())
 }

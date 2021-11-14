@@ -176,7 +176,7 @@ impl<'a, T> MovableListState<'a, T> {
         self.items.len()
     }
 
-    pub fn is_empty(&self) -> bool {
+    pub fn _is_empty(&self) -> bool {
         self.items.is_empty()
     }
 }

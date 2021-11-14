@@ -1,5 +1,6 @@
 use std::{
-    collections::VecDeque,
+    collections::{hash_map::DefaultHasher, VecDeque},
+    hash::{Hash, Hasher},
     sync::{mpsc::Sender, Mutex},
     thread::sleep,
     time::{Duration, Instant},
@@ -9,6 +10,12 @@ use log::{LevelFilter, Record};
 use tui::style::Color;
 
 use crate::{model, DiagnosticEvent, Event, Result};
+
+pub fn get_hash<T: Hash>(val: &T) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    val.hash(&mut hasher);
+    hasher.finish()
+}
 
 pub struct Interval {
     interval: Duration,

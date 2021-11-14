@@ -100,7 +100,7 @@ fn bench_proxy_tree_merge(bencher: &mut Bencher) {
         let (mut a, b) = (gen_proxy_tree(&mut rnd, 10), gen_proxy_tree(&mut rnd, 10));
         bencher.iter(|| {
             let b = b.clone();
-            a.merge(b)
+            a.sync_cursor_from(b)
         })
     }
 }

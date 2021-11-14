@@ -1,8 +1,4 @@
-use std::{
-    collections::hash_map::DefaultHasher,
-    hash::{Hash, Hasher},
-    ops::Range,
-};
+use std::ops::Range;
 
 use tui::{
     buffer::Buffer,
@@ -108,12 +104,6 @@ pub fn get_focused_block(title: &str) -> Block {
 
 pub fn get_text_style() -> Style {
     Style::default().fg(Color::White)
-}
-
-pub fn get_hash<T: Hash>(val: &T) -> u64 {
-    let mut hasher = DefaultHasher::new();
-    val.hash(&mut hasher);
-    hasher.finish()
 }
 
 impl<'a> From<Log> for Spans<'a> {
