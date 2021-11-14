@@ -29,11 +29,11 @@ pub(super) fn servo(tx: Sender<Event>, opt: &TuiOpt, flags: &Flags) -> Result<()
                     if !handle.is_running() {
                         let handle = $handle.take().unwrap();
                         match handle.join() {
-                            Ok(res) => warn!(
+                            Ok(res) => eprintln!(
                                 "Background task `{}` has stopped running ({:?})",
                                 $identifier, res
                             ),
-                            Err(e) => warn!(
+                            Err(e) => eprintln!(
                                 "Catastrophic failure: Background task `{}` has stopped running ({:?})",
                                 $identifier, e
                             ),
@@ -70,6 +70,7 @@ pub(super) fn servo(tx: Sender<Event>, opt: &TuiOpt, flags: &Flags) -> Result<()
         let mut interval = Interval::every(Duration::from_millis(50));
         let mut connection_pulse = Pulse::new(40); // Every > 2 s
         let mut proxies_pulse = Pulse::new(100); // Every > 5 s
+        let mut rules_pulse = Pulse::new(100); // Every > 5 s
         let mut version_pulse = Pulse::new(200); // Every > 10 s
 
         let clash = req_clash;
@@ -81,6 +82,9 @@ pub(super) fn servo(tx: Sender<Event>, opt: &TuiOpt, flags: &Flags) -> Result<()
                 tx.send(Event::Update(UpdateEvent::Connection(
                     clash.get_connections()?,
                 )))?;
+            }
+            if rules_pulse.tick() {
+                tx.send(Event::Update(UpdateEvent::Rules(clash.get_rules()?)))?;
             }
             if proxies_pulse.tick() {
                 tx.send(Event::Update(UpdateEvent::Proxies(clash.get_proxies()?)))?;
