@@ -4,7 +4,7 @@ use crossterm::event::KeyCode;
 use tui::{layout::Rect, text::Spans, Frame};
 
 use crate::{
-    model::{Connections, Rule, Rules, Traffic, Version},
+    model::{Connections, Rules, Traffic, Version},
     ui::{
         components::{MovableListState, ProxyTree},
         pages::{
@@ -41,6 +41,7 @@ impl Coord {
 /// So [`Default`] can be automatically derived2
 #[derive(Debug, Default, Clone)]
 pub(crate) struct TuiStates<'a> {
+    pub(crate) should_quit: bool,
     pub(crate) start_time: Option<Instant>,
     pub(crate) version: Option<Version>,
     pub(crate) traffics: Vec<Traffic>,
@@ -84,6 +85,10 @@ impl<'a> TuiStates<'a> {
             self.debug_state.offset.y += 1;
         }
         match event {
+            Event::Quit => {
+                self.should_quit = true;
+                Ok(())
+            }
             Event::Interface(event) => self.handle_input(event),
             Event::Update(update) => self.handle_update(update),
             _ => Ok(()),
@@ -96,10 +101,6 @@ impl<'a> TuiStates<'a> {
         } else {
             Self::TITLES.len() - 1
         }
-    }
-
-    pub fn _get_index(page_name: &str) -> Option<usize> {
-        Self::TITLES.iter().position(|x| *x == page_name)
     }
 
     pub fn title(&self) -> &str {
