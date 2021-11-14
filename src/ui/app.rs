@@ -13,13 +13,12 @@ use crossterm::terminal::{
     disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
 use tui::backend::CrosstermBackend;
-use tui::layout::{Constraint, Layout, Rect};
+use tui::layout::{Constraint, Layout};
 use tui::{Frame, Terminal};
 
 use crate::cli::Flags;
 use crate::ui::{
     components::*,
-    pages::{ConfigPage, ConnectionsPage, DebugPage, LogPage, ProxiesPage, RulesPage, StatusPage},
     servo::servo,
     utils::{Interval, Logger, TicksCounter},
     TuiStates,
@@ -97,39 +96,33 @@ pub fn main_loop(opt: TuiOpt, flag: &Flags) -> Result<()> {
 
     let event_state = state.clone();
 
-    spawn(move || {
+    let handle = spawn(move || {
         while let Ok(event) = rx.recv() {
-            match event_state.write() {
-                Ok(mut writer) => {
-                    if writer.handle(event).is_err() {
-                        break;
-                    }
-                }
-                Err(_) => break,
-            };
+            let is_quit = event.is_quit();
+            let mut state = event_state.write().unwrap();
+            if state.handle(event).is_err() || is_quit {
+                break;
+            }
         }
+        event_state
+            .write()
+            .map(|mut x| x.should_quit = true)
+            .unwrap();
     });
 
     let mut interval = Interval::every(Duration::from_millis(30));
     while let Ok(state) = state.read() {
-        interval.tick();
+        if state.should_quit {
+            break;
+        }
         TICK_COUNTER.with(|t| t.borrow_mut().new_tick());
         if terminal.draw(|f| render(&state, f)).is_err() {
             break;
         }
+        drop(state);
+        interval.tick();
     }
-    // state.new_tick();
-    // match rx.try_recv() {
-    //     Ok(event) => match event {
-    //         Event::Quit => break,
-    //         _ => state.handle(event)?,
-    //     },
-    //     Err(TryRecvError::Disconnected) => {
-    //         eprintln!("All backend TX dropped");
-    //         break;
-    //     }
-    //     _ => {}
-    // }
+    drop(handle);
 
     wrap_up(terminal)?;
 
