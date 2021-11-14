@@ -1,23 +1,36 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+// #[serde(rename_all = "UPPERCASE")]
 #[cfg_attr(
     feature = "cli",
     derive(strum::EnumString, strum::Display, strum::EnumVariantNames),
-    strum(ascii_case_insensitive, serialize_all = "lowercase")
+    strum(ascii_case_insensitive)
 )]
-pub enum Rule {
+pub enum RuleType {
     Domain,
     DomainSuffix,
     DomainKeyword,
     GeoIP,
-    IpCidr,
-    IpCidr6,
-    SrcIpCidr,
+    IPCIDR,
+    SrcIPCIDR,
     SrcPort,
     DstPort,
-    ProcessName,
+    Process,
     Match,
     Direct,
     Reject,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Rule {
+    #[serde(rename = "type")]
+    rule_type: RuleType,
+    payload: String,
+    proxy: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub struct Rules {
+    rules: Vec<Rule>,
 }

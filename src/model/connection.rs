@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::model::Rule;
+use crate::model::{Rule, RuleType};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
@@ -17,7 +17,7 @@ pub struct Connection {
     pub upload: u64,
     pub download: u64,
     pub metadata: Metadata,
-    pub rule: Rule,
+    pub rule: RuleType,
     pub rule_payload: String,
     pub start: String,
     pub chains: Vec<String>,

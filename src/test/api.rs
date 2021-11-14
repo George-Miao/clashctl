@@ -21,6 +21,12 @@ fn test_proxies() {
 }
 
 #[test]
+fn test_rules() {
+    let clash = init();
+    clash.get_rules().unwrap();
+}
+
+#[test]
 fn test_proxy() {
     let clash = init();
     let proxies = clash.get_proxies().unwrap();
