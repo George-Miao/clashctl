@@ -9,7 +9,7 @@ use serde_json::from_str;
 use ureq::{Agent, Request};
 use url::Url;
 
-use crate::model::{Config, Connections, Delay, Log, Proxies, Proxy, Traffic, Version};
+use crate::model::{Config, Connections, Delay, Log, Proxies, Proxy, Rules, Traffic, Version};
 use crate::{Error, Result};
 
 trait Convert<T: DeserializeOwned> {
@@ -166,6 +166,10 @@ impl Clash {
 
     pub fn get_proxies(&self) -> Result<Proxies> {
         self.get("proxies")
+    }
+
+    pub fn get_rules(&self) -> Result<Rules> {
+        self.get("rules")
     }
 
     pub fn get_proxy(&self, proxy: &str) -> Result<Proxy> {
