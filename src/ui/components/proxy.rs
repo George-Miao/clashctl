@@ -1,4 +1,7 @@
-use std::{collections::HashMap, hash::Hash};
+use std::{
+    collections::{hash_map::RandomState, HashMap},
+    hash::Hash,
+};
 use std::{fmt::Debug, marker::PhantomData};
 
 use tui::{
@@ -8,9 +11,12 @@ use tui::{
 };
 
 use crate::{
-    components::{get_hash, Consts},
+    components::Consts,
     model::{History, Proxies, Proxy, ProxyType},
-    ui::components::{get_block, get_focused_block, get_text_style},
+    ui::{
+        components::{get_block, get_focused_block, get_text_style},
+        utils::get_hash,
+    },
 };
 
 #[derive(Clone, Debug, Hash)]
@@ -234,7 +240,7 @@ impl<'a> From<(&'a str, &'a Proxy)> for ProxyItem {
 // - Remove Enter from InterfaceEvent::ToggleHold
 // - Maybe a new InterfaceEvent::Confirm correstponds to Enter
 // - `T`, `S`, '/' in proxy event handling
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Hash)]
 pub struct ProxyTree<'a> {
     pub groups: Vec<ProxyGroup<'a>>,
     pub expanded: bool,
@@ -246,29 +252,34 @@ impl<'a> ProxyTree<'a> {
         self.expanded = !self.expanded
     }
 
-    pub fn merge(&mut self, other: ProxyTree<'a>) {
-        if get_hash(&self.groups) == get_hash(&other.groups) {
+    pub fn sync_cursor_from(&mut self, mut new: ProxyTree<'a>) {
+        if get_hash(self) == get_hash(&new) {
             return;
         }
-
-        let mut map: HashMap<_, _> =
-            FromIterator::from_iter(other.groups.into_iter().map(|x| (x.name.to_owned(), x)));
-
-        for group in self.groups.iter_mut() {
-            if let Some(other_group) = map.remove(&group.name) {
-                if get_hash(group) == get_hash(&other_group) {
-                    continue;
-                }
-                *group = ProxyGroup {
-                    cursor: group.cursor,
-                    ..other_group
-                }
+        new.expanded = self.expanded;
+        let map = HashMap::<_, _, RandomState>::from_iter(
+            self.groups.iter().map(|x| (x.name.to_owned(), x)),
+        );
+        let current_group = self.groups.get(self.cursor);
+        for (index, new_group) in new.groups.iter_mut().enumerate() {
+            if let Some(true) = current_group.map(|x| x.name == new_group.name) {
+                new.cursor = index;
+            }
+            if let Some(old_group) = map.get(&new_group.name) {
+                new_group.cursor = old_group
+                    .members
+                    .get(old_group.cursor)
+                    .and_then(|old_member| {
+                        new_group
+                            .members
+                            .iter()
+                            .position(|new_member| new_member.name == old_member.name)
+                    })
+                    .or(new_group.current)
+                    .unwrap_or_default()
             }
         }
-
-        for (_, group) in map.into_iter() {
-            self.groups.push(group)
-        }
+        *self = new
     }
 }
 

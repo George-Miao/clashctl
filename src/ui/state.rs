@@ -132,7 +132,7 @@ impl<'a> TuiStates<'a> {
             }
             UpdateEvent::Proxies(proxies) => {
                 let new_tree = Into::<ProxyTree>::into(proxies);
-                self.proxy_tree.merge(new_tree)
+                self.proxy_tree.sync_cursor_from(new_tree)
             }
             UpdateEvent::Log(log) => {
                 self.log_state.items.push(log.into());
