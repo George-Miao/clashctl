@@ -25,12 +25,12 @@ pub enum RuleType {
 #[derive(Serialize, Deserialize, Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Rule {
     #[serde(rename = "type")]
-    rule_type: RuleType,
-    payload: String,
-    proxy: String,
+    pub rule_type: RuleType,
+    pub payload: String,
+    pub proxy: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default, Hash)]
 pub struct Rules {
-    rules: Vec<Rule>,
+    pub rules: Vec<Rule>,
 }
