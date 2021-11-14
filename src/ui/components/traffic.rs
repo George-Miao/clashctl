@@ -10,8 +10,6 @@ use tui::{
 
 use crate::{define_widget, ui::components::get_block};
 
-const TRAFFIC_SIZE: usize = 100;
-
 pub const DOTS: Set = Set {
     empty: " ",
     one_eighth: "⡀",
@@ -30,18 +28,11 @@ impl<'a> Widget for Traffics<'a> {
     fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer) {
         let half = Constraint::Percentage(50);
 
-        let (mut up, mut down) = ([0; TRAFFIC_SIZE], [0; TRAFFIC_SIZE]);
-        for (index, item) in self
-            .state
-            .traffics
-            .iter()
-            .rev()
-            .take(TRAFFIC_SIZE)
-            .enumerate()
-        {
-            up[index] = item.up;
-            down[index] = item.down;
-        }
+        let traffic_size = area.width - 2;
+
+        let traffics = self.state.traffics.iter().rev().take(traffic_size.into());
+
+        let (up, down): (Vec<_>, Vec<_>) = traffics.map(|x| (x.up, x.down)).unzip();
 
         let (up_max, down_max) = (
             *up.iter().max().unwrap_or(&100),

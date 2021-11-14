@@ -175,6 +175,10 @@ impl<'a, T> MovableListState<'a, T> {
     pub fn len(&self) -> usize {
         self.items.len()
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.items.is_empty()
+    }
 }
 
 impl<'a> GenericWidget<String> for MovableList<'a, String> {
