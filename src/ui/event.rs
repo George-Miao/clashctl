@@ -1,6 +1,6 @@
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
-use crate::model::{Connections, Log, Proxies, Traffic, Version};
+use crate::model::{Connections, Log, Proxies, Rules, Traffic, Version};
 use crate::{Error, Result};
 
 #[derive(Clone, Debug)]
@@ -10,6 +10,24 @@ pub enum Event {
     Interface(Input),
     Update(UpdateEvent),
     Diagnostic(DiagnosticEvent),
+}
+
+impl Event {
+    pub fn is_quit(&self) -> bool {
+        matches!(self, Event::Quit)
+    }
+
+    pub fn is_interface(&self) -> bool {
+        matches!(self, Event::Interface(_))
+    }
+
+    pub fn is_update(&self) -> bool {
+        matches!(self, Event::Update(_))
+    }
+
+    pub fn is_diagnostic(&self) -> bool {
+        matches!(self, Event::Diagnostic(_))
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -36,6 +54,7 @@ pub enum UpdateEvent {
     Version(Version),
     Traffic(Traffic),
     Proxies(Proxies),
+    Rules(Rules),
     Log(Log),
 }
 
