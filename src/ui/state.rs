@@ -1,9 +1,10 @@
 use std::time::Instant;
 
 use crossterm::event::KeyCode;
-use tui::{layout::Rect, text::Spans, Frame};
+use tui::{layout::Rect, Frame};
 
 use crate::{
+    components::MovableListItem,
     model::{Connections, Rules, Traffic, Version},
     ui::{
         components::{MovableListState, ProxyTree},
@@ -52,8 +53,8 @@ pub(crate) struct TuiStates<'a> {
     pub(crate) connection: Connections,
     pub(crate) show_debug: bool,
     pub(crate) proxy_tree: ProxyTree<'a>,
-    pub(crate) debug_state: MovableListState<'a, String>,
-    pub(crate) log_state: MovableListState<'a, Spans<'a>>,
+    pub(crate) debug_state: MovableListState<'a>,
+    pub(crate) log_state: MovableListState<'a>,
     pub(crate) rules: Rules,
     // pub(crate) tx: Option<Sender<Event>>,
 }
@@ -80,7 +81,9 @@ impl<'a> TuiStates<'a> {
             let _ = self.drop_events(100);
         }
         self.events.push(event.to_owned());
-        self.debug_state.items.push(format!("{:?}", event));
+        self.debug_state
+            .items
+            .push(MovableListItem::Raw(format!("{:?}", event)));
         if self.debug_state.offset.hold {
             self.debug_state.offset.y += 1;
         }
@@ -135,7 +138,9 @@ impl<'a> TuiStates<'a> {
                 self.proxy_tree.sync_cursor_from(new_tree)
             }
             UpdateEvent::Log(log) => {
-                self.log_state.items.push(log.into());
+                self.log_state
+                    .items
+                    .push(MovableListItem::Spans(log.into()));
             }
             UpdateEvent::Rules(rules) => {
                 self.rules = rules;

@@ -81,9 +81,7 @@ impl<'a> Widget for DebugPage<'a> {
             .block(get_block("Debug Info"))
             .style(get_text_style());
 
-        let events = MovableList::new("Events", &self.state.debug_state);
-
         info.render(layout[0], buf);
-        GenericWidget::<String>::render(events, layout[1], buf);
+        MovableList::new("Events", &self.state.debug_state).render(layout[1], buf);
     }
 }

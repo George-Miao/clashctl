@@ -36,12 +36,12 @@ pub struct StyledChar {
     style: Style,
 }
 
-pub trait IntoSpan {
-    fn into_span<'a>(self) -> Spans<'a>;
+pub trait IntoSpans {
+    fn into_spans<'a>(self) -> Spans<'a>;
 }
 
-impl IntoSpan for Vec<StyledChar> {
-    fn into_span<'a>(self) -> Spans<'a> {
+impl IntoSpans for Vec<StyledChar> {
+    fn into_spans<'a>(self) -> Spans<'a> {
         self.group_by(|a, b| a.style == b.style)
             .map(|x| {
                 let style = x
@@ -62,24 +62,26 @@ impl IntoSpan for Vec<StyledChar> {
     }
 }
 
-pub fn get_substring(string: &str, index: usize) -> Option<&str> {
-    let index = string.char_indices().nth(index)?.0;
-    Some(&string[index..])
+pub fn string_window(string: &str, range: &Range<usize>) -> String {
+    string.chars().skip(range.start).take(range.end).collect()
 }
 
-pub fn spans_window(spans: Spans, range: Range<usize>) -> Spans {
+pub fn spans_window<'a, 'b>(spans: &'a Spans, range: &Range<usize>) -> Spans<'b> {
     let (start, end) = (range.start, range.end);
     let mut ret = Vec::with_capacity(spans.width());
-    for Span { content, style } in spans.0 {
-        content
-            .chars()
-            .for_each(|c| ret.push(StyledChar { content: c, style }))
+    for Span { content, style } in &spans.0 {
+        content.chars().for_each(|c| {
+            ret.push(StyledChar {
+                content: c,
+                style: *style,
+            })
+        })
     }
     ret.into_iter()
         .skip(start)
         .take(end - start)
         .collect::<Vec<_>>()
-        .into_span()
+        .into_spans()
 }
 
 pub fn get_block(title: &str) -> Block {
@@ -156,7 +158,7 @@ fn test_into_span() {
         .chain(std::iter::once(chars_plain))
         .chain(chars_red)
         .collect::<Vec<_>>()
-        .into_span();
+        .into_spans();
 
     assert_eq!(
         spans,

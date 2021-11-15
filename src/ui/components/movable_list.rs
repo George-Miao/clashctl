@@ -1,21 +1,19 @@
-use std::marker::PhantomData;
+use std::ops::Range;
 
 use tui::{
     style::{Color, Modifier, Style},
     text::Span,
-    widgets::{Block, List},
+    widgets::{List, ListItem},
 };
-use tui::{
-    text::Spans,
-    widgets::{ListItem, Widget},
-};
+use tui::{text::Spans, widgets::Widget};
 use unicode_width::UnicodeWidthStr;
 
-use crate::ui::{
-    components::{
-        get_block, get_focused_block, get_substring, get_text_style, spans_window, GenericWidget,
+use crate::{
+    components::{string_window, Footer, FooterItem, FooterWidget},
+    ui::{
+        components::{get_block, get_focused_block, get_text_style, spans_window},
+        Coord,
     },
-    Coord,
 };
 
 /// TODO Change [`GenericWidget`] into `MovableListItem` or same thing
@@ -49,129 +47,81 @@ use crate::ui::{
 /// }
 /// ```
 #[derive(Clone, Debug)]
-pub struct MovableList<'a, T> {
+pub struct MovableList<'a> {
     title: String,
-    state: &'a MovableListState<'a, T>,
-    _life: PhantomData<&'a T>,
+    state: &'a MovableListState<'a>,
 }
 
-impl<'a, T> MovableList<'a, T>
-where
-    T: Into<Spans<'a>>,
-{
-    pub fn new<TITLE: Into<String>>(title: TITLE, state: &'a MovableListState<'a, T>) -> Self {
+impl<'a> MovableList<'a> {
+    pub fn new<TITLE: Into<String>>(title: TITLE, state: &'a MovableListState<'a>) -> Self {
         Self {
             state,
             title: title.into(),
-            _life: PhantomData,
         }
     }
 
-    fn render_index(&self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer, pos: Coord) {
-        let index_content = format!(" Ln {}, Col {} ", pos.y, pos.x);
-        let width = index_content.len();
-        let index = Span::styled(
-            index_content,
+    fn render_footer(&self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer, pos: Coord) {
+        let mut footer = Footer::default();
+
+        footer.push_right(FooterItem::span(Span::styled(
+            format!(" Ln {}, Col {} ", pos.y, pos.x),
             Style::default()
                 .fg(if pos.hold { Color::Green } else { Color::Blue })
                 .add_modifier(Modifier::REVERSED),
-        );
+        )));
 
         if pos.hold {
-            let help = Span::styled(
-                " [^] ▲ ▼ ◀ ▶ Move ",
-                Style::default()
-                    .fg(Color::Cyan)
-                    .add_modifier(Modifier::REVERSED),
-            );
-            let mode = Span::styled(
+            footer.push_left(FooterItem::span(Span::styled(
                 " HOLD ",
                 Style::default()
                     .fg(Color::Cyan)
                     .add_modifier(Modifier::REVERSED),
-            );
-            buf.set_span(
-                area.x + 2,
-                area.y + area.height - 1,
-                &help,
-                help.width() as u16,
-            );
-            buf.set_span(
-                area.x
-                    + (area.width as u16).saturating_sub(width.try_into().unwrap_or(u16::MAX) + 9),
-                area.y + area.height - 1,
-                &mode,
-                width.try_into().unwrap_or(u16::MAX),
-            );
+            )));
+            footer.push_left(FooterItem::span(Span::styled(
+                " [^] ▲ ▼ ◀ ▶ Move ",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::REVERSED),
+            )));
+        } else {
+            footer.push_left(FooterItem::span(Span::styled(
+                " FREE ",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::REVERSED),
+            )));
+            footer.push_left(FooterItem::span(Span::styled(
+                " SPACE to hold ",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::REVERSED),
+            )));
         }
 
-        buf.set_span(
-            area.x + (area.width as u16).saturating_sub(width.try_into().unwrap_or(u16::MAX) + 2),
-            area.y + area.height - 1,
-            &index,
-            width.try_into().unwrap_or(u16::MAX),
-        );
-    }
-
-    fn prepare<'b, F>(
-        &self,
-        area: &tui::layout::Rect,
-        state: &'b MovableListState<T>,
-        width_fn: F,
-    ) -> (impl Iterator<Item = &'b T>, Block, usize, usize)
-    where
-        F: Fn(&T) -> usize,
-    {
-        let height = (area.height as usize).saturating_sub(2);
-        let num = state.items.len();
-
-        let block = if state.offset.hold {
-            get_focused_block(&self.title)
-        } else {
-            get_block(&self.title)
-        };
-
-        // Calculate which portion of the list will be displayed
-        let y_offset = if height + state.offset.y > num {
-            num.saturating_sub(height)
-        } else {
-            state.offset.y
-        };
-
-        // Get that portion of items
-        let items = state
-            .items
-            .iter()
-            .rev()
-            .skip(y_offset)
-            .take(area.height as usize);
-        // Calculate what is current x offset
-        // A.K.A. which part will be hidden
-        let x_offset = state.offset.x.min(
-            items
-                .clone()
-                .map(width_fn)
-                .min()
-                .unwrap_or_default()
-                .saturating_sub(1),
-        );
-
-        // Limit how many chars will be hidden overall
-        // Apply offsets back so the offset is being limited to current one
-        // Even for next tick
-
-        (items, block, x_offset, y_offset)
+        let widget = FooterWidget::new(&footer);
+        widget.render(area, buf);
     }
 }
 
 #[derive(Debug, Default, Clone)]
-pub struct MovableListState<'a, T> {
+pub struct MovableListState<'a> {
     pub offset: Coord,
-    pub items: Vec<T>,
-    _life: PhantomData<&'a T>,
+    pub items: Vec<MovableListItem<'a>>,
 }
 
-impl<'a, T> MovableListState<'a, T> {
+impl<'a> MovableListState<'a> {
+    pub fn current_pos(&self) -> Coord {
+        let x = self.offset.x;
+        let y = self.len().saturating_sub(self.offset.y);
+        Coord {
+            x,
+            y,
+            hold: self.offset.hold,
+        }
+    }
+}
+
+impl<'a> MovableListState<'a> {
     pub fn len(&self) -> usize {
         self.items.len()
     }
@@ -181,56 +131,100 @@ impl<'a, T> MovableListState<'a, T> {
     }
 }
 
-impl<'a> GenericWidget<String> for MovableList<'a, String> {
+#[derive(Debug, Clone)]
+pub enum MovableListItem<'a> {
+    Spans(Spans<'a>),
+    Raw(String),
+}
+
+impl<'a> MovableListItem<'a> {
+    pub fn width(&self) -> usize {
+        match self {
+            Self::Spans(x) => x.width(),
+            Self::Raw(x) => x.width(),
+        }
+    }
+
+    pub fn range(&mut self, range: &Range<usize>) -> &mut Self {
+        match self {
+            MovableListItem::Spans(ref mut x) => *x = spans_window(x, range),
+            MovableListItem::Raw(ref mut x) => *x = string_window(x, range),
+        };
+        self
+    }
+}
+
+impl<'a, T: Into<String>> From<T> for MovableListItem<'a> {
+    fn from(string: T) -> Self {
+        Self::Raw(string.into())
+    }
+}
+
+impl<'a> From<MovableListItem<'a>> for Spans<'a> {
+    fn from(val: MovableListItem<'a>) -> Self {
+        match val {
+            MovableListItem::Spans(spans) => spans,
+            MovableListItem::Raw(raw) => raw.into(),
+        }
+    }
+}
+
+impl<'a> Widget for MovableList<'a> {
     fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer) {
-        let (items, block, x_offset, y_offset) = self.prepare(&area, self.state, |x| x.width());
+        let height = (area.height as usize).saturating_sub(2);
+        let num = self.state.items.len();
+        let offset = self.state.offset;
 
-        let list = List::new(
-            items
-                .map(|x| -> Spans { get_substring(x, x_offset).unwrap().into() })
-                .map(ListItem::new)
-                .collect::<Vec<_>>(),
-        )
-        .block(block)
-        .style(get_text_style());
-
-        Widget::render(list, area, buf);
-        let pos = Coord {
-            x: x_offset,
-            y: (self.state.items.len() - y_offset + 2).saturating_sub(area.height as usize),
-            hold: self.state.offset.hold,
+        // Calculate which portion of the list will be displayed
+        let y_offset = if offset.y + 1 > num {
+            num.saturating_sub(1)
+        } else {
+            offset.y
         };
-        self.render_index(area, buf, pos)
+
+        // Get that portion of items
+        let items = self
+            .state
+            .items
+            .iter()
+            .rev()
+            .skip(y_offset)
+            .take(area.height as usize);
+
+        let x_offset = if offset.x == 0 {
+            0
+        } else {
+            offset.x.min(
+                items
+                    .clone()
+                    .map(MovableListItem::width)
+                    .min()
+                    .unwrap_or_default()
+                    .saturating_sub(1),
+            )
+        };
+
+        let x_range = x_offset..(x_offset + area.width as usize);
+
+        let items = items
+            .cloned()
+            .map(move |mut x| ListItem::new(Spans::from(x.range(&x_range).to_owned())));
+
+        List::new(items.collect::<Vec<_>>())
+            .block(if offset.hold {
+                get_focused_block(&self.title)
+            } else {
+                get_block(&self.title)
+            })
+            .style(get_text_style())
+            .render(area, buf);
+
+        self.render_footer(area, buf, self.state.current_pos());
     }
 }
 
-impl<'a> GenericWidget<Spans<'a>> for MovableList<'a, Spans<'a>> {
-    fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer)
-    where
-        Self: 'a,
-    {
-        let (items, block, x_offset, y_offset) = self.prepare(&area, self.state, |x| x.width());
-        // Spans window is expensive
-        // However it is needed to display part of spans while keeping its style
-        let items = List::new(
-            items
-                .map(|x| {
-                    ListItem::new(spans_window(
-                        x.to_owned(),
-                        x_offset..x_offset + area.width as usize,
-                    ))
-                })
-                .collect::<Vec<_>>(),
-        )
-        .block(block)
-        .style(get_text_style());
-
-        Widget::render(items, area, buf);
-        let pos = Coord {
-            x: x_offset,
-            y: (self.state.items.len() - y_offset + 2).saturating_sub(area.height as usize),
-            hold: self.state.offset.hold,
-        };
-        self.render_index(area, buf, pos)
-    }
-}
+// #[test]
+// fn test_movable_list() {
+//     let items = &["Test1", "测试1", "[ABCD] 🇺🇲 测试 符号 106"].into_iter().map(|x| x.);
+//     assert_eq!()
+// }
