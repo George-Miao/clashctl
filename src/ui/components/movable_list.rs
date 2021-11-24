@@ -16,36 +16,6 @@ use crate::{
     },
 };
 
-/// TODO Change [`GenericWidget`] into `MovableListItem` or same thing
-///
-/// E.g.
-///   
-/// ```rust
-/// pub enum MovableListItem<'a> {
-///     Spans(Spans<'a>),
-///     Raw(Cow<'a, str>)
-/// }
-///
-/// impl MovableListItem {
-///     pub fn new() { todo!() }
-///
-///     pub fn width(&self) {
-///         match self {
-///             MovableListItem::Spans(x) => x.width(),
-///             MovableListItem::Raw(x) => x.width()
-///         }
-///     }
-///
-///     pub fn scope(&self, range: Range) -> Self {
-///         match self {
-///             MovableListItem::Spans(x) => Self::Spans(spans_window(x, range)),
-///             MovableListItem::Raw(x) => Self::raw(x[range].into())
-///         }
-///     }
-///
-///     pub fn render() { todo!() } // Maybe render here
-/// }
-/// ```
 #[derive(Clone, Debug)]
 pub struct MovableList<'a> {
     title: String,
