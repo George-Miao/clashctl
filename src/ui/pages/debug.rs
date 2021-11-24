@@ -21,7 +21,7 @@ impl<'a> Widget for DebugPage<'a> {
 
         let event_num = self.state.events.len();
 
-        let offset = &self.state.debug_state.offset;
+        let offset = self.state.debug_state.offset();
 
         let mut tick = 0;
         let mut tick_rate = None;

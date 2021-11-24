@@ -1,5 +1,6 @@
 use std::ops::Range;
 
+use crossterm::event::KeyCode;
 use tui::{
     style::{Color, Modifier, Style},
     text::Span,
@@ -14,6 +15,7 @@ use crate::{
         components::{get_block, get_focused_block, get_text_style, spans_window},
         Coord,
     },
+    ListEvent,
 };
 
 #[derive(Clone, Debug)]
@@ -76,8 +78,8 @@ impl<'a> MovableList<'a> {
 // TODO: Use lazy updated footer
 #[derive(Debug, Default, Clone)]
 pub struct MovableListState<'a> {
-    pub offset: Coord,
-    pub items: Vec<MovableListItem<'a>>,
+    offset: Coord,
+    items: Vec<MovableListItem<'a>>,
 }
 
 impl<'a> MovableListState<'a> {
@@ -90,15 +92,43 @@ impl<'a> MovableListState<'a> {
             hold: self.offset.hold,
         }
     }
-}
 
-impl<'a> MovableListState<'a> {
     pub fn len(&self) -> usize {
         self.items.len()
     }
 
-    pub fn _is_empty(&self) -> bool {
-        self.items.is_empty()
+    pub fn toggle(&mut self) {
+        self.offset.toggle()
+    }
+
+    pub fn push(&mut self, item: MovableListItem<'a>) {
+        self.items.push(item);
+        if self.offset.hold {
+            self.offset.y += 1;
+        }
+    }
+
+    pub fn handle(&mut self, event: ListEvent) {
+        let len = self.len() - 1;
+        let offset = &mut self.offset;
+
+        if offset.hold {
+            match (event.fast, event.code) {
+                (true, KeyCode::Left) => offset.x = offset.x.saturating_sub(7),
+                (true, KeyCode::Right) => offset.x = offset.x.saturating_add(7),
+                (true, KeyCode::Up) => offset.y = offset.y.saturating_sub(5),
+                (true, KeyCode::Down) => offset.y = offset.y.saturating_add(5).min(len),
+                (false, KeyCode::Left) => offset.x = offset.x.saturating_sub(1),
+                (false, KeyCode::Right) => offset.x = offset.x.saturating_add(1),
+                (false, KeyCode::Up) => offset.y = offset.y.saturating_sub(1),
+                (false, KeyCode::Down) => offset.y = offset.y.saturating_add(1).min(len),
+                _ => {}
+            }
+        }
+    }
+
+    pub fn offset(&self) -> &Coord {
+        &self.offset
     }
 }
 

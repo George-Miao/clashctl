@@ -79,11 +79,8 @@ impl<'a> TuiStates<'a> {
         }
         self.events.push(event.to_owned());
         self.debug_state
-            .items
             .push(MovableListItem::Raw(format!("{:?}", event)));
-        if self.debug_state.offset.hold {
-            self.debug_state.offset.y += 1;
-        }
+
         match event {
             Event::Quit => {
                 self.should_quit = true;
@@ -135,9 +132,7 @@ impl<'a> TuiStates<'a> {
                 self.proxy_tree.sync_cursor_from(new_tree);
             }
             UpdateEvent::Log(log) => {
-                self.log_state
-                    .items
-                    .push(MovableListItem::Spans(log.into()));
+                self.log_state.push(MovableListItem::Spans(log.into()));
             }
             UpdateEvent::Rules(rules) => {
                 self.rules = rules;
@@ -163,8 +158,8 @@ impl<'a> TuiStates<'a> {
                 }
             }
             Input::ToggleHold => match self.title() {
-                "Logs" => self.log_state.offset.toggle(),
-                "Debug" => self.debug_state.offset.toggle(),
+                "Logs" => self.log_state.toggle(),
+                "Debug" => self.debug_state.toggle(),
                 "Proxies" => {
                     self.proxy_tree.toggle();
                 }
@@ -228,33 +223,7 @@ impl<'a> TuiStates<'a> {
             _ => return,
         };
 
-        let offset = &mut state.offset;
-
-        // let update = |horizontal: bool, max: usize, step: usize| {
-        //     let value = if horizontal {
-        //         &mut state.offset.x
-        //     } else {
-        //         &mut state.offset.y
-        //     };
-        //     // * value = value.
-        // };
-
-        // let y_offset = state.offset.y;
-        // let y_max = state.items.len().saturating_sub(1);
-        // let items = state.items.iter().rev().skip(y_offset).take;
-        if offset.hold {
-            match (event.fast, event.code) {
-                (true, KeyCode::Left) => offset.x = offset.x.saturating_sub(7),
-                (true, KeyCode::Right) => offset.x = offset.x.saturating_add(7),
-                (true, KeyCode::Up) => offset.y = offset.y.saturating_sub(5),
-                (true, KeyCode::Down) => offset.y = offset.y.saturating_add(5),
-                (false, KeyCode::Left) => offset.x = offset.x.saturating_sub(1),
-                (false, KeyCode::Right) => offset.x = offset.x.saturating_add(1),
-                (false, KeyCode::Up) => offset.y = offset.y.saturating_sub(1),
-                (false, KeyCode::Down) => offset.y = offset.y.saturating_add(1),
-                _ => {}
-            }
-        }
+        state.handle(event)
     }
 
     fn debug_page_index(&self) -> usize {
