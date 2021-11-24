@@ -12,4 +12,3 @@ pub(crate) use movable_list::*;
 pub(crate) use proxy::*;
 pub(crate) use tabs::*;
 pub(crate) use traffic::*;
-pub(crate) use utils::*;

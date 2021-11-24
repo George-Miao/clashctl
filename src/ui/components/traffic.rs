@@ -6,7 +6,7 @@ use tui::{
     symbols::bar::Set,
 };
 
-use crate::{define_widget, ui::components::get_block};
+use crate::{define_widget, ui::utils::get_block};
 
 pub const DOTS: Set = Set {
     empty: " ",

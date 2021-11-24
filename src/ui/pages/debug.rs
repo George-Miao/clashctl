@@ -4,7 +4,10 @@ use tui::widgets::{Paragraph, Widget};
 
 use crate::{
     define_widget,
-    ui::components::{get_block, get_text_style, MovableList},
+    ui::{
+        components::MovableList,
+        utils::{get_block, get_text_style},
+    },
     TICK_COUNTER,
 };
 

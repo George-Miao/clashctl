@@ -4,7 +4,7 @@ use tui::widgets::{Tabs as TuiTabs, Widget};
 
 use crate::{
     define_widget,
-    ui::{components::get_block, TuiStates},
+    ui::{utils::get_block, TuiStates},
 };
 
 define_widget!(Tabs);

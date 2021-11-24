@@ -7,8 +7,13 @@ use tui::{
     widgets::{Paragraph, Widget},
 };
 
-use crate::ui::components::{get_block, get_text_style};
-use crate::{define_widget, ui::components::Traffics};
+use crate::{
+    define_widget,
+    ui::{
+        components::Traffics,
+        utils::{get_block, get_text_style},
+    },
+};
 
 define_widget!(StatusPage);
 

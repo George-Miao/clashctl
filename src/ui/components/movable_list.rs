@@ -10,9 +10,9 @@ use tui::{text::Spans, widgets::Widget};
 use unicode_width::UnicodeWidthStr;
 
 use crate::{
-    components::{string_window, Footer, FooterItem, FooterWidget},
+    components::{Footer, FooterItem, FooterWidget},
     ui::{
-        components::{get_block, get_focused_block, get_text_style, spans_window},
+        utils::{get_block, get_focused_block, get_text_style, spans_window, string_window},
         Coord,
     },
     ListEvent,
