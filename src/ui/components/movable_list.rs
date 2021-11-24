@@ -74,26 +74,26 @@ impl<'a> MovableList<'a> {
             footer.push_left(FooterItem::span(Span::styled(
                 " HOLD ",
                 Style::default()
-                    .fg(Color::Cyan)
+                    .fg(Color::Green)
                     .add_modifier(Modifier::REVERSED),
             )));
             footer.push_left(FooterItem::span(Span::styled(
                 " [^] ▲ ▼ ◀ ▶ Move ",
                 Style::default()
-                    .fg(Color::Cyan)
+                    .fg(Color::Green)
                     .add_modifier(Modifier::REVERSED),
             )));
         } else {
             footer.push_left(FooterItem::span(Span::styled(
                 " FREE ",
                 Style::default()
-                    .fg(Color::Cyan)
+                    .fg(Color::Blue)
                     .add_modifier(Modifier::REVERSED),
             )));
             footer.push_left(FooterItem::span(Span::styled(
                 " SPACE to hold ",
                 Style::default()
-                    .fg(Color::Cyan)
+                    .fg(Color::Blue)
                     .add_modifier(Modifier::REVERSED),
             )));
         }
