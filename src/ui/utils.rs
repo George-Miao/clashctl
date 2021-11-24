@@ -35,10 +35,17 @@ impl Interval {
         if self.deadline.is_none() {
             self.deadline = Some(now + self.interval)
         }
-        if now > self.deadline.unwrap() {
-            self.interval
+        let deadline = self.deadline.unwrap();
+        if now > deadline {
+            let mut point = deadline;
+            loop {
+                point += self.interval;
+                if point > now {
+                    break point - now;
+                }
+            }
         } else {
-            self.deadline.unwrap() - now
+            deadline - now
         }
     }
 
@@ -125,21 +132,14 @@ impl TicksCounter {
                     "Hey anyone who sees this as a panic message. Is the universe still there?",
                 ),
         );
-        if self.inner.len() > 1000 {
-            self.inner.drain(100..);
+        if self.inner.len() > 100 {
+            self.inner.drain(50..);
         }
     }
 
     pub fn tick_rate(&self) -> Option<f64> {
-        if self.inner.len() <= 2 {
-            return None;
-        }
-        let (new, old) = (self.inner.get(0).unwrap(), self.inner.back().unwrap());
-
-        let span_s = (new - old) as f64 / 1000.0;
-
         // Ticks per Second
-        Some((self.inner.len() as f64) / (span_s as f64))
+        Some(20_000.0 / ((self.inner.get(0)? - self.inner.get(20)?) as f64))
     }
 
     pub fn tick_num(&self) -> u64 {

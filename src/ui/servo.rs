@@ -68,10 +68,10 @@ pub(super) fn servo(tx: Sender<Event>, opt: &TuiOpt, flags: &Flags) -> Result<()
     #[allow(unreachable_code)]
     let mut req_handle = run!({
         let mut interval = Interval::every(Duration::from_millis(50));
-        let mut connection_pulse = Pulse::new(40); // Every > 2 s
-        let mut proxies_pulse = Pulse::new(100); // Every > 5 s
-        let mut rules_pulse = Pulse::new(100); // Every > 5 s
-        let mut version_pulse = Pulse::new(200); // Every > 10 s
+        let mut connection_pulse = Pulse::new(40); // Every 2 s
+        let mut proxies_pulse = Pulse::new(100); // Every 5 s
+        let mut rules_pulse = Pulse::new(100); // Every 5 s
+        let mut version_pulse = Pulse::new(200); // Every 10 s
 
         let clash = req_clash;
         loop {

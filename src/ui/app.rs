@@ -119,7 +119,7 @@ pub fn main_loop(opt: TuiOpt, flag: &Flags) -> Result<()> {
             .unwrap();
     });
 
-    let mut interval = Interval::every(Duration::from_millis(30));
+    let mut interval = Interval::every(Duration::from_millis(33));
     while let Ok(state) = state.read() {
         if state.should_quit {
             break;
