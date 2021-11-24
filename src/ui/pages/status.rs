@@ -47,8 +47,8 @@ impl<'a> Widget for StatusPage<'a> {
             }
         };
 
-        let con = &self.state.connection;
-        let con_num = con.connections.len().to_string();
+        let con_num = self.state.con_state.len().to_string();
+        let (total_up, total_down) = self.state.con_size;
         let height = main[0].height;
         let clash_ver = self
             .state
@@ -81,8 +81,8 @@ impl<'a> Widget for StatusPage<'a> {
                 "▼ Max",
                 &(ByteSize(self.state.max_traffic.down).to_string_as(true) + "/s"),
             ),
-            ("▲ Total", &ByteSize(con.upload_total).to_string_as(true)),
-            ("▼ Total", &ByteSize(con.download_total).to_string_as(true)),
+            ("▲ Total", &ByteSize(total_up).to_string_as(true)),
+            ("▼ Total", &ByteSize(total_down).to_string_as(true)),
             ("", ""),
         ];
 
