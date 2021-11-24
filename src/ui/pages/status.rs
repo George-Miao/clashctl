@@ -1,4 +1,4 @@
-use std::{iter::repeat, marker::PhantomData};
+use std::iter::repeat;
 
 use bytesize::ByteSize;
 use clap::crate_version;

@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use tui::widgets::Widget;
 
 use crate::define_widget;

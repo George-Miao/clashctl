@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use bytesize::ByteSize;
 use tui::style::{Color, Style};
 use tui::widgets::{Sparkline, Widget};

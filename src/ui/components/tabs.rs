@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use tui::style::{Color, Modifier, Style};
 use tui::text::{Span, Spans};
 use tui::widgets::{Tabs as TuiTabs, Widget};

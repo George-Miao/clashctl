@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use hhmmss::Hhmmss;
 use tui::layout::{Constraint, Layout};
 use tui::widgets::{Paragraph, Widget};
