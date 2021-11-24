@@ -11,12 +11,6 @@ use tui::style::Color;
 
 use crate::{model, DiagnosticEvent, Event, Result};
 
-pub fn get_hash<T: Hash>(val: &T) -> u64 {
-    let mut hasher = DefaultHasher::new();
-    val.hash(&mut hasher);
-    hasher.finish()
-}
-
 pub struct Interval {
     interval: Duration,
     deadline: Option<Instant>,
