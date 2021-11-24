@@ -59,9 +59,6 @@ pub(crate) struct TuiStates<'a> {
     // pub(crate) tx: Option<Sender<Event>>,
 }
 
-// TODO impl offset limit in event handling
-// Requires MovableListItem to be implemented first
-// So content width can be inferred
 impl<'a> TuiStates<'a> {
     pub const TITLES: &'static [&'static str] = &[
         "Status", "Proxies", "Rules", "Conns", "Logs", "Configs", "Debug",
@@ -135,7 +132,7 @@ impl<'a> TuiStates<'a> {
             }
             UpdateEvent::Proxies(proxies) => {
                 let new_tree = Into::<ProxyTree>::into(proxies);
-                self.proxy_tree.sync_cursor_from(new_tree)
+                self.proxy_tree.sync_cursor_from(new_tree);
             }
             UpdateEvent::Log(log) => {
                 self.log_state
@@ -168,7 +165,9 @@ impl<'a> TuiStates<'a> {
             Input::ToggleHold => match self.title() {
                 "Logs" => self.log_state.offset.toggle(),
                 "Debug" => self.debug_state.offset.toggle(),
-                "Proxies" => self.proxy_tree.toggle(),
+                "Proxies" => {
+                    self.proxy_tree.toggle();
+                }
                 _ => {}
             },
             Input::List(list_event) => match self.title() {
@@ -219,19 +218,34 @@ impl<'a> TuiStates<'a> {
                 _ => {}
             }
         }
+        tree.update_footer()
     }
 
     fn handle_list(&mut self, event: ListEvent) {
-        let mut offset = match self.title() {
-            "Logs" => &mut self.log_state.offset,
-            "Debug" => &mut self.debug_state.offset,
+        let state = match self.title() {
+            "Logs" => &mut self.log_state,
+            "Debug" => &mut self.debug_state,
             _ => return,
         };
 
+        let offset = &mut state.offset;
+
+        // let update = |horizontal: bool, max: usize, step: usize| {
+        //     let value = if horizontal {
+        //         &mut state.offset.x
+        //     } else {
+        //         &mut state.offset.y
+        //     };
+        //     // * value = value.
+        // };
+
+        // let y_offset = state.offset.y;
+        // let y_max = state.items.len().saturating_sub(1);
+        // let items = state.items.iter().rev().skip(y_offset).take;
         if offset.hold {
             match (event.fast, event.code) {
-                (true, KeyCode::Left) => offset.x = offset.x.saturating_sub(5),
-                (true, KeyCode::Right) => offset.x = offset.x.saturating_add(5),
+                (true, KeyCode::Left) => offset.x = offset.x.saturating_sub(7),
+                (true, KeyCode::Right) => offset.x = offset.x.saturating_add(7),
                 (true, KeyCode::Up) => offset.y = offset.y.saturating_sub(5),
                 (true, KeyCode::Down) => offset.y = offset.y.saturating_add(5),
                 (false, KeyCode::Left) => offset.x = offset.x.saturating_sub(1),
