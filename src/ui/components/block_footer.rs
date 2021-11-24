@@ -7,7 +7,7 @@ use tui::{
 };
 use unicode_width::UnicodeWidthStr;
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Footer<'a> {
     left: Vec<FooterItem<'a>>,
     right: Vec<FooterItem<'a>>,
@@ -16,13 +16,19 @@ pub struct Footer<'a> {
 
 impl<'a> Footer<'a> {
     pub fn show(&mut self) {
-        self.left.iter_mut().for_each(FooterItem::show);
-        self.right.iter_mut().for_each(FooterItem::show);
+        self.items_mut().for_each(FooterItem::show);
     }
 
     pub fn hide(&mut self) {
-        self.left.iter_mut().for_each(FooterItem::hide);
-        self.right.iter_mut().for_each(FooterItem::hide);
+        self.items_mut().for_each(FooterItem::hide);
+    }
+
+    pub fn items(&self) -> impl Iterator<Item = &FooterItem<'_>> {
+        self.left.iter().chain(self.right.iter())
+    }
+
+    pub fn items_mut(&mut self) -> impl Iterator<Item = &mut FooterItem<'a>> {
+        self.left.iter_mut().chain(self.right.iter_mut())
     }
 
     pub fn push_left(&mut self, item: FooterItem<'a>) {
@@ -100,7 +106,7 @@ impl<'a> Widget for FooterWidget<'a> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FooterItem<'a> {
     inner: FooterItemInner<'a>,
     show: bool,
@@ -113,6 +119,20 @@ impl<'a> FooterItem<'a> {
             FooterItemInner::Span(ref span) => span.to_owned().into(),
             FooterItemInner::Spans(ref spans) => spans.to_owned(),
         }
+    }
+
+    pub fn wrapped(mut self) -> Self {
+        match self.inner {
+            FooterItemInner::Raw(ref mut raw) => *raw = format!(" {} ", raw),
+            FooterItemInner::Span(ref mut span) => {
+                span.content = format!(" {} ", span.content).into()
+            }
+            FooterItemInner::Spans(ref mut spans) => {
+                spans.0.insert(0, Span::raw(" "));
+                spans.0.push(Span::raw(" "))
+            }
+        }
+        self
     }
 
     pub fn raw(content: String) -> Self {
@@ -149,7 +169,7 @@ impl<'a> FooterItem<'a> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum FooterItemInner<'a> {
     Raw(String),
     Span(Span<'a>),
