@@ -11,7 +11,7 @@ use tui::{
 };
 
 use crate::{
-    components::Consts,
+    components::{Consts, Footer, FooterItem, FooterWidget},
     model::{History, Proxies, Proxy, ProxyType},
     ui::{
         components::{get_block, get_focused_block, get_text_style},
@@ -245,13 +245,56 @@ pub struct ProxyTree<'a> {
     pub groups: Vec<ProxyGroup<'a>>,
     pub expanded: bool,
     pub cursor: usize,
+    footer: Footer<'a>,
+}
+
+impl<'a> Default for ProxyTree<'a> {
+    fn default() -> Self {
+        let mut ret = Self {
+            groups: Default::default(),
+            expanded: Default::default(),
+            cursor: Default::default(),
+            footer: Default::default(),
+        };
+        ret.update_footer();
+        ret
+    }
 }
 
 impl<'a> ProxyTree<'a> {
     pub fn toggle(&mut self) {
-        self.expanded = !self.expanded
+        self.expanded = !self.expanded;
+        self.update_footer();
     }
 
+    pub fn update_footer(&mut self) {
+        let mut footer = Footer::default();
+        let pointed = match self.groups.get(self.cursor) {
+            Some(grp) => grp,
+            _ => return,
+        };
+        let name = pointed.name.clone();
+        if !self.expanded {
+            let style = Style::default()
+                .fg(Color::Blue)
+                .add_modifier(Modifier::REVERSED);
+            footer.push_left(FooterItem::span(Span::styled(" SPACE ", style)));
+            footer.push_left(FooterItem::span(Span::styled(" T: Test ", style)));
+            footer.push_right(FooterItem::span(Span::styled(name, style)).wrapped());
+        } else {
+            let style = Style::default()
+                .fg(Color::Green)
+                .add_modifier(Modifier::REVERSED);
+            footer.push_left(FooterItem::span(Span::styled(" [^] ▲ ▼ Move ", style)));
+            let ty = &pointed.proxy_type;
+            if ty.is_selector() {
+                footer.push_left(FooterItem::span(Span::styled(" ▶ Select ", style)));
+            }
+            footer.push_left(FooterItem::span(Span::styled(" T: Test ", style)));
+            footer.push_right(FooterItem::span(Span::styled(name, style)).wrapped());
+        }
+        self.footer = footer
+    }
     pub fn sync_cursor_from(&mut self, mut new: ProxyTree<'a>) {
         if get_hash(self) == get_hash(&new) {
             return;
