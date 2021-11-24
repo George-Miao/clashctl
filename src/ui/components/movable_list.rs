@@ -189,26 +189,20 @@ impl<'a> Widget for MovableList<'a> {
             .iter()
             .rev()
             .skip(y_offset)
-            .take(area.height as usize);
+            .take(height as usize);
 
-        let x_offset = if offset.x == 0 {
-            0
-        } else {
-            offset.x.min(
-                items
-                    .clone()
-                    .map(MovableListItem::width)
-                    .min()
-                    .unwrap_or_default()
-                    .saturating_sub(1),
-            )
-        };
+        let x_offset = offset.x;
 
         let x_range = x_offset..(x_offset + area.width as usize);
 
-        let items = items
-            .cloned()
-            .map(move |mut x| ListItem::new(Spans::from(x.range(&x_range).to_owned())));
+        let items = items.cloned().map(move |mut x| {
+            let x_width = x.width();
+            let content = x.range(&x_range);
+            if x_width != 0 && content.width() == 0 {
+                *content = MovableListItem::Raw("◀".to_owned());
+            }
+            ListItem::new(Spans::from(content.to_owned()))
+        });
 
         List::new(items.collect::<Vec<_>>())
             .block(if offset.hold {
