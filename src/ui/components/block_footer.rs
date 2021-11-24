@@ -54,7 +54,7 @@ pub struct FooterWidget<'a> {
 }
 
 impl<'a> FooterWidget<'a> {
-    pub fn render_one(&mut self, item: Spans, mut area: Rect, buf: &mut tui::buffer::Buffer) {
+    pub fn render_one(&mut self, item: Spans, area: Rect, buf: &mut tui::buffer::Buffer) {
         buf.set_spans(area.x, area.y, &item, item.width() as u16);
     }
 

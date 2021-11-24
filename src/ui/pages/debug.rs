@@ -6,7 +6,7 @@ use tui::widgets::{Paragraph, Widget};
 
 use crate::{
     define_widget,
-    ui::components::{get_block, get_text_style, GenericWidget, MovableList},
+    ui::components::{get_block, get_text_style, MovableList},
     TICK_COUNTER,
 };
 

@@ -1,8 +1,6 @@
 use std::ops::Range;
 
 use tui::{
-    buffer::Buffer,
-    layout::Rect,
     style::{Color, Style},
     text::{Span, Spans},
     widgets::{Block, Borders},
@@ -177,13 +175,4 @@ fn test_into_span() {
             },
         ])
     )
-}
-
-pub trait GenericStatefulWidget<T> {
-    type State;
-    fn render(self, area: Rect, buf: &mut Buffer, state: &Self::State);
-}
-
-pub trait GenericWidget<T> {
-    fn render(self, area: Rect, buf: &mut Buffer);
 }
