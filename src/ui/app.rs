@@ -12,6 +12,7 @@ use crossterm::execute;
 use crossterm::terminal::{
     disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
+use log::info;
 use tui::backend::CrosstermBackend;
 use tui::layout::{Constraint, Layout};
 use tui::{Frame, Terminal};
@@ -89,6 +90,7 @@ pub fn main_loop(opt: TuiOpt, flag: &Flags) -> Result<()> {
     let flag_clone = flag.clone();
 
     Logger::new(tx.clone()).apply()?;
+    info!("Logger set");
 
     spawn(move || servo(tx, &opt, &flag_clone));
 

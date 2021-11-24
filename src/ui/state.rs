@@ -5,7 +5,7 @@ use tui::{layout::Rect, Frame};
 
 use crate::{
     components::MovableListItem,
-    model::{Connections, Rules, Traffic, Version},
+    model::{Rules, Traffic, Version},
     ui::{
         components::{MovableListState, ProxyTree},
         pages::{
@@ -16,7 +16,7 @@ use crate::{
     Backend, Result,
 };
 
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Coord {
     pub x: usize,
     pub y: usize,
@@ -50,11 +50,13 @@ pub(crate) struct TuiStates<'a> {
     pub(crate) events: Vec<Event>,
     pub(crate) all_events_recv: usize,
     pub(crate) page_index: usize,
-    pub(crate) connection: Connections,
     pub(crate) show_debug: bool,
     pub(crate) proxy_tree: ProxyTree<'a>,
     pub(crate) debug_state: MovableListState<'a>,
     pub(crate) log_state: MovableListState<'a>,
+    pub(crate) con_state: MovableListState<'a>,
+    pub(crate) rule_state: MovableListState<'a>,
+    pub(crate) con_size: (u64, u64),
     pub(crate) rules: Rules,
     // pub(crate) tx: Option<Sender<Event>>,
 }
@@ -119,7 +121,10 @@ impl<'a> TuiStates<'a> {
 
     fn handle_update(&mut self, update: UpdateEvent) -> Result<()> {
         match update {
-            UpdateEvent::Connection(connection) => self.connection = connection,
+            UpdateEvent::Connection(connection) => {
+                self.con_size = (connection.upload_total, connection.download_total);
+                self.con_state.merge(connection.into());
+            }
             UpdateEvent::Version(version) => self.version = Some(version),
             UpdateEvent::Traffic(traffic) => {
                 let Traffic { up, down } = traffic;

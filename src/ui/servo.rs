@@ -2,7 +2,7 @@ use std::{sync::mpsc::Sender, thread::spawn, time::Duration};
 
 use crossterm::event::Event as CrossTermEvent;
 
-use log::{info, warn};
+use log::warn;
 
 use crate::{
     cli::Flags,
@@ -29,11 +29,11 @@ pub(super) fn servo(tx: Sender<Event>, opt: &TuiOpt, flags: &Flags) -> Result<()
                     if !handle.is_running() {
                         let handle = $handle.take().unwrap();
                         match handle.join() {
-                            Ok(res) => eprintln!(
+                            Ok(res) => warn!(
                                 "Background task `{}` has stopped running ({:?})",
                                 $identifier, res
                             ),
-                            Err(e) => eprintln!(
+                            Err(e) => warn!(
                                 "Catastrophic failure: Background task `{}` has stopped running ({:?})",
                                 $identifier, e
                             ),
@@ -42,8 +42,6 @@ pub(super) fn servo(tx: Sender<Event>, opt: &TuiOpt, flags: &Flags) -> Result<()
                 }
             };
         }
-
-    info!("Logger set");
 
     let key_tx = tx.clone();
     let traffic_tx = tx.clone();
