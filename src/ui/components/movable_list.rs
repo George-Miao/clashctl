@@ -103,6 +103,7 @@ impl<'a> MovableList<'a> {
     }
 }
 
+// TODO: Use lazy updated footer
 #[derive(Debug, Default, Clone)]
 pub struct MovableListState<'a> {
     pub offset: Coord,
