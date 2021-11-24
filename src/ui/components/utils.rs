@@ -176,3 +176,39 @@ fn test_into_span() {
         ])
     )
 }
+
+// pub trait HumanReadable {
+//     fn to_human_readable(&self) -> Option<String>;
+// }
+
+// const SECS_PER_MINUTE: i64 = 59;
+// const SECS_PER_HOUR: i64 = 3599;
+// const SECS_PER_DAY: i64 = 86399;
+// const SECS_PER_WEEK: i64 = 604799;
+
+// impl HumanReadable for Duration {
+//     fn to_human_readable(&self) -> Option<String> {
+//         match self.num_seconds() {
+//             i64::MIN..0 => None,
+//             num @ 0..SECS_PER_MINUTE => {
+//                 Some(format!("{} sec{}", num, if num != 1 { "s" } else { "" }))
+//             }
+//             num @ SECS_PER_MINUTE..SECS_PER_HOUR => {
+//                 let val = num / 60;
+//                 Some(format!("{} min{}", val, if val != 1 { "s" } else { "" }))
+//             }
+//             num @ SECS_PER_HOUR..SECS_PER_DAY => {
+//                 let val = num / 3600;
+//                 Some(format!("{} hour{}", val, if val != 1 { "s" } else { "" }))
+//             }
+//             num @ SECS_PER_DAY..SECS_PER_WEEK => {
+//                 let val = num / 86400;
+//                 Some(format!("{} day{}", val, if val != 1 { "s" } else { "" }))
+//             }
+//             num => {
+//                 let val = num / 604800;
+//                 Some(format!("{} week{}", val, if val != 1 { "s" } else { "" }))
+//             }
+//         }
+//     }
+// }

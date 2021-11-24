@@ -76,13 +76,25 @@ impl<'a> MovableList<'a> {
 }
 
 // TODO: Use lazy updated footer
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct MovableListState<'a> {
     offset: Coord,
     items: Vec<MovableListItem<'a>>,
 }
 
 impl<'a> MovableListState<'a> {
+    pub fn new(items: Vec<MovableListItem<'a>>) -> Self {
+        Self {
+            offset: Default::default(),
+            items,
+        }
+    }
+    pub fn merge(&mut self, other: Self) {
+        if self == &other {
+            return;
+        }
+        self.items = other.items;
+    }
     pub fn current_pos(&self) -> Coord {
         let x = self.offset.x;
         let y = self.len().saturating_sub(self.offset.y);
@@ -132,7 +144,7 @@ impl<'a> MovableListState<'a> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum MovableListItem<'a> {
     Spans(Spans<'a>),
     Raw(String),
