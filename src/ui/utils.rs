@@ -1,6 +1,5 @@
 use std::{
-    collections::{hash_map::DefaultHasher, VecDeque},
-    hash::{Hash, Hasher},
+    collections::VecDeque,
     sync::{mpsc::Sender, Mutex},
     thread::sleep,
     time::{Duration, Instant},
