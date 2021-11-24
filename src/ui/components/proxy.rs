@@ -1,7 +1,4 @@
-use std::{
-    collections::{hash_map::RandomState, HashMap},
-    hash::Hash,
-};
+use std::collections::{hash_map::RandomState, HashMap};
 use std::{fmt::Debug, marker::PhantomData};
 
 use tui::{
@@ -13,20 +10,17 @@ use tui::{
 use crate::{
     components::{Consts, Footer, FooterItem, FooterWidget},
     model::{History, Proxies, Proxy, ProxyType},
-    ui::{
-        components::{get_block, get_focused_block, get_text_style},
-        utils::get_hash,
-    },
+    ui::components::{get_block, get_focused_block, get_text_style},
 };
 
-#[derive(Clone, Debug, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ProxyGroup<'a> {
     pub name: String,
     pub proxy_type: ProxyType,
     pub members: Vec<ProxyItem>,
     pub current: Option<usize>,
     pub cursor: usize,
-    pub(crate) _life: PhantomData<&'a ()>,
+    _life: PhantomData<&'a ()>,
 }
 
 pub enum ProxyGroupFocusStatus {
@@ -208,7 +202,7 @@ impl<'a> Default for ProxyGroup<'a> {
     }
 }
 
-#[derive(Clone, Debug, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ProxyItem {
     pub name: String,
     pub proxy_type: ProxyType,
@@ -239,8 +233,8 @@ impl<'a> From<(&'a str, &'a Proxy)> for ProxyItem {
 // In order for functions to be implemented, these are required:
 // - Remove Enter from InterfaceEvent::ToggleHold
 // - Maybe a new InterfaceEvent::Confirm correstponds to Enter
-// - `T`, `S`, '/' in proxy event handling
-#[derive(Clone, Debug, Default, Hash)]
+// - `T`, `S`, `/` in proxy event handling
+#[derive(Clone, Debug, PartialEq)]
 pub struct ProxyTree<'a> {
     pub groups: Vec<ProxyGroup<'a>>,
     pub expanded: bool,
@@ -295,8 +289,9 @@ impl<'a> ProxyTree<'a> {
         }
         self.footer = footer
     }
+
     pub fn sync_cursor_from(&mut self, mut new: ProxyTree<'a>) {
-        if get_hash(self) == get_hash(&new) {
+        if self == &new {
             return;
         }
         new.expanded = self.expanded;
@@ -322,7 +317,8 @@ impl<'a> ProxyTree<'a> {
                     .unwrap_or_default()
             }
         }
-        *self = new
+        *self = new;
+        self.update_footer()
     }
 }
 
@@ -424,14 +420,10 @@ impl<'a> Widget for ProxyTreeWidget<'a> {
         };
 
         let inner = block.inner(area);
-        // if area.height > 12 {
-        //     inner.x += 1;
-        //     inner.width -= 2;
-        //     inner.y += 1;
-        //     inner.height -= 2;
-        // }
+
         block.render(area, buf);
 
         Paragraph::new(text).render(inner, buf);
+        FooterWidget::new(&self.state.footer).render(area, buf);
     }
 }
