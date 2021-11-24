@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::ops::Deref;
 
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -54,7 +55,7 @@ pub struct Proxy {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, PartialOrd, Eq, Ord)]
 #[cfg_attr(feature = "ui", derive(Hash))]
 pub struct History {
-    pub time: String,
+    pub time: DateTime<Utc>,
     pub delay: u64,
 }
 
