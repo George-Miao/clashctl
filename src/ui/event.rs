@@ -27,17 +27,17 @@ impl<'a, 'b> From<&Event> for Spans<'a> {
         match val {
             Event::Quit => Spans(vec![]),
             Event::Update(event) => Spans(vec![
-                Span::styled(" ⇵  ", Style::default().fg(Color::Yellow)),
+                Span::styled("⇵  ", Style::default().fg(Color::Yellow)),
                 Span::raw(event.to_string()),
             ]),
             Event::Interface(event) => Spans(vec![
-                Span::styled(" ✜  ", Style::default().fg(Color::Green)),
+                Span::styled("✜  ", Style::default().fg(Color::Green)),
                 Span::raw(format!("{:?}", event)),
             ]),
             Event::Diagnostic(event) => match event {
                 DiagnosticEvent::Log(level, payload) => Spans(vec![
                     Span::styled(
-                        format!(" ✇  {:<6}", level),
+                        format!("✇  {:<6}", level),
                         Style::default().fg(level.as_color()),
                     ),
                     Span::raw(payload.to_owned()),

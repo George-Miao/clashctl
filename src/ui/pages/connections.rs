@@ -39,7 +39,7 @@ impl<'a> From<Connections> for MovableListState<'a> {
                     ByteSize(x.up_speed().unwrap_or_default()).to_string_as(true) + "/s",
                 );
                 let meta = x.metadata;
-                let host = format!(" {}:{}", meta.host, meta.destination_port);
+                let host = format!("{}:{}", meta.host, meta.destination_port);
 
                 let src = format!("{}:{} ", meta.source_ip, meta.source_port);
                 let dest = format!(
