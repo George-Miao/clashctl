@@ -1,7 +1,8 @@
-use std::ops::Range;
+use std::{borrow::Cow, ops::Range};
 
 use crossterm::event::KeyCode;
 use tui::{
+    layout::Rect,
     style::{Color, Modifier, Style},
     text::Span,
     widgets::{List, ListItem},
@@ -73,10 +74,18 @@ impl<'a> MovableList<'a> {
 }
 
 // TODO: Use lazy updated footer
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct MovableListState<'a> {
     offset: Coord,
     items: Vec<MovableListItem<'a>>,
+    placeholder: Option<Cow<'a, str>>,
+    padding: u16,
+}
+
+impl<'a> Default for MovableListState<'a> {
+    fn default() -> Self {
+        Self::new(vec![])
+    }
 }
 
 impl<'a> MovableListState<'a> {
@@ -84,14 +93,33 @@ impl<'a> MovableListState<'a> {
         Self {
             offset: Default::default(),
             items,
+            placeholder: None,
+            padding: 1,
         }
     }
+
+    pub fn placeholder<T: Into<Cow<'a, str>>>(&mut self, content: T) -> &mut Self {
+        self.placeholder = Some(content.into());
+        self
+    }
+
+    pub fn padding(&mut self, padding: u16) -> &mut Self {
+        self.padding = padding;
+        self
+    }
+
+    pub fn set_items(&mut self, items: Vec<MovableListItem<'a>>) -> &mut Self {
+        self.items = items;
+        self
+    }
+
     pub fn merge(&mut self, other: Self) {
         if self == &other {
             return;
         }
         self.items = other.items;
     }
+
     pub fn current_pos(&self) -> Coord {
         let x = self.offset.x;
         let y = self.len().saturating_sub(self.offset.y);
@@ -106,6 +134,10 @@ impl<'a> MovableListState<'a> {
         self.items.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     pub fn toggle(&mut self) {
         self.offset.toggle()
     }
@@ -118,7 +150,7 @@ impl<'a> MovableListState<'a> {
     }
 
     pub fn handle(&mut self, event: ListEvent) {
-        let len = self.len() - 1;
+        let len = self.len().saturating_sub(1);
         let offset = &mut self.offset;
 
         if offset.hold {
@@ -155,12 +187,19 @@ impl<'a> MovableListItem<'a> {
         }
     }
 
-    pub fn range(&mut self, range: &Range<usize>) -> &mut Self {
+    pub fn ranged(&mut self, range: &Range<usize>) -> &mut Self {
         match self {
             MovableListItem::Spans(ref mut x) => *x = spans_window(x, range),
             MovableListItem::Raw(ref mut x) => *x = string_window(x, range),
         };
         self
+    }
+
+    pub fn range(&self, range: &Range<usize>) -> MovableListItem {
+        match self {
+            MovableListItem::Spans(ref x) => MovableListItem::Spans(spans_window(x, range)),
+            MovableListItem::Raw(ref x) => MovableListItem::Raw(string_window(x, range)),
+        }
     }
 }
 
@@ -181,9 +220,29 @@ impl<'a> From<MovableListItem<'a>> for Spans<'a> {
 
 impl<'a> Widget for MovableList<'a> {
     fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer) {
-        let height = (area.height as usize).saturating_sub(2);
         let num = self.state.items.len();
+
         let offset = self.state.offset;
+
+        let block = if offset.hold {
+            get_focused_block(&self.title)
+        } else {
+            get_block(&self.title)
+        };
+        let pad = self.state.padding;
+        let inner = block.inner(area);
+        let inner = if pad == 0 {
+            inner
+        } else {
+            Rect {
+                x: inner.x + pad,
+                y: inner.y,
+                width: inner.width.saturating_sub(pad * 2),
+                height: inner.height,
+            }
+        };
+
+        let height = inner.height as usize;
 
         // Calculate which portion of the list will be displayed
         let y_offset = if offset.y + 1 > num {
@@ -192,36 +251,38 @@ impl<'a> Widget for MovableList<'a> {
             offset.y
         };
 
-        // Get that portion of items
-        let items = self
-            .state
-            .items
-            .iter()
-            .rev()
-            .skip(y_offset)
-            .take(height as usize);
-
         let x_offset = offset.x;
 
-        let x_range = x_offset..(x_offset + area.width as usize);
+        let x_range = x_offset..(x_offset + inner.width as usize);
 
-        let items = items.cloned().map(move |mut x| {
-            let x_width = x.width();
-            let content = x.range(&x_range);
-            if x_width != 0 && content.width() == 0 {
-                *content = MovableListItem::Raw("◀".to_owned());
-            }
-            ListItem::new(Spans::from(content.to_owned()))
-        });
+        // Get that portion of items
+        let items = if num != 0 {
+            self.state
+                .items
+                .iter()
+                .rev()
+                .skip(y_offset)
+                .take(height as usize)
+                .map(|x| {
+                    let x_width = x.width();
+                    let mut content = x.range(&x_range);
+                    if x_width != 0 && content.width() == 0 {
+                        content = MovableListItem::Raw("◀".to_owned());
+                    }
+                    ListItem::new(Spans::from(content.to_owned()))
+                })
+                .collect::<Vec<_>>()
+        } else {
+            vec![ListItem::new(Span::raw(
+                self.state
+                    .placeholder
+                    .to_owned()
+                    .unwrap_or_else(|| "Nothing's here yet".into()),
+            ))]
+        };
 
-        List::new(items.collect::<Vec<_>>())
-            .block(if offset.hold {
-                get_focused_block(&self.title)
-            } else {
-                get_block(&self.title)
-            })
-            .style(get_text_style())
-            .render(area, buf);
+        block.render(area, buf);
+        List::new(items).style(get_text_style()).render(inner, buf);
 
         self.render_footer(area, buf, self.state.current_pos());
     }
