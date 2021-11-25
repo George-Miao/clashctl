@@ -1,16 +1,19 @@
-use clashctl::{
-    cli::{init_logger, Cmd, Flags, Opts},
-    Result, TuiOpt,
-};
-
-use clap::Parser;
-use log::{debug, LevelFilter};
+use clashctl::{interactive::Flags, Result};
 
 fn main() -> Result<()> {
+    use clashctl::{
+        cli::{init_logger, Cmd, Opts},
+        ui::TuiOpt,
+    };
+
+    use clap::Parser;
+    use log::{debug, LevelFilter};
+
     if std::env::args().len() == 1 {
         TuiOpt::default().run(Flags::default())
     } else {
         let opts = Opts::parse();
+
         if let Cmd::Tui(opt) = opts.cmd {
             opt.run(opts.flag)
         } else {

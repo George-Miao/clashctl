@@ -5,7 +5,7 @@ ui:
 
 dev:
 	cargo watch -w src -x 'check --features ui >> /dev/null 2>&1' -s 'touch .trigger' >> /dev/null 2>&1 &
-	cargo watch --no-gitignore -w .trigger -x 'run --features ui'
+	cargo watch --no-gitignore -w .trigger -x 'run --features ui --bin clashctl_ui'
 
 run args:
 	cargo run --features ui {{ args }}
