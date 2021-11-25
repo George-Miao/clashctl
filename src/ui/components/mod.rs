@@ -7,9 +7,9 @@ mod tabs;
 mod traffic;
 
 pub use block_footer::*;
-pub(crate) use constants::*;
-pub(crate) use movable_list::*;
-pub(crate) use proxy::*;
+pub use constants::*;
+pub use movable_list::*;
+pub use proxy::*;
 pub use sparkline::*;
-pub(crate) use tabs::*;
-pub(crate) use traffic::*;
+pub use tabs::*;
+pub use traffic::*;

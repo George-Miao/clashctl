@@ -23,7 +23,7 @@ use crate::{
 /// As during runtime we assume all Option field is Some.
 /// So [`Default`] can be automatically derived2
 #[derive(Debug, Default, Clone)]
-pub(crate) struct TuiStates<'a> {
+pub struct TuiStates<'a> {
     pub(crate) should_quit: bool,
     pub(crate) start_time: Option<Instant>,
     pub(crate) version: Option<Version>,
