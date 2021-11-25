@@ -301,34 +301,6 @@ pub fn get_text_style() -> Style {
     Style::default().fg(Color::White)
 }
 
-impl<'a> From<Log> for Spans<'a> {
-    fn from(val: Log) -> Self {
-        let color = val.log_type.as_color();
-        Spans::from(vec![
-            Span::styled(
-                format!(" {:<5}", val.log_type.to_string().to_uppercase()),
-                Style::default().fg(color),
-            ),
-            Span::raw(" "),
-            Span::raw(val.payload),
-        ])
-    }
-}
-
-impl<'a> From<&Log> for Spans<'a> {
-    fn from(val: &Log) -> Self {
-        let color = val.log_type.clone().as_color();
-        Spans::from(vec![
-            Span::styled(
-                format!(" {:<5}", val.log_type.to_string().to_uppercase()),
-                Style::default().fg(color),
-            ),
-            Span::raw(" "),
-            Span::raw(val.payload.to_owned()),
-        ])
-    }
-}
-
 #[test]
 fn test_into_span() {
     let style_blue = Style::default().fg(Color::Blue);
