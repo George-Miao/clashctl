@@ -1,12 +1,13 @@
 use std::{
     collections::VecDeque,
+    fmt::Write,
     ops::Range,
     sync::{mpsc::Sender, Mutex},
-    thread::sleep,
+    thread::{sleep, JoinHandle},
     time::{Duration, Instant},
 };
 
-use log::{LevelFilter, Record};
+use log::{warn, LevelFilter, Record};
 use tui::{
     style::{Color, Style},
     text::{Span, Spans},
@@ -183,20 +184,15 @@ impl Logger {
 
     pub fn apply(self) -> Result<()> {
         let level = self.level;
-        Ok(log::set_boxed_logger(Box::new(self)).map(|()| log::set_max_level(level))?)
+        Ok(log::set_boxed_logger(Box::new(self)).map(|_| log::set_max_level(level))?)
     }
 }
 
 impl log::Log for Logger {
-    fn enabled(&self, _metadata: &log::Metadata) -> bool {
-        true
+    fn enabled(&self, meta: &log::Metadata) -> bool {
+        meta.level() <= self.level
     }
     fn log(&self, record: &Record) {
-        let text = format!(
-            "{:<6}{:?}",
-            record.level().to_string().to_uppercase(),
-            record.args()
-        );
         self.sender
             .lock()
             .unwrap()
@@ -287,10 +283,7 @@ pub fn get_block(title: &str) -> Block {
     Block::default()
         .borders(Borders::ALL)
         .style(Style::default().fg(Color::LightBlue))
-        .title(Span::styled(
-            format!(" {} ", title),
-            Style::default().fg(Color::Blue),
-        ))
+        .title(Span::raw(format!(" {} ", title)))
 }
 
 pub fn get_focused_block(title: &str) -> Block {
@@ -376,6 +369,38 @@ fn test_into_span() {
             },
         ])
     )
+}
+
+pub trait Check {
+    fn check(&mut self, indent: &str) -> bool;
+}
+
+impl<T: std::fmt::Debug> Check for Option<JoinHandle<T>> {
+    fn check(&mut self, indent: &str) -> bool {
+        if let Some(ref handle) = self {
+            if !handle.is_running() {
+                let handle = self.take().unwrap();
+                match handle.join() {
+                    Ok(res) => warn!(
+                        "Background task `{}` has stopped running ({:?})",
+                        indent, res
+                    ),
+                    Err(e) => warn!(
+                        "Catastrophic failure: Background task `{}` has stopped running ({:?})",
+                        indent, e
+                    ),
+                }
+                // Not running anymore
+                false
+            } else {
+                // Running properly
+                true
+            }
+        } else {
+            // Already quit and handled earlier
+            false
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
