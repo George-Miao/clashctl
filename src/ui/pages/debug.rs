@@ -6,7 +6,7 @@ use crate::{
     ui::{
         components::MovableList,
         utils::{get_block, get_text_style},
-    HMS, TICK_COUNTER,
+        HMS, TICK_COUNTER,
     },
 };
 

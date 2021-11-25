@@ -3,16 +3,15 @@ use std::time::Instant;
 use tui::{layout::Rect, Frame};
 
 use crate::{
-    components::MovableListItem,
-    model::{Rules, Traffic, Version},
+    model::{Traffic, Version},
     ui::{
-        components::{MovableListState, ProxyTree},
+        components::{MovableListItem, MovableListState, ProxyTree},
         pages::{
             ConfigPage, ConnectionsPage, DebugPage, LogPage, ProxiesPage, RulesPage, StatusPage,
         },
-        Event, Input, UpdateEvent,
+        Backend, Event, Input, UpdateEvent,
     },
-    Backend, Result,
+    Result,
 };
 
 /// # Warn
@@ -39,7 +38,6 @@ pub struct TuiStates<'a> {
     pub(crate) con_state: MovableListState<'a>,
     pub(crate) rule_state: MovableListState<'a>,
     pub(crate) con_size: (u64, u64),
-    pub(crate) rules: Rules,
     // pub(crate) tx: Option<Sender<Event>>,
 }
 
@@ -101,7 +99,7 @@ impl<'a> TuiStates<'a> {
         }
     }
 
-    pub fn render_route(&self, area: Rect, f: &mut Frame<Backend>) {
+    pub fn route(&self, area: Rect, f: &mut Frame<Backend>) {
         match self.page_index {
             0 => f.render_widget(StatusPage::new(self), area),
             1 => f.render_widget(ProxiesPage::new(self), area),
@@ -134,9 +132,7 @@ impl<'a> TuiStates<'a> {
             UpdateEvent::Log(log) => {
                 self.log_state.push(MovableListItem::Spans(log.into()));
             }
-            UpdateEvent::Rules(rules) => {
-                self.rules = rules;
-            }
+            UpdateEvent::Rules(rules) => self.rule_state.merge(rules.into()),
         }
         Ok(())
     }
