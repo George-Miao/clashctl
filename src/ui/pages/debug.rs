@@ -1,4 +1,3 @@
-use hhmmss::Hhmmss;
 use tui::layout::{Constraint, Layout};
 use tui::widgets::{Paragraph, Widget};
 
@@ -8,7 +7,7 @@ use crate::{
         components::MovableList,
         utils::{get_block, get_text_style},
     },
-    TICK_COUNTER,
+    HMS, TICK_COUNTER,
 };
 
 define_widget!(DebugPage);
@@ -66,7 +65,7 @@ impl<'a> Widget for DebugPage<'a> {
                 "Run time:",
                 self.state
                     .start_time
-                    .map(|x| x.elapsed().hhmmss())
+                    .map(|x| x.elapsed().hms())
                     .unwrap_or_else(|| "?".to_owned()),
             ),
         ]
