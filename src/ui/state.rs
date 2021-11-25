@@ -16,23 +16,6 @@ use crate::{
     Backend, Result,
 };
 
-#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Coord {
-    pub x: usize,
-    pub y: usize,
-    pub hold: bool,
-}
-
-impl Coord {
-    pub fn toggle(&mut self) {
-        if self.hold {
-            *self = Self::default()
-        } else {
-            self.hold = true
-        }
-    }
-}
-
 /// # Warn
 /// DO NOT USE [`Default::default`] TO INITIALIZE
 ///

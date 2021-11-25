@@ -11,10 +11,7 @@ use unicode_width::UnicodeWidthStr;
 
 use crate::{
     components::{Footer, FooterItem, FooterWidget},
-    ui::{
-        utils::{get_block, get_focused_block, get_text_style, spans_window, string_window},
-        Coord,
-    },
+    ui::utils::{get_block, get_focused_block, get_text_style, spans_window, string_window, Coord},
     ListEvent,
 };
 
