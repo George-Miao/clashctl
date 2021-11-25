@@ -4,7 +4,7 @@ use std::ops::Deref;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Proxies {
     pub proxies: HashMap<String, Proxy>,
 }
@@ -52,7 +52,7 @@ pub struct Proxy {
     pub now: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Serialize, Deserialize, Clone, Debug, Eq)]
 pub struct History {
     pub time: DateTime<Utc>,
     pub delay: u64,
