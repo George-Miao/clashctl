@@ -4,7 +4,26 @@
 
 Easy-to-use TUI & CLI to interact with [Clash](https://github.com/Dreamacro/clash) RESTful API.
 
+## Preview
+
+<div style="display: flex;">
+  <img src="https://imagedelivery.net/b21oeeg7p6hqWEI-IA5xDw/d187c9e0-5f27-4158-aae9-42a7762bcc00/public" />
+  <img src="https://imagedelivery.net/b21oeeg7p6hqWEI-IA5xDw/cee94606-ed5c-4cd3-ecd0-0afa4b6beb00/public" />
+</div>
+
 ## Getting Started <a name = "getting_started"></a>
+
+Use command without subcommands defaults to open TUI:
+
+```bash
+$ clashctl
+
+# Equals
+
+$ clashctl tui
+```
+
+Or use a subcommand:
 
 ```bash
 $ clashctl proxy list
@@ -31,11 +50,8 @@ selector            -       All
 - Store and use multiple servers
 - Generate completion script (by [clap_generate](https://crates.io/crates/clap_generate))
 - Manage multiple servers
-- TUI
-  - Status (info & traffic)
-  - Logs
 
-### TODO
+### Done & TODO
 
 - [ ] Cli
   - [x] Manage servers
@@ -63,7 +79,7 @@ selector            -       All
 ### Use Cargo
 
 ```bash
-$ cargo install clashctl
+$ cargo install clashctl --vers 0.3.0-alpha.2 --all-features
 ```
 
 ### Compile from source
@@ -71,20 +87,21 @@ $ cargo install clashctl
 ```bash
 $ git clone https://github.com/George-Miao/clashctl.git
 $ cd clashctl
-$ cargo install --features cli --path .
+$ cargo install --features "cli, ui" --path .
 ```
 
 ## Prerequisites
 
-You will need rust environment (Cargo & rustc) to compile and install
-
-## MSRV
-
-Minimum supported rust version is `1.56.0`
-
-Test with cargo-msrv
+You will need nightly rust environment (Cargo & rustc) to compile and install
 
 ## Usage <a name = "usage"></a>
+
+### Use the TUI
+
+- Use number to navigate between tabs
+- Space to hold the list (and therefor move the list)
+- Arrow key to move the list under Hold mode
+- ^D open debug panel
 
 ### Use the CLI
 
