@@ -11,9 +11,9 @@ use tui::{
 use crate::{
     model::{History, Proxies, Proxy, ProxyType},
     ui::{
-    components::{Consts, Footer, FooterItem, FooterWidget},
+        components::{Consts, Footer, FooterItem, FooterWidget},
         utils::{get_block, get_focused_block, get_text_style},
-    ListEvent,
+        ListEvent,
     },
 };
 
@@ -324,8 +324,10 @@ impl<'a> ProxyTree<'a> {
             if ty.is_selector() {
                 footer.push_left(FooterItem::span(Span::styled(" ▶ Select ", style)));
             }
+            let focused = &pointed.members[pointed.cursor];
             footer.push_left(FooterItem::span(Span::styled(" T: Test ", style)));
             footer.push_right(FooterItem::span(Span::styled(name, style)).wrapped());
+            footer.push_right(FooterItem::span(Span::raw(focused.name.to_owned())).wrapped());
         }
         self.footer = footer
     }
