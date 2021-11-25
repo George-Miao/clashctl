@@ -1,6 +1,7 @@
 use std::collections::{hash_map::RandomState, HashMap};
 use std::{fmt::Debug, marker::PhantomData};
 
+use crossterm::event::KeyCode;
 use tui::{
     style::{Color, Modifier, Style},
     text::{Span, Spans},
@@ -11,6 +12,7 @@ use crate::{
     components::{Consts, Footer, FooterItem, FooterWidget},
     model::{History, Proxies, Proxy, ProxyType},
     ui::utils::{get_block, get_focused_block, get_text_style},
+    ListEvent,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -259,6 +261,42 @@ impl<'a> ProxyTree<'a> {
     pub fn toggle(&mut self) {
         self.expanded = !self.expanded;
         self.update_footer();
+    }
+
+    pub fn handle(&mut self, event: ListEvent) {
+        if self.expanded {
+            let step = if event.fast { 3 } else { 1 };
+            let group = &mut self.groups[self.cursor];
+            match event.code {
+                KeyCode::Up => {
+                    if group.cursor > 0 {
+                        group.cursor = group.cursor.saturating_sub(step)
+                    }
+                }
+                KeyCode::Down => {
+                    let left = group.members.len().saturating_sub(group.cursor + 1);
+                    if left > 0 {
+                        group.cursor += left.min(step)
+                    }
+                }
+                _ => {}
+            }
+        } else {
+            match event.code {
+                KeyCode::Up => {
+                    if self.cursor > 0 {
+                        self.cursor = self.cursor.saturating_sub(1)
+                    }
+                }
+                KeyCode::Down => {
+                    if self.cursor < self.groups.len() - 1 {
+                        self.cursor = self.cursor.saturating_add(1)
+                    }
+                }
+                _ => {}
+            }
+        }
+        self.update_footer()
     }
 
     pub fn update_footer(&mut self) {

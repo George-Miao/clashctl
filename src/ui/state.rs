@@ -163,58 +163,11 @@ impl<'a> TuiStates<'a> {
         Ok(())
     }
 
+    pub fn debug_page_index(&self) -> usize {
+        Self::TITLES.len() - 1
+    }
+
     fn drop_events(&mut self, num: usize) -> impl Iterator<Item = Event> + '_ {
         self.events.drain(..num)
-    }
-
-    fn handle_proxies_select(&mut self, event: ListEvent) {
-        let mut tree = &mut self.proxy_tree;
-        if tree.expanded {
-            let step = if event.fast { 3 } else { 1 };
-            let group = &mut tree.groups[tree.cursor];
-            match event.code {
-                KeyCode::Up => {
-                    if group.cursor > 0 {
-                        group.cursor = group.cursor.saturating_sub(step)
-                    }
-                }
-                KeyCode::Down => {
-                    let left = group.members.len().saturating_sub(group.cursor + 1);
-                    if left > 0 {
-                        group.cursor += left.min(step)
-                    }
-                }
-                _ => {}
-            }
-        } else {
-            match event.code {
-                KeyCode::Up => {
-                    if tree.cursor > 0 {
-                        tree.cursor = tree.cursor.saturating_sub(1)
-                    }
-                }
-                KeyCode::Down => {
-                    if tree.cursor < tree.groups.len() - 1 {
-                        tree.cursor = tree.cursor.saturating_add(1)
-                    }
-                }
-                _ => {}
-            }
-        }
-        tree.update_footer()
-    }
-
-    fn handle_list(&mut self, event: ListEvent) {
-        let state = match self.title() {
-            "Logs" => &mut self.log_state,
-            "Debug" => &mut self.debug_state,
-            _ => return,
-        };
-
-        state.handle(event)
-    }
-
-    fn debug_page_index(&self) -> usize {
-        Self::TITLES.len() - 1
     }
 }
