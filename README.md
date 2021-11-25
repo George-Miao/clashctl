@@ -38,18 +38,26 @@ selector            -       All
 
 ### TODO
 
-- [x] Manage servers
-- [x] Sort proxies
-- [ ] Status panel (TUI)
-  - [ ] Separate render and event handle into two threads
-  - [ ] Proxies
-  - [ ] Configs
-  - [ ] Rules
+- [ ] Cli
+  - [x] Manage servers
+  - [x] Sort proxies
+  - [ ] More features
+- [ ] TUI
+  - [x] Status Panel
+  - [x] Proxies Panel
+    - [ ] Update proxy
+    - [ ] Test latency
+    - [ ] Sort by {Original, LatencyAsc, LatencyDsc, NameAsc, NameDsc}
+  - [x] Rules Panel
+  - [x] Connections Panel
+    - [ ] Sort
+  - [x] Log Panel
+  - [x] Debug Panel
+  - [ ] Config Panel
+    - [ ] Update clash configs
+    - [ ] Update clashctl configs
   - [ ] Search
   - [ ] (Maybe?) mouse support
-- [ ] Inspect rules
-- [ ] Inspect configs
-- [ ] Update configs
 
 ## Installing
 

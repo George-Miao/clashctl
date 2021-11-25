@@ -1,7 +1,7 @@
 alias r := run
 
 ui:
-	cargo run --features ui
+	cargo run --features ui --bin clashctl_ui
 
 dev:
 	cargo watch -w src -x 'check --features ui >> /dev/null 2>&1' -s 'touch .trigger' >> /dev/null 2>&1 &
