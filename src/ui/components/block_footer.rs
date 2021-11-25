@@ -7,11 +7,25 @@ use tui::{
 };
 use unicode_width::UnicodeWidthStr;
 
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Footer<'a> {
+    left_offset: u16,
+    right_offset: u16,
     left: Vec<FooterItem<'a>>,
     right: Vec<FooterItem<'a>>,
     _life: PhantomData<&'a ()>,
+}
+
+impl<'a> Default for Footer<'a> {
+    fn default() -> Self {
+        Self {
+            left_offset: 2,
+            right_offset: 2,
+            left: Default::default(),
+            right: Default::default(),
+            _life: Default::default(),
+        }
+    }
 }
 
 impl<'a> Footer<'a> {
@@ -31,12 +45,24 @@ impl<'a> Footer<'a> {
         self.left.iter_mut().chain(self.right.iter_mut())
     }
 
-    pub fn push_left(&mut self, item: FooterItem<'a>) {
-        self.left.push(item)
+    pub fn left_offset(&mut self, offset: u16) -> &mut Self {
+        self.left_offset = offset;
+        self
     }
 
-    pub fn push_right(&mut self, item: FooterItem<'a>) {
-        self.right.push(item)
+    pub fn right_offset(&mut self, offset: u16) -> &mut Self {
+        self.right_offset = offset;
+        self
+    }
+
+    pub fn push_left(&mut self, item: FooterItem<'a>) -> &mut Self {
+        self.left.push(item);
+        self
+    }
+
+    pub fn push_right(&mut self, item: FooterItem<'a>) -> &mut Self {
+        self.right.push(item);
+        self
     }
 
     pub fn pop_left(&mut self) -> Option<FooterItem<'a>> {
@@ -68,8 +94,10 @@ impl<'a> Widget for FooterWidget<'a> {
         let y = area.y + area.height - 1;
         let (mut left, mut right) = (self.state.left.iter(), self.state.right.iter());
         let (mut left_x, mut right_x) = (
-            area.x.saturating_add(2),
-            area.x.saturating_add(area.width).saturating_sub(1),
+            area.x.saturating_add(self.state.left_offset),
+            area.x
+                .saturating_add(area.width + 1)
+                .saturating_sub(self.state.right_offset),
         );
         loop {
             let mut changed = false;
