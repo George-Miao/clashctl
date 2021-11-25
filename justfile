@@ -1,11 +1,11 @@
 alias r := run
 
 ui:
-	cargo run --features ui --bin clashctl_ui
+	cargo run --features ui
 
 dev:
-	cargo watch -w src -x 'check --features ui >> /dev/null 2>&1' -s 'touch .trigger' >> /dev/null 2>&1 &
-	cargo watch --no-gitignore -w .trigger -x 'run --features ui --bin clashctl_ui'
+	cargo watch -x 'check --features ui' -s 'touch .trigger' > /dev/null & 
+	cargo watch --no-gitignore -w .trigger -x 'run --features ui'
 
 run args:
 	cargo run --features ui {{ args }}
