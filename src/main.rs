@@ -8,11 +8,11 @@ use log::{debug, LevelFilter};
 
 fn main() -> Result<()> {
     if std::env::args().len() == 1 {
-        TuiOpt::default().run(&Flags::default())
+        TuiOpt::default().run(Flags::default())
     } else {
         let opts = Opts::parse();
         if let Cmd::Tui(opt) = opts.cmd {
-            opt.run(&opts.flag)
+            opt.run(opts.flag)
         } else {
             init_logger(match opts.flag.verbose {
                 0 => Some(LevelFilter::Info),

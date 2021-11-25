@@ -17,7 +17,6 @@ use tui::backend::CrosstermBackend;
 use tui::layout::{Constraint, Layout};
 use tui::{Frame, Terminal};
 
-use crate::cli::Flags;
 use crate::ui::{
     components::*,
     servo::servo,
@@ -25,6 +24,7 @@ use crate::ui::{
     TuiStates,
 };
 use crate::Result;
+use crate::{cli::Flags, Error};
 
 thread_local!(pub(crate) static TICK_COUNTER: RefCell<TicksCounter> = RefCell::new(TicksCounter::new_with_time(Instant::now())));
 
@@ -42,7 +42,7 @@ pub struct TuiOpt {
 }
 
 impl TuiOpt {
-    pub fn run(self, flag: &Flags) -> Result<()> {
+    pub fn run(self, flag: Flags) -> Result<()> {
         main_loop(self, flag)
     }
 }
@@ -78,24 +78,22 @@ fn wrap_up(mut terminal: Terminal<Backend>) -> Result<()> {
     Ok(())
 }
 
-pub fn main_loop(opt: TuiOpt, flag: &Flags) -> Result<()> {
+pub fn main_loop(opt: TuiOpt, flag: Flags) -> Result<()> {
     if flag.get_config()?.using_server().is_none() {
         eprintln!("No server configured yet. Use `clashctl server add` first.");
         return Ok(());
     };
 
-    let mut terminal = setup()?;
+    let state = Arc::new(RwLock::new(TuiStates::new()));
+    let error = Arc::new(Mutex::new(None));
 
     let (tx, rx) = channel();
-    let flag_clone = flag.clone();
+    // let flag_clone = flag.clone();
 
     Logger::new(tx.clone()).apply()?;
     info!("Logger set");
 
-    spawn(move || servo(tx, &opt, &flag_clone));
-
-    let state = Arc::new(RwLock::new(TuiStates::new()));
-    let error = Arc::new(Mutex::new(None));
+    let back_handle = spawn(move || servo(tx, &opt, &flag));
 
     let event_state = state.clone();
     let event_error = error.clone();
@@ -121,8 +119,22 @@ pub fn main_loop(opt: TuiOpt, flag: &Flags) -> Result<()> {
             .unwrap();
     });
 
+    let mut terminal = setup()?;
+
     let mut interval = Interval::every(Duration::from_millis(33));
     while let Ok(state) = state.read() {
+        if !back_handle.is_running() {
+            match back_handle.join() {
+                Ok(_) => {}
+                Err(e) => match error.lock() {
+                    Ok(mut write) => {
+                        write.replace(Error::Other(format!("{:?}", e)));
+                    }
+                    Err(e) => panic!("Error: {}", e),
+                },
+            }
+            break;
+        }
         if state.should_quit {
             break;
         }
