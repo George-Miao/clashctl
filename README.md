@@ -2,7 +2,7 @@
 
 ## About <a name = "about"></a>
 
-Easy-to-use TUI & CLI to interact with [Clash](https://https://github.com/Dreamacro/clash) RESTful API.
+Easy-to-use TUI & CLI to interact with [Clash](https://github.com/Dreamacro/clash) RESTful API.
 
 ## Getting Started <a name = "getting_started"></a>
 
