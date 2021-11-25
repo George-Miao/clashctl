@@ -31,7 +31,6 @@ selector            -       All
 - Store and use multiple servers
 - Generate completion script (by [clap_generate](https://crates.io/crates/clap_generate))
 - Manage multiple servers
-
 - TUI
   - Status (info & traffic)
   - Logs
