@@ -87,13 +87,29 @@ impl Pulse {
     }
 }
 
-impl From<model::Level> for Color {
-    fn from(val: model::Level) -> Self {
-        match val {
+pub trait AsColor {
+    fn as_color(&self) -> Color;
+}
+
+impl AsColor for model::Level {
+    fn as_color(&self) -> Color {
+        match self {
             model::Level::Debug => Color::Gray,
             model::Level::Info => Color::Blue,
             model::Level::Warning => Color::Yellow,
             model::Level::Error => Color::Red,
+        }
+    }
+}
+
+impl AsColor for log::Level {
+    fn as_color(&self) -> Color {
+        match self {
+            log::Level::Debug => Color::Gray,
+            log::Level::Info => Color::Blue,
+            log::Level::Warn => Color::Yellow,
+            log::Level::Error => Color::Red,
+            _ => Color::Gray,
         }
     }
 }
@@ -184,7 +200,10 @@ impl log::Log for Logger {
         self.sender
             .lock()
             .unwrap()
-            .send(Event::Diagnostic(DiagnosticEvent::Log(text)))
+            .send(Event::Diagnostic(DiagnosticEvent::Log(
+                record.level(),
+                format!("{}", record.args()),
+            )))
             .unwrap()
     }
     fn flush(&self) {}
@@ -290,7 +309,7 @@ pub fn get_text_style() -> Style {
 
 impl<'a> From<Log> for Spans<'a> {
     fn from(val: Log) -> Self {
-        let color = val.log_type.clone().into();
+        let color = val.log_type.as_color();
         Spans::from(vec![
             Span::styled(
                 format!(" {:<5}", val.log_type.to_string().to_uppercase()),
@@ -304,7 +323,7 @@ impl<'a> From<Log> for Spans<'a> {
 
 impl<'a> From<&Log> for Spans<'a> {
     fn from(val: &Log) -> Self {
-        let color = val.log_type.clone().into();
+        let color = val.log_type.clone().as_color();
         Spans::from(vec![
             Span::styled(
                 format!(" {:<5}", val.log_type.to_string().to_uppercase()),

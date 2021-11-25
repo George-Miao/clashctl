@@ -1,6 +1,14 @@
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use log::Level;
+use tui::{
+    style::{Color, Style},
+    text::{Span, Spans},
+};
 
-use crate::model::{Connections, Log, Proxies, Rules, Traffic, Version};
+use crate::{
+    model::{Connections, Log, Proxies, Rules, Traffic, Version},
+    AsColor,
+};
 use crate::{Error, Result};
 
 #[derive(Clone, Debug)]
@@ -10,6 +18,31 @@ pub enum Event {
     Interface(Input),
     Update(UpdateEvent),
     Diagnostic(DiagnosticEvent),
+}
+
+impl<'a, 'b> From<&Event> for Spans<'a> {
+    fn from(val: &Event) -> Self {
+        match val {
+            Event::Quit => Spans(vec![]),
+            Event::Update(event) => Spans(vec![
+                Span::styled(" ⇵  ", Style::default().fg(Color::Yellow)),
+                Span::raw(event.to_string()),
+            ]),
+            Event::Interface(event) => Spans(vec![
+                Span::styled(" ✜  ", Style::default().fg(Color::Green)),
+                Span::raw(format!("{:?}", event)),
+            ]),
+            Event::Diagnostic(event) => match event {
+                DiagnosticEvent::Log(level, payload) => Spans(vec![
+                    Span::styled(
+                        format!(" ✇  {:<6}", level),
+                        Style::default().fg(level.as_color()),
+                    ),
+                    Span::raw(payload.to_owned()),
+                ]),
+            },
+        }
+    }
 }
 
 impl Event {
@@ -61,7 +94,7 @@ pub enum UpdateEvent {
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum DiagnosticEvent {
-    Log(String),
+    Log(Level, String),
 }
 
 impl TryFrom<KeyCode> for Event {
