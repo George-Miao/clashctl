@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use log::Level;
 use tui::{
@@ -89,6 +91,19 @@ pub enum UpdateEvent {
     Proxies(Proxies),
     Rules(Rules),
     Log(Log),
+}
+
+impl Display for UpdateEvent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            UpdateEvent::Connection(x) => write!(f, "{:?}", x),
+            UpdateEvent::Version(x) => write!(f, "{:?}", x),
+            UpdateEvent::Traffic(x) => write!(f, "{:?}", x),
+            UpdateEvent::Proxies(x) => write!(f, "{:?}", x),
+            UpdateEvent::Rules(x) => write!(f, "{:?}", x),
+            UpdateEvent::Log(x) => write!(f, "{:?}", x),
+        }
+    }
 }
 
 #[derive(Clone, Debug)]

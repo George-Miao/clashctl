@@ -8,4 +8,5 @@ mod utils;
 
 pub use app::*;
 pub use event::*;
-pub use state::*;
+pub(crate) use state::*;
+pub use utils::*;
