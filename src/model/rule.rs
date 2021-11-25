@@ -3,8 +3,14 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug, Clone, Hash, PartialEq, Eq)]
 // #[serde(rename_all = "UPPERCASE")]
 #[cfg_attr(
-    feature = "cli",
-    derive(strum::EnumString, strum::Display, strum::EnumVariantNames),
+    feature = "interactive",
+    derive(
+        strum::EnumString,
+        strum::Display,
+        strum::AsRefStr,
+        strum::IntoStaticStr,
+        strum::EnumVariantNames
+    ),
     strum(ascii_case_insensitive)
 )]
 pub enum RuleType {

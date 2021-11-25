@@ -7,9 +7,6 @@
 #![feature(exclusive_range_pattern)]
 #![feature(associated_type_defaults)]
 
-#[cfg(feature = "cli")]
-pub mod cli;
-
 #[cfg(test)]
 mod test;
 
@@ -21,9 +18,11 @@ pub mod model;
 pub use api::*;
 pub use error::*;
 
+#[cfg(feature = "cli")]
+pub mod cli;
+
+#[cfg(feature = "interactive")]
+pub mod interactive;
+
 #[cfg(feature = "ui")]
-mod ui;
-#[cfg(feature = "ui")]
-pub use ui::TuiOpt;
-#[cfg(feature = "ui")]
-pub use ui::*;
+pub mod ui;

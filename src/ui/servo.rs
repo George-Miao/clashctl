@@ -5,7 +5,7 @@ use crossterm::event::Event as CrossTermEvent;
 use log::warn;
 
 use crate::{
-    cli::Flags,
+    interactive::Flags,
     ui::{
         utils::{Check, Interval, Pulse},
         Event, TuiOpt, UpdateEvent,

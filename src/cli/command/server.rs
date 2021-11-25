@@ -6,7 +6,7 @@ use requestty::{prompt, prompt_one, Answers, Question};
 use terminal_size::{terminal_size, Height, Width};
 use url::Url;
 
-use crate::cli::{Flags, Server};
+use crate::interactive::{Flags, Server};
 use crate::Result;
 
 #[derive(Subcommand, Debug)]

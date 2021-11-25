@@ -24,7 +24,7 @@ use crate::ui::{
     TuiStates,
 };
 use crate::Result;
-use crate::{cli::Flags, Error};
+use crate::{interactive::Flags, Error};
 
 thread_local!(pub(crate) static TICK_COUNTER: RefCell<TicksCounter> = RefCell::new(TicksCounter::new_with_time(Instant::now())));
 
@@ -175,5 +175,5 @@ fn render(state: &TuiStates, f: &mut Frame<Backend>) {
 
     let main = layout[1];
 
-    state.render_route(main, f);
+    state.route(main, f);
 }

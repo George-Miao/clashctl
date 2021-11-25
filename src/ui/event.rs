@@ -9,7 +9,7 @@ use tui::{
 
 use crate::{
     model::{Connections, Log, Proxies, Rules, Traffic, Version},
-    AsColor,
+    ui::AsColor,
 };
 use crate::{Error, Result};
 

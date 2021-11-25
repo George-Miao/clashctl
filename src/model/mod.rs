@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "lowercase")]
 #[cfg_attr(
-    feature = "cli",
+    feature = "interactive",
     derive(strum::EnumString, strum::Display, strum::EnumVariantNames),
     strum(ascii_case_insensitive, serialize_all = "lowercase")
 )]

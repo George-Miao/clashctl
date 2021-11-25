@@ -53,7 +53,6 @@ pub struct Proxy {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, PartialOrd, Eq, Ord)]
-#[cfg_attr(feature = "ui", derive(Hash))]
 pub struct History {
     pub time: DateTime<Utc>,
     pub delay: u64,
@@ -61,7 +60,7 @@ pub struct History {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, PartialOrd, Eq, Ord, Clone, Copy)]
 #[cfg_attr(
-    feature = "cli",
+    feature = "interactive",
     derive(strum::EnumString, strum::Display, strum::EnumVariantNames),
     strum(ascii_case_insensitive)
 )]

@@ -10,8 +10,8 @@ use tui::{
 };
 
 use crate::{
-    components::{Footer, FooterItem, FooterWidget, Sparkline},
     define_widget,
+    ui::components::{Footer, FooterItem, FooterWidget, Sparkline},
     ui::utils::get_block,
 };
 

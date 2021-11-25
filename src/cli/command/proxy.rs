@@ -7,7 +7,8 @@ use owo_colors::OwoColorize;
 use requestty::{prompt_one, Answer, ListItem, Question};
 use strum::VariantNames;
 
-use crate::cli::{Flags, ProxySort};
+use crate::cli::{ProxySort};
+use crate::interactive::Flags;
 use crate::{Result};
 use crate::model::ProxyType;
 

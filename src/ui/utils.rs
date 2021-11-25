@@ -15,8 +15,9 @@ use tui::{
 };
 
 use crate::{
-    model::{self, Log},
-    DiagnosticEvent, Event, Result,
+    model,
+    ui::{DiagnosticEvent, Event},
+    Result,
 };
 
 pub struct Interval {

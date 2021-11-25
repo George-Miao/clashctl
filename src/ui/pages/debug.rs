@@ -6,8 +6,8 @@ use crate::{
     ui::{
         components::MovableList,
         utils::{get_block, get_text_style},
-    },
     HMS, TICK_COUNTER,
+    },
 };
 
 define_widget!(DebugPage);

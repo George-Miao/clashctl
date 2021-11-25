@@ -7,10 +7,10 @@ use tui::{
 };
 
 use crate::{
-    components::{MovableList, MovableListItem, MovableListState},
     define_widget,
     model::Connections,
-    HMS,
+    ui::components::{MovableList, MovableListItem, MovableListState},
+    ui::HMS,
 };
 
 define_widget!(ConnectionsPage);

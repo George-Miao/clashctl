@@ -9,10 +9,12 @@ use tui::{
 };
 
 use crate::{
-    components::{Consts, Footer, FooterItem, FooterWidget},
     model::{History, Proxies, Proxy, ProxyType},
-    ui::utils::{get_block, get_focused_block, get_text_style},
+    ui::{
+    components::{Consts, Footer, FooterItem, FooterWidget},
+        utils::{get_block, get_focused_block, get_text_style},
     ListEvent,
+    },
 };
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
