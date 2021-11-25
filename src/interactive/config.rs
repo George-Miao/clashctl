@@ -58,6 +58,7 @@ pub struct Config {
     path: PathBuf,
 }
 
+// TODO: use config crate
 impl Config {
     pub fn from_dir<P: AsRef<Path>>(path: P) -> Result<Self> {
         let path = path.as_ref();

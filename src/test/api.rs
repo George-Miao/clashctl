@@ -21,6 +21,12 @@ fn test_proxies() {
 }
 
 #[test]
+fn test_rules() {
+    let clash = init();
+    clash.get_rules().unwrap();
+}
+
+#[test]
 fn test_proxy() {
     let clash = init();
     let proxies = clash.get_proxies().unwrap();
@@ -56,6 +62,24 @@ fn test_set_proxy() {
 fn test_configs() {
     let clash = init();
     clash.get_configs().unwrap();
+}
+
+#[test]
+fn test_traffic() {
+    let clash = init();
+    clash.get_traffic().unwrap().next();
+}
+
+#[test]
+fn test_log() {
+    let clash = init();
+    clash.get_log().unwrap().next();
+}
+
+#[test]
+fn test_connections() {
+    let clash = init();
+    clash.get_connections().unwrap();
 }
 
 #[test]

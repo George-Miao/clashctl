@@ -1,64 +1,100 @@
 cargo-features = ["strip"]
 
 [package]
-name           = "clashctl"
-description    = "A CLI to interact with clash RESTful API"
-version        = "0.2.3"
-authors        = ["George Miao <gm@miao.dev>"]
-repository     = "https://github.com/George-Miao/clashctl"
-license        = "MIT"
-edition        = "2021"
-keywords       = ["clash", "cli"]
-categories     = ["command-line-utilities"]
+name = "clashctl"
+description = "A TUI & CLI to interact with clash RESTful API"
+version = "0.3.0-alpha.1"
+authors = ["George Miao <gm@miao.dev>"]
+repository = "https://github.com/George-Miao/clashctl"
+license = "MIT"
+edition = "2021"
+keywords = ["clash", "cli"]
+categories = ["command-line-utilities"]
+default-run = "clashctl"
 
 [features]
-cli = [
-  "terminal_size", 
-  "clap_generate", 
-  "env_logger",
-  "owo-colors", 
-  "requestty", 
-  "either",
+default = []
+
+interactive = [
+  "clap",
+  "clap_generate",
   "strum",
-  "clap", 
   "home",
-  "ron"
+  "ron",
+]
+
+cli = [
+  "terminal_size",
+  "interactive",
+  "env_logger",
+  "owo-colors",
+  "requestty",
+  "either",
+]
+
+ui = [
+  "unicode-width",
+  "interactive",
+  "crossterm",
+  "itertools",
+  "bytesize",
+  "either",
+  "tui",
 ]
 
 [profile.release]
 lto = true
-strip = true  
+strip = true
 panic = "abort"
-opt-level = "z" 
+opt-level = "z"
 codegen-units = 1
 
 [[bin]]
-name              = "clashctl"
+name = "clashctl_cli"
+path = "src/bin/cli.rs"
 required-features = ["cli"]
 
+[[bin]]
+name = "clashctl_ui"
+path = "src/bin/ui.rs"
+required-features = ["ui"]
+
+[[bin]]
+name = "clashctl"
+path = "src/bin/cli_ui.rs"
+required-features = ["cli", "ui"]
+
 [dependencies]
-log        = "~0.4"
 serde_json = "~1.0"
-thiserror  = "~1.0"
-attohttpc  = "~0.18"
-chrono     = { version = "~0.4", features = ["serde"] }
-serde      = { version = "~1.0", features = ["derive"] }
-tokio      = { version = "~1.12", features = ["macros"] }
-url        = { version = "~2.2", features = ["serde"] }
-semver     = { version = "~1.0", features = ["serde"] }
+thiserror = "~1.0"
+log = { version = "~0.4", features = ["std"] }
+url    = { version = "~2.2", features = ["serde"] }
+serde  = { version = "~1.0", features = ["derive"] }
+chrono = { version = "~0.4", features = ["serde"] }
+semver = { version = "~1.0", features = ["serde"] }
+ureq   = { version = "~2.3", default-features = false }
+
+# Dependencies required by both CLI and UI
+clap          = { version = "~3.0.0-beta.5", optional = true }
+clap_generate = { version = "~3.0.0-beta.5", optional = true }
+strum         = { version = "~0.22.0", features = ["derive"], optional = true }
+home          = { version = "~0.5", optional = true }
+ron           = { version = "~0.7", optional = true }
 
 # Dependencies required by CLI
-strum         = { version = "~0.22.0", features = ["derive"], optional = true }
-clap_generate = { version = "~3.0.0-beta.5", optional = true }
-clap          = { version = "~3.0.0-beta.5", optional = true }
 terminal_size = { version = "~0.1", optional = true }
 owo-colors    = { version = "~3.0", optional = true }
 env_logger    = { version = "~0.9", optional = true }
+crossterm     = { version = "~0.22.1", optional = true }
 requestty     = { version = "~0.1", optional = true }
-home          = { version = "~0.5", optional = true }
-ron           = { version = "~0.7", optional = true }
 either        = { version = "~1.6.1", optional = true }
 
-[dev-dependencies]
-simple_logger = "1.13.0"
+# Dependencies required by UI
+tui           = { version = "~0.16.0", optional = true, default-features = false, features = ['crossterm'] }
+bytesize      = { version = "~1.1.0", optional = true }
+unicode-width = { version = "~0.1.9", optional = true }
+itertools     = { version = "~0.10.1", optional = true }
 
+[dev-dependencies]
+rand = { version = "0.8.4", features = ["small_rng"] }
+simple_logger = "1.13.0"

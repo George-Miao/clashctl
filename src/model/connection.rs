@@ -1,9 +1,9 @@
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::model::Rule;
+use crate::model::RuleType;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Connections {
     pub connections: Vec<Connection>,
@@ -18,10 +18,30 @@ pub struct Connection {
     pub upload: u64,
     pub download: u64,
     pub metadata: Metadata,
-    pub rule: Rule,
+    pub rule: RuleType,
     pub rule_payload: String,
-    pub start: DateTime<Local>,
+    pub start: DateTime<Utc>,
     pub chains: Vec<String>,
+}
+
+impl Connection {
+    pub fn up_speed(&self) -> Option<u64> {
+        let elapsed = (Utc::now() - self.start).num_seconds();
+        if elapsed <= 0 {
+            None
+        } else {
+            Some(self.upload / elapsed as u64)
+        }
+    }
+
+    pub fn down_speed(&self) -> Option<u64> {
+        let elapsed = (Utc::now() - self.start).num_seconds();
+        if elapsed <= 0 {
+            None
+        } else {
+            Some(self.download / elapsed as u64)
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
