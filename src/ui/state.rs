@@ -1,6 +1,5 @@
 use std::time::Instant;
 
-use crossterm::event::KeyCode;
 use tui::{layout::Rect, Frame};
 
 use crate::{
@@ -11,7 +10,7 @@ use crate::{
         pages::{
             ConfigPage, ConnectionsPage, DebugPage, LogPage, ProxiesPage, RulesPage, StatusPage,
         },
-        Event, Input, ListEvent, UpdateEvent,
+        Event, Input, UpdateEvent,
     },
     Backend, Result,
 };
@@ -49,6 +48,7 @@ impl<'a> TuiStates<'a> {
         "Status", "Proxies", "Rules", "Conns", "Logs", "Configs", "Debug",
     ];
 
+    #[inline]
     pub fn new() -> Self {
         Self {
             start_time: Some(Instant::now()),
@@ -64,7 +64,7 @@ impl<'a> TuiStates<'a> {
         }
         self.events.push(event.to_owned());
         self.debug_state
-            .push(MovableListItem::Raw(format!("{:?}", event)));
+            .push(MovableListItem::Spans((&event).into()));
 
         match event {
             Event::Quit => {
@@ -77,6 +77,7 @@ impl<'a> TuiStates<'a> {
         }
     }
 
+    #[inline]
     pub fn page_len(&mut self) -> usize {
         if self.show_debug {
             Self::TITLES.len()
@@ -85,8 +86,19 @@ impl<'a> TuiStates<'a> {
         }
     }
 
+    #[inline]
     pub fn title(&self) -> &str {
         Self::TITLES[self.page_index]
+    }
+
+    pub fn active_list_state(&mut self) -> Option<&mut MovableListState<'a>> {
+        match self.title() {
+            "Logs" => Some(&mut self.log_state),
+            "Debug" => Some(&mut self.debug_state),
+            "Rules" => Some(&mut self.rule_state),
+            "Conns" => Some(&mut self.con_state),
+            _ => None,
+        }
     }
 
     pub fn render_route(&self, area: Rect, f: &mut Frame<Backend>) {
@@ -145,17 +157,21 @@ impl<'a> TuiStates<'a> {
                     self.page_index = self.debug_page_index()
                 }
             }
-            Input::ToggleHold => match self.title() {
-                "Logs" => self.log_state.toggle(),
-                "Debug" => self.debug_state.toggle(),
-                "Proxies" => {
-                    self.proxy_tree.toggle();
+            Input::ToggleHold => match self.active_list_state() {
+                Some(state) => state.toggle(),
+                None => {
+                    if self.title() == "Proxies" {
+                        self.proxy_tree.toggle()
+                    }
                 }
-                _ => {}
             },
-            Input::List(list_event) => match self.title() {
-                "Proxies" => self.handle_proxies_select(list_event),
-                _ => self.handle_list(list_event),
+            Input::List(event) => match self.active_list_state() {
+                Some(state) => state.handle(event),
+                None => {
+                    if self.title() == "Proxies" {
+                        self.proxy_tree.handle(event)
+                    }
+                }
             },
             // InterfaceEvent::Other(event) => self.handle_list(event),
             _ => {}
