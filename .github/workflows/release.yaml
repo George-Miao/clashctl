@@ -29,8 +29,10 @@ jobs:
       - name: Rename builds
         run: |
           pushd target/release
-          rm clashctl.d
+          rm clashctl*.d
           mv clashctl clashctl-${{ runner.os }}
+          mv clashctl_ui clashctl-ui-${{ runner.os }}
+          mv clashctl_cli clashctl-cli-${{ runner.os }}
           popd
       - name: Release
         uses: softprops/action-gh-release@v1
