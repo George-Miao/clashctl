@@ -38,7 +38,6 @@ ui = [
   "crossterm",
   "itertools",
   "bytesize",
-  "either",
   "tui",
 ]
 
@@ -66,13 +65,13 @@ required-features = ["cli", "ui"]
 
 [dependencies]
 serde_json = "~1.0"
-thiserror = "~1.0"
-log = { version = "~0.4", features = ["std"] }
-url    = { version = "~2.2", features = ["serde"] }
-serde  = { version = "~1.0", features = ["derive"] }
-chrono = { version = "~0.4", features = ["serde"] }
-semver = { version = "~1.0", features = ["serde"] }
-ureq   = { version = "~2.3", default-features = false }
+thiserror  = "~1.0"
+log        = { version = "~0.4", features = ["std"] }
+url        = { version = "~2.2", features = ["serde"] }
+serde      = { version = "~1.0", features = ["derive"] }
+chrono     = { version = "~0.4", features = ["serde"] }
+semver     = { version = "~1.0", features = ["serde"] }
+ureq       = { version = "~2.3", default-features = false }
 
 # Dependencies required by both CLI and UI
 clap          = { version = "~3.0.0-beta.5", optional = true }
