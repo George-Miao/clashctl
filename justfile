@@ -18,3 +18,6 @@ build:
 
 add crate:
 	cargo add {{ crate }} --upgrade patch --optional
+
+test args:
+	cargo test --package clashctl --lib --all-features -- {{ args }} --nocapture
