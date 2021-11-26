@@ -1,10 +1,10 @@
 use std::{
     cell::RefCell,
     io::{self, Stdout},
-    sync::{Arc, Mutex, RwLock},
+    sync::{mpsc::channel, Arc, Mutex, RwLock},
+    thread::spawn,
     time::{Duration, Instant},
 };
-use std::{sync::mpsc::channel, thread::spawn};
 
 use clap::Parser;
 use crossterm::event::{DisableMouseCapture, EnableMouseCapture};
@@ -17,14 +17,11 @@ use tui::backend::CrosstermBackend;
 use tui::layout::{Constraint, Layout};
 use tui::{Frame, Terminal};
 
-use crate::ui::{
-    components::*,
-    servo::servo,
-    utils::{Interval, Logger, TicksCounter},
-    TuiStates,
+use crate::{
+    interactive::Flags,
+    ui::{components::Tabs, servo, Interval, Logger, TicksCounter, TuiStates},
+    Error, Result,
 };
-use crate::Result;
-use crate::{interactive::Flags, Error};
 
 thread_local!(pub(crate) static TICK_COUNTER: RefCell<TicksCounter> = RefCell::new(TicksCounter::new_with_time(Instant::now())));
 

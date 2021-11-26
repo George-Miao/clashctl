@@ -34,7 +34,7 @@ pub enum ProxyGroupFocusStatus {
 }
 
 impl<'a> ProxyGroup<'a> {
-    pub(crate) fn get_summary_widget(&self) -> impl Iterator<Item = Span> {
+    pub fn get_summary_widget(&self) -> impl Iterator<Item = Span> {
         self.members.iter().map(|x| {
             if x.proxy_type.is_normal() {
                 match x.history {
@@ -47,11 +47,7 @@ impl<'a> ProxyGroup<'a> {
         })
     }
 
-    pub(crate) fn get_widget(
-        &'a self,
-        width: usize,
-        status: ProxyGroupFocusStatus,
-    ) -> Vec<Spans<'a>> {
+    pub fn get_widget(&'a self, width: usize, status: ProxyGroupFocusStatus) -> Vec<Spans<'a>> {
         let delimiter = Span::raw(" ");
         let prefix = if matches!(status, ProxyGroupFocusStatus::Focused) {
             Consts::FOCUSED_INDICATOR_SPAN

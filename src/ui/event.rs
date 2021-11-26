@@ -9,9 +9,9 @@ use tui::{
 
 use crate::{
     model::{Connections, Log, Proxies, Rules, Traffic, Version},
-    ui::AsColor,
+    ui::utils::AsColor,
+    Error, Result,
 };
-use crate::{Error, Result};
 
 #[derive(Clone, Debug)]
 #[non_exhaustive]

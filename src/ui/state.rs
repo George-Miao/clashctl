@@ -23,22 +23,22 @@ use crate::{
 /// So [`Default`] can be automatically derived2
 #[derive(Debug, Default, Clone)]
 pub struct TuiStates<'a> {
-    pub(crate) should_quit: bool,
-    pub(crate) start_time: Option<Instant>,
-    pub(crate) version: Option<Version>,
-    pub(crate) traffics: Vec<Traffic>,
-    pub(crate) max_traffic: Traffic,
-    pub(crate) events: Vec<Event>,
-    pub(crate) all_events_recv: usize,
-    pub(crate) page_index: usize,
-    pub(crate) show_debug: bool,
-    pub(crate) proxy_tree: ProxyTree<'a>,
-    pub(crate) debug_state: MovableListState<'a>,
-    pub(crate) log_state: MovableListState<'a>,
-    pub(crate) con_state: MovableListState<'a>,
-    pub(crate) rule_state: MovableListState<'a>,
-    pub(crate) con_size: (u64, u64),
-    // pub(crate) tx: Option<Sender<Event>>,
+    pub should_quit: bool,
+    pub start_time: Option<Instant>,
+    pub version: Option<Version>,
+    pub traffics: Vec<Traffic>,
+    pub max_traffic: Traffic,
+    pub events: Vec<Event>,
+    pub all_events_recv: usize,
+    pub page_index: usize,
+    pub show_debug: bool,
+    pub proxy_tree: ProxyTree<'a>,
+    pub debug_state: MovableListState<'a>,
+    pub log_state: MovableListState<'a>,
+    pub con_state: MovableListState<'a>,
+    pub rule_state: MovableListState<'a>,
+    pub con_size: (u64, u64),
+    // pub tx: Option<Sender<Event>>,
 }
 
 impl<'a> TuiStates<'a> {

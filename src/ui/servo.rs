@@ -7,8 +7,9 @@ use log::warn;
 use crate::{
     interactive::Flags,
     ui::{
+        app::TuiOpt,
+        event::{Event, UpdateEvent},
         utils::{Check, Interval, Pulse},
-        Event, TuiOpt, UpdateEvent,
     },
     Error, Result,
 };
