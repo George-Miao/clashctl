@@ -1,6 +1,6 @@
-use clashctl::{interactive::Flags, Result};
+use clashctl::interactive::Flags;
 
-fn main() -> Result<()> {
+fn main() {
     use clashctl::{
         cli::{init_logger, Cmd, Opts},
         ui::TuiOpt,
@@ -9,7 +9,7 @@ fn main() -> Result<()> {
     use clap::Parser;
     use log::{debug, LevelFilter};
 
-    if std::env::args().len() == 1 {
+    if let Err(e) = if std::env::args().len() == 1 {
         TuiOpt::default().run(Flags::default())
     } else {
         let opts = Opts::parse();
@@ -33,5 +33,7 @@ fn main() -> Result<()> {
                 _ => unreachable!(),
             }
         }
+    } {
+        eprintln!("{:?}", e)
     }
 }
