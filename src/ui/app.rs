@@ -18,8 +18,7 @@ use tui::{Frame, Terminal};
 
 use crate::{
     interactive::Flags,
-    ui::{components::Tabs, servo, Interval, Logger, TicksCounter, TuiStates},
-    Error, Result,
+    Result,
 };
 
 thread_local!(pub(crate) static TICK_COUNTER: RefCell<TicksCounter> = RefCell::new(TicksCounter::new_with_time(Instant::now())));
@@ -85,7 +84,7 @@ pub fn main_loop(opt: TuiOpt, flag: Flags) -> Result<()> {
     Logger::new(tx.clone()).apply()?;
     info!("Logger set");
 
-    let back_handle = spawn(move || servo(tx, &opt, &flag));
+    let mut servo = Servo::run(event_tx, action_rx, &opt, &flag)?;
 
     let event_state = state.clone();
     let event_error = error.clone();
@@ -115,18 +114,10 @@ pub fn main_loop(opt: TuiOpt, flag: Flags) -> Result<()> {
 
     let mut interval = Interval::every(Duration::from_millis(33));
     while let Ok(state) = state.read() {
-        if !back_handle.is_running() {
-            match back_handle.join() {
-                Ok(_) => {}
-                Err(e) => match error.lock() {
-                    Ok(mut write) => {
-                        write.replace(Error::Other(format!("{:?}", e)));
-                    }
-                    Err(e) => panic!("Error: {}", e),
-                },
-            }
+        if !servo.ok("servo") {
             break;
         }
+
         if state.should_quit {
             break;
         }
