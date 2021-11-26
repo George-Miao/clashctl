@@ -84,20 +84,7 @@ impl<'a> TuiStates<'a> {
         }
     }
 
-    pub fn route(&self, area: Rect, f: &mut Frame<Backend>) {
-        match self.page_index {
-            0 => f.render_widget(StatusPage::new(self), area),
-            1 => f.render_widget(ProxiesPage::new(self), area),
-            2 => f.render_widget(RulesPage::new(self), area),
-            3 => f.render_widget(ConnectionsPage::new(self), area),
-            4 => f.render_widget(LogPage::new(self), area),
-            5 => f.render_widget(ConfigPage::new(self), area),
-            6 => f.render_widget(DebugPage::new(self), area),
-            _ => unreachable!(),
-        };
-    }
-
-    fn handle_update(&mut self, update: UpdateEvent) -> Result<()> {
+    fn handle_update(&mut self, update: UpdateEvent) -> Result<Option<Action>> {
         match update {
             UpdateEvent::Connection(connection) => {
                 self.con_size = (connection.upload_total, connection.download_total);
