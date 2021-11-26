@@ -14,9 +14,9 @@ use crate::{
     },
 };
 
-define_widget!(RulesPage);
+define_widget!(RulePage);
 
-impl<'a> Widget for RulesPage<'a> {
+impl<'a> Widget for RulePage<'a> {
     fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer) {
         MovableList::new("Rules", &self.state.rule_state).render(area, buf);
     }
@@ -68,8 +68,8 @@ impl Rule {
         let r_type: &'static str = self.rule_type.into();
         let dash: String = "─".repeat(35_usize.saturating_sub(self.payload.len()) + 2) + " ";
         let vec = vec![
-            Span::styled(format!("{:<4}", index), gray),
-            Span::styled(format!("{:14}", r_type), Style::default().fg(type_color)),
+            Span::styled(format!("{:>3} ", index), gray),
+            Span::styled(format!("{:16}", r_type), Style::default().fg(type_color)),
             Span::styled(
                 self.payload + " ",
                 Style::default().add_modifier(Modifier::BOLD),

@@ -13,9 +13,9 @@ use crate::{
     ui::HMS,
 };
 
-define_widget!(ConnectionsPage);
+define_widget!(ConnectionPage);
 
-impl<'a> Widget for ConnectionsPage<'a> {
+impl<'a> Widget for ConnectionPage<'a> {
     fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer) {
         MovableList::new("Connections", &self.state.con_state).render(area, buf);
     }

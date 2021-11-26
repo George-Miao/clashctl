@@ -1,9 +1,9 @@
 mod config;
-mod connections;
+mod connection;
 mod debug;
 mod log;
-mod proxies;
-mod rules;
+mod proxy;
+mod rule;
 mod status;
 
 pub use self::log::*;
