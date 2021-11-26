@@ -344,38 +344,6 @@ fn test_into_span() {
     )
 }
 
-pub trait Check {
-    fn check(&mut self, indent: &str) -> bool;
-}
-
-impl<T: std::fmt::Debug> Check for Option<JoinHandle<T>> {
-    fn check(&mut self, indent: &str) -> bool {
-        if let Some(ref handle) = self {
-            if !handle.is_running() {
-                let handle = self.take().unwrap();
-                match handle.join() {
-                    Ok(res) => warn!(
-                        "Background task `{}` has stopped running ({:?})",
-                        indent, res
-                    ),
-                    Err(e) => warn!(
-                        "Catastrophic failure: Background task `{}` has stopped running ({:?})",
-                        indent, e
-                    ),
-                }
-                // Not running anymore
-                false
-            } else {
-                // Running properly
-                true
-            }
-        } else {
-            // Already quit and handled earlier
-            false
-        }
-    }
-}
-
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Coord {
     pub x: usize,

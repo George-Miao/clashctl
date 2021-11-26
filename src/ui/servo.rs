@@ -14,18 +14,37 @@ use crate::{
     Error, Result,
 };
 
-// TODO change behavior based on opt
-// rely on config
+pub trait Check {
+    fn ok(&mut self, indent: &str) -> bool;
+}
 
-pub fn servo(tx: Sender<Event>, opt: &TuiOpt, flags: &Flags) -> Result<()> {
-    macro_rules! run {
-        ($(let $p:pat = $v:expr;)* $block:block) => {
-            {
-                $(let $p = $v;)*
-                Some(spawn(move || -> Result<()> { $block }))
+impl<T: std::fmt::Debug> Check for Option<JoinHandle<T>> {
+    fn ok(&mut self, indent: &str) -> bool {
+        if let Some(ref handle) = self {
+            if !handle.is_running() {
+                let handle = self.take().unwrap();
+                match handle.join() {
+                    Ok(res) => warn!(
+                        "Background task `{}` has stopped running ({:?})",
+                        indent, res
+                    ),
+                    Err(e) => warn!(
+                        "Catastrophic failure: Background task `{}` has stopped running ({:?})",
+                        indent, e
+                    ),
+                }
+                // Not running anymore
+                false
+            } else {
+                // Running properly
+                true
             }
+        } else {
+            // Already quit and handled earlier
+            false
         }
     }
+}
 
     let clash = flags.connect_server_from_config()?;
 
