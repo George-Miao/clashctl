@@ -16,6 +16,9 @@ use crate::ui::{
     ListEvent,
 };
 
+// TODO Fixed item on top
+// Useful for table header
+// Append to vec on each render
 #[derive(Clone, Debug)]
 pub struct MovableList<'a> {
     title: String,
