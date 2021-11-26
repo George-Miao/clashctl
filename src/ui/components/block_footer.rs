@@ -65,6 +65,16 @@ impl<'a> Footer<'a> {
         self
     }
 
+    pub fn append_left(&mut self, item: &mut Vec<FooterItem<'a>>) -> &mut Self {
+        self.left.append(item);
+        self
+    }
+
+    pub fn append_right(&mut self, item: &mut Vec<FooterItem<'a>>) -> &mut Self {
+        self.right.append(item);
+        self
+    }
+
     pub fn pop_left(&mut self) -> Option<FooterItem<'a>> {
         self.left.pop()
     }
