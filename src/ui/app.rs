@@ -7,7 +7,6 @@ use std::{
 };
 
 use clap::Parser;
-use crossterm::event::{DisableMouseCapture, EnableMouseCapture};
 use crossterm::execute;
 use crossterm::terminal::{
     disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
@@ -53,7 +52,7 @@ impl Default for TuiOpt {
 fn setup() -> Result<Terminal<Backend>> {
     let mut stdout = io::stdout();
 
-    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
+    execute!(stdout, EnterAlternateScreen)?;
     enable_raw_mode()?;
 
     let backend = CrosstermBackend::new(stdout);
@@ -64,11 +63,7 @@ fn setup() -> Result<Terminal<Backend>> {
 }
 
 fn wrap_up(mut terminal: Terminal<Backend>) -> Result<()> {
-    execute!(
-        terminal.backend_mut(),
-        LeaveAlternateScreen,
-        DisableMouseCapture
-    )?;
+    execute!(terminal.backend_mut(), LeaveAlternateScreen,)?;
 
     disable_raw_mode()?;
 
