@@ -11,7 +11,7 @@ run args:
 	cargo run --features "ui, cli" {{ args }}
 
 build:
-	cargo run build --releaseq
+	cargo run build --release --features "ui, cli"
 
 add crate:
 	cargo add {{ crate }} --upgrade patch --optional
