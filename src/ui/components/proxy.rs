@@ -12,6 +12,7 @@ use crate::{
     model::{History, Proxies, Proxy, ProxyType},
     ui::{
         components::{Consts, Footer, FooterItem, FooterWidget},
+        help_footer,
         utils::{get_block, get_focused_block, get_text_style},
         ListEvent,
     },
@@ -208,6 +209,7 @@ pub struct ProxyItem {
     pub proxy_type: ProxyType,
     pub history: Option<History>,
     pub udp: bool,
+    pub now: Option<String>,
 }
 
 impl<'a> From<(&'a str, &'a Proxy)> for ProxyItem {
@@ -218,6 +220,7 @@ impl<'a> From<(&'a str, &'a Proxy)> for ProxyItem {
             proxy_type: proxy.proxy_type,
             history: proxy.history.get(0).cloned(),
             udp: proxy.udp,
+            now: proxy.now.as_ref().map(Into::into),
         }
     }
 }
@@ -299,31 +302,42 @@ impl<'a> ProxyTree<'a> {
 
     pub fn update_footer(&mut self) {
         let mut footer = Footer::default();
-        let pointed = match self.groups.get(self.cursor) {
+        let current_group = match self.groups.get(self.cursor) {
             Some(grp) => grp,
             _ => return,
         };
-        let name = pointed.name.clone();
         if !self.expanded {
+            let group_name = current_group.name.clone();
             let style = Style::default()
                 .fg(Color::Blue)
                 .add_modifier(Modifier::REVERSED);
-            footer.push_left(FooterItem::span(Span::styled(" SPACE ", style)));
-            footer.push_left(FooterItem::span(Span::styled(" T: Test ", style)));
-            footer.push_right(FooterItem::span(Span::styled(name, style)).wrapped());
+            let highlight = style.add_modifier(Modifier::BOLD);
+            footer.push_left(FooterItem::span(Span::styled(" FREE ", style)));
+            footer.push_left(FooterItem::span(Span::styled(" SPACE to expand ", style)));
+            footer.push_left(FooterItem::spans(help_footer("Test", style, highlight)).wrapped());
+            footer.push_left(FooterItem::spans(help_footer("Sort", style, highlight)).wrapped());
+            footer.push_right(FooterItem::span(Span::styled(group_name, style)).wrapped());
+            if let Some(now) = current_group.current {
+                footer.push_right(
+                    FooterItem::span(Span::raw(current_group.members[now].name.to_owned()))
+                        .wrapped(),
+                );
+            }
         } else {
             let style = Style::default()
                 .fg(Color::Green)
                 .add_modifier(Modifier::REVERSED);
+            let highlight = style.add_modifier(Modifier::BOLD);
             footer.push_left(FooterItem::span(Span::styled(" [^] ▲ ▼ Move ", style)));
-            let ty = &pointed.proxy_type;
-            if ty.is_selector() {
+            if current_group.proxy_type.is_selector() {
                 footer.push_left(FooterItem::span(Span::styled(" ▶ Select ", style)));
             }
-            let focused = &pointed.members[pointed.cursor];
-            footer.push_left(FooterItem::span(Span::styled(" T: Test ", style)));
-            footer.push_right(FooterItem::span(Span::styled(name, style)).wrapped());
-            footer.push_right(FooterItem::span(Span::raw(focused.name.to_owned())).wrapped());
+            let current_item = &current_group.members[current_group.cursor];
+            footer.push_left(FooterItem::spans(help_footer("Test", style, highlight)).wrapped());
+            footer.push_left(FooterItem::spans(help_footer("Sort", style, highlight)).wrapped());
+            if let Some(now) = &current_item.now {
+                footer.push_right(FooterItem::span(Span::raw(now.to_owned())).wrapped());
+            }
         }
         self.footer = footer
     }
@@ -406,15 +420,11 @@ impl<'a> From<Proxies> for ProxyTree<'a> {
 #[derive(Clone, Debug)]
 pub struct ProxyTreeWidget<'a> {
     state: &'a ProxyTree<'a>,
-    _life: PhantomData<&'a ()>,
 }
 
 impl<'a> ProxyTreeWidget<'a> {
     pub fn new(state: &'a ProxyTree<'a>) -> Self {
-        Self {
-            _life: PhantomData,
-            state,
-        }
+        Self { state }
     }
 }
 
