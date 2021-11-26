@@ -171,7 +171,11 @@ fn test_proxies() {
         proxies: HashMap::from(proxy_kv),
     };
     assert_eq!(
-        proxies.groups().map(|x| x.0).collect::<Vec<_>>(),
+        {
+            let mut tmp = proxies.groups().map(|x| x.0).collect::<Vec<_>>();
+            tmp.sort();
+            tmp
+        },
         vec!["test_b", "test_d"]
     );
     assert_eq!(
