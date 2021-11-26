@@ -30,8 +30,8 @@ impl Consts {
     };
 
     pub const PROXY_TYPE_STYLE: Style = Style {
-        fg: Some(Color::Gray),
-        add_modifier: Modifier::DIM,
+        fg: Some(Color::DarkGray),
+        add_modifier: Modifier::empty(),
         ..Self::DEFAULT_STYLE
     };
 
