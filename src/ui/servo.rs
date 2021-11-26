@@ -13,7 +13,10 @@ use crate::{
     Error, Result,
 };
 
-pub(super) fn servo(tx: Sender<Event>, opt: &TuiOpt, flags: &Flags) -> Result<()> {
+// TODO change behavior based on opt
+// rely on config
+
+pub fn servo(tx: Sender<Event>, opt: &TuiOpt, flags: &Flags) -> Result<()> {
     macro_rules! run {
         ($(let $p:pat = $v:expr;)* $block:block) => {
             {
