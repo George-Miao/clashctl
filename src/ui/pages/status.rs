@@ -33,9 +33,8 @@ impl<'a> Widget for StatusPage<'a> {
             .unwrap_or_default();
 
         let (up_avg, down_avg) = match self.state.start_time {
-            Some(time) if time.elapsed().as_secs() == 0 => ("?".to_string(), "?".to_string()),
-            None => ("?".to_string(), "?".to_string()),
-            Some(time) => {
+            time if time.elapsed().as_secs() == 0 => ("?".to_string(), "?".to_string()),
+            time => {
                 let elapsed = time.elapsed().as_secs();
                 let (up_all, down_all) = self
                     .state

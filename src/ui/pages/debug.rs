@@ -61,13 +61,7 @@ impl<'a> Widget for DebugPage<'a> {
                     self.state.proxy_tree.groups.len()
                 ),
             ),
-            (
-                "Run time:",
-                self.state
-                    .start_time
-                    .map(|x| x.elapsed().hms())
-                    .unwrap_or_else(|| "?".to_owned()),
-            ),
+            ("Run time:", self.state.start_time.elapsed().hms()),
         ]
         .into_iter()
         .map(|(title, content)| format!(" {:<15}{:>11} ", title, content))

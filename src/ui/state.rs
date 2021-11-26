@@ -1,5 +1,6 @@
 use std::time::Instant;
 
+use smart_default::SmartDefault;
 use tui::{layout::Rect, Frame};
 
 use crate::{
@@ -14,17 +15,11 @@ use crate::{
     Result,
 };
 
-/// # Warn
-/// DO NOT USE [`Default::default`] TO INITIALIZE
-///
-/// USE [`TuiStates::new`] instead
-///
-/// As during runtime we assume all Option field is Some.
-/// So [`Default`] can be automatically derived2
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone, SmartDefault)]
 pub struct TuiStates<'a> {
     pub should_quit: bool,
-    pub start_time: Option<Instant>,
+    #[default(_code = "Instant::now()")]
+    pub start_time: Instant,
     pub version: Option<Version>,
     pub traffics: Vec<Traffic>,
     pub max_traffic: Traffic,
@@ -38,22 +33,12 @@ pub struct TuiStates<'a> {
     pub con_state: MovableListState<'a>,
     pub rule_state: MovableListState<'a>,
     pub con_size: (u64, u64),
-    // pub tx: Option<Sender<Event>>,
 }
 
 impl<'a> TuiStates<'a> {
     pub const TITLES: &'static [&'static str] = &[
         "Status", "Proxies", "Rules", "Conns", "Logs", "Configs", "Debug",
     ];
-
-    #[inline]
-    pub fn new() -> Self {
-        Self {
-            start_time: Some(Instant::now()),
-            // tx: Some(tx),
-            ..Default::default()
-        }
-    }
 
     pub fn handle(&mut self, event: Event) -> Result<()> {
         self.all_events_recv += 1;
