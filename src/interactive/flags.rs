@@ -3,8 +3,11 @@ use std::time::Duration;
 
 use home::home_dir;
 use log::{debug, LevelFilter};
+use url::Url;
 
 use crate::{interactive::Config, Clash, Error, Result};
+
+const DEFAULT_TEST_URL: &str = "http://www.gstatic.com/generate_204";
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "cli", derive(clap::Parser))]
@@ -19,6 +22,7 @@ pub struct Flags {
         )
     )]
     pub verbose: u8,
+
     #[cfg_attr(
         feature = "cli",
         clap(
@@ -29,6 +33,7 @@ pub struct Flags {
         )
     )]
     pub timeout: u64,
+
     #[cfg_attr(
         feature = "cli",
         clap(
@@ -38,6 +43,16 @@ pub struct Flags {
         )
     )]
     pub config: Option<PathBuf>,
+
+    #[cfg_attr(
+        feature = "cli",
+        clap(
+            long,
+            default_value = DEFAULT_TEST_URL,
+            about = "Url for testing proxy endpointes"
+        )
+    )]
+    pub test_url: Url,
 }
 
 impl Default for Flags {
@@ -46,6 +61,7 @@ impl Default for Flags {
             verbose: 0,
             timeout: 2000,
             config: None,
+            test_url: Url::parse(DEFAULT_TEST_URL).unwrap(),
         }
     }
 }

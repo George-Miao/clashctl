@@ -1,5 +1,5 @@
 mod config;
-mod paths;
+mod flags;
 
 pub use config::*;
-pub use paths::*;
+pub use flags::*;
