@@ -191,14 +191,6 @@ impl<'a> MovableListItem<'a> {
         }
     }
 
-    pub fn ranged(&mut self, range: &Range<usize>) -> &mut Self {
-        match self {
-            MovableListItem::Spans(ref mut x) => *x = spans_window(x, range),
-            MovableListItem::Raw(ref mut x) => *x = string_window(x, range),
-        };
-        self
-    }
-
     pub fn range(&self, range: &Range<usize>) -> MovableListItem {
         match self {
             MovableListItem::Spans(ref x) => MovableListItem::Spans(spans_window(x, range)),
