@@ -40,27 +40,7 @@ impl<'a> Widget for DebugPage<'a> {
                 "Tick Rate:",
                 tick_rate.map_or_else(|| "?".to_owned(), |rate| format!("{:.0}", rate)),
             ),
-            ("Logs #:", self.state.log_state.len().to_string()),
-            (
-                "Proxy group #",
-                self.state.proxy_tree.groups.len().to_string(),
-            ),
-            (
-                "List offset: ",
-                if offset.hold {
-                    format!("({}, {})", offset.x, offset.y)
-                } else {
-                    "?".to_owned()
-                },
-            ),
-            (
-                "Proxy tree:",
-                format!(
-                    "{} / {}",
-                    self.state.proxy_tree.cursor,
-                    self.state.proxy_tree.groups.len()
-                ),
-            ),
+            ("List offset: ", format!("({}, {})", offset.x, offset.y)),
             ("Run time:", self.state.start_time.elapsed().hms()),
         ]
         .into_iter()
