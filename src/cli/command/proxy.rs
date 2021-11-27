@@ -7,9 +7,8 @@ use owo_colors::OwoColorize;
 use requestty::{prompt_one, Answer, ListItem, Question};
 use strum::VariantNames;
 
-use crate::cli::{ProxySort};
-use crate::interactive::Flags;
 use crate::{Result};
+use crate::interactive::{Flags, ProxySortBy, SortOrder};
 use crate::model::ProxyType;
 
 // #[allow(clippy::match_str_case_mismatch)]
@@ -48,12 +47,18 @@ pub enum ProxySubcommand {
 #[derive(Parser, Debug, Clone)]
 pub struct ProxyListOpt {
     #[clap(
-        short, 
         long, 
         default_value = "delay", 
         possible_values = &["type", "name", "delay"],
     )]
-    pub sort: ProxySort,
+    pub sort_by: ProxySortBy,
+
+    #[clap(
+        long, 
+        default_value = "ascendant",
+        possible_values = &["ascendant", "descendant"],
+    )]
+    pub sort_order: SortOrder,
 
     #[clap(short, long, about = "Reverse the listed result")]
     pub reverse: bool,

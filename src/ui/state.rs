@@ -1,8 +1,9 @@
-use std::time::Instant;
+use std::{collections::HashMap, time::Instant};
 
 use smart_default::SmartDefault;
 
 use crate::{
+    interactive::ProxySort,
     model::{Traffic, Version},
     ui::{
         components::{MovableListItem, MovableListState, ProxyTree},
@@ -24,10 +25,12 @@ pub struct TuiStates<'a> {
     pub page_index: u8,
     pub show_debug: bool,
     pub proxy_tree: ProxyTree<'a>,
+    pub proxy_sort: ProxySort,
     pub debug_state: MovableListState<'a>,
     pub log_state: MovableListState<'a>,
     pub con_state: MovableListState<'a>,
     pub rule_state: MovableListState<'a>,
+    pub rule_freq: HashMap<String, usize>,
     // (upload_size, download_size)
     pub con_size: (u64, u64),
 }
@@ -96,14 +99,20 @@ impl<'a> TuiStates<'a> {
                 self.traffics.push(traffic)
             }
             UpdateEvent::Proxies(proxies) => {
-                let new_tree = Into::<ProxyTree>::into(proxies);
-                self.proxy_tree.sync_cursor_from(new_tree);
+                let mut new_tree = Into::<ProxyTree>::into(proxies);
+                new_tree.sort_with_frequency(&self.rule_freq);
+                self.proxy_tree.replace_with(new_tree);
             }
             UpdateEvent::Log(log) => {
                 self.log_state.push(MovableListItem::Spans(log.into()));
             }
-            UpdateEvent::Rules(rules) => self.rule_state.merge(rules.into()),
-            UpdateEvent::ProxyTestLatencyDone => self.proxy_tree.end_testing(),
+            UpdateEvent::Rules(rules) => {
+                self.rule_freq = rules.owned_frequency();
+                self.rule_state.merge(rules.into());
+            }
+            UpdateEvent::ProxyTestLatencyDone => {
+                self.proxy_tree.end_testing();
+            }
         }
         Ok(None)
     }
@@ -128,7 +137,7 @@ impl<'a> TuiStates<'a> {
                 Some(state) => state.toggle(),
                 None => {
                     if self.title() == "Proxies" {
-                        self.proxy_tree.toggle()
+                        self.proxy_tree.toggle();
                     }
                 }
             },
@@ -146,7 +155,7 @@ impl<'a> TuiStates<'a> {
                     let group = self.proxy_tree.current_group();
                     let proxies = group
                         .members()
-                        .into_iter()
+                        .iter()
                         .filter(|x| x.proxy_type().is_normal())
                         .map(|x| x.name().into())
                         .collect();
@@ -157,7 +166,7 @@ impl<'a> TuiStates<'a> {
                 Some(state) => state.end(),
                 None => {
                     if self.title() == "Proxies" {
-                        self.proxy_tree.end()
+                        self.proxy_tree.end();
                     }
                 }
             },
