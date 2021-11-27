@@ -4,9 +4,15 @@ use either::Either;
 use owo_colors::OwoColorize;
 use terminal_size::{terminal_size, Height, Width};
 
-use crate::cli::ProxyListOpt;
 use crate::model::{Proxies, Proxy};
-use crate::Result;
+use crate::{
+    cli::ProxyListOpt,
+    interactive::{ProxySort, ProxySortBy, SortMethod},
+};
+use crate::{
+    interactive::{SortOrder, Sortable},
+    Result,
+};
 
 impl Proxies {
     pub fn names(&self) -> impl Iterator<Item = &String> {
@@ -31,7 +37,9 @@ impl Proxies {
 
     fn render_plain(&self, opt: &ProxyListOpt) {
         let mut list = self.iter().collect::<Vec<_>>();
-        opt.sort.sort(&mut list);
+        let sort_method = ProxySort::new(opt.sort_by, opt.sort_order);
+
+        list.sort_with(sort_method);
 
         let iter = if opt.reverse {
             Either::Left(list.into_iter().rev())
@@ -78,6 +86,8 @@ impl Proxies {
             Either::Right(list.iter())
         };
 
+        let sort_method = ProxySort::new(opt.sort_by, opt.sort_order);
+
         for (name, group) in groups.into_iter() {
             // Since list only contains groups, and only groups have `all`, so it is safe to [`unwrap`]
             println!("{:<16}  -       {}\n", group.proxy_type.blue(), name);
@@ -88,7 +98,7 @@ impl Proxies {
                 .iter()
                 .map(|member_name| self.iter().find(|(name, _)| &member_name == name).unwrap())
                 .collect::<Vec<_>>();
-            opt.sort.sort(&mut members);
+            members.sort_with(sort_method);
             for (
                 name,
                 Proxy {
@@ -112,57 +122,36 @@ impl Proxies {
     }
 }
 
-#[derive(
-    strum::EnumString,
-    strum::Display,
-    strum::EnumVariantNames,
-    Debug,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Clone,
-    Copy,
-)]
-#[strum(ascii_case_insensitive, serialize_all = "lowercase")]
-pub enum ProxySort {
-    Type,
-    Name,
-    Delay,
-}
-
-// impl Default for ProxySort
-
-impl ProxySort {
-    pub fn by_type() -> Self {
-        Self::Type
-    }
-
-    pub fn by_name() -> Self {
-        Self::Name
-    }
-
-    pub fn by_delay() -> Self {
-        Self::Delay
-    }
-
-    pub fn sort(&self, proxies: &mut Vec<(&String, &Proxy)>) {
-        proxies.sort_by(|lhs, rhs| match self {
-            Self::Type => lhs.1.proxy_type.cmp(&rhs.1.proxy_type),
-            Self::Name => lhs.0.cmp(rhs.0),
-            Self::Delay => match (lhs.1.history.get(0), rhs.1.history.get(0)) {
+impl SortMethod<(&String, &Proxy)> for ProxySort {
+    fn sort_fn(&self, a: &(&String, &Proxy), b: &(&String, &Proxy)) -> Ordering {
+        let ret = match self.by() {
+            ProxySortBy::Type => a.1.proxy_type.cmp(&b.1.proxy_type),
+            ProxySortBy::Name => a.0.cmp(b.0),
+            ProxySortBy::Delay => match (a.1.history.get(0), b.1.history.get(0)) {
                 // 0 delay means unable to connect, so handle exceptionally
                 // This will push all 0-delay proxies to the end of list
                 (Some(l_history), Some(r_history)) => match (l_history.delay, r_history.delay) {
                     (0, 0) => Ordering::Equal,
                     (0, _) => Ordering::Greater,
                     (_, 0) => Ordering::Less,
-                    (lhs, rhs) => lhs.cmp(&rhs),
+                    (a, b) => a.cmp(&b),
                 },
                 (Some(_), None) => Ordering::Greater,
                 (None, Some(_)) => Ordering::Less,
                 _ => Ordering::Equal,
             },
-        });
+        };
+        match self.order() {
+            SortOrder::Ascendant => ret,
+            SortOrder::Descendant => ret.reverse(),
+        }
+    }
+}
+
+impl<'a> Sortable<'a, ProxySort> for Vec<(&String, &Proxy)> {
+    type Item<'b> = (&'b String, &'b Proxy);
+
+    fn sort_with(&mut self, method: ProxySort) {
+        self.sort_by(|a, b| method.sort_fn(a, b))
     }
 }

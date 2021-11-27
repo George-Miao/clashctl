@@ -98,4 +98,12 @@ impl Rules {
             .map(|x| x.proxy.as_str())
             .counts()
     }
+
+    pub fn owned_frequency(&self) -> HashMap<String, usize> {
+        self.rules
+            .iter()
+            .filter(|x| x.proxy != "DIRECT" && x.proxy != "REJECT")
+            .map(|x| x.proxy.to_owned())
+            .counts()
+    }
 }
