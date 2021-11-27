@@ -11,25 +11,19 @@ pub struct Proxies {
 
 impl Proxies {
     pub fn normal(&self) -> impl Iterator<Item = (&String, &Proxy)> {
-        self.proxies
-            .iter()
-            .filter(|(_, x)| x.proxy_type.is_normal())
+        self.iter().filter(|(_, x)| x.proxy_type.is_normal())
     }
 
     pub fn groups(&self) -> impl Iterator<Item = (&String, &Proxy)> {
-        self.proxies.iter().filter(|(_, x)| x.proxy_type.is_group())
+        self.iter().filter(|(_, x)| x.proxy_type.is_group())
     }
 
     pub fn selectors(&self) -> impl Iterator<Item = (&String, &Proxy)> {
-        self.proxies
-            .iter()
-            .filter(|(_, x)| x.proxy_type.is_selector())
+        self.iter().filter(|(_, x)| x.proxy_type.is_selector())
     }
 
     pub fn built_ins(&self) -> impl Iterator<Item = (&String, &Proxy)> {
-        self.proxies
-            .iter()
-            .filter(|(_, x)| x.proxy_type.is_built_in())
+        self.iter().filter(|(_, x)| x.proxy_type.is_built_in())
     }
 }
 
