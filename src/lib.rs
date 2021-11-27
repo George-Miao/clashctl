@@ -5,6 +5,7 @@
 #![feature(slice_group_by)]
 #![feature(thread_is_running)]
 #![feature(exclusive_range_pattern)]
+#![feature(generic_associated_types)]
 #![feature(associated_type_defaults)]
 
 #[cfg(test)]
