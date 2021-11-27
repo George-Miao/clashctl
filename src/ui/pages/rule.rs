@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use itertools::Itertools;
 use tui::{
     style::{Color, Modifier, Style},
@@ -82,13 +84,18 @@ impl Rule {
 }
 
 impl Rules {
-    pub fn frequent_proxy(&self) -> Option<String> {
+    pub fn most_frequent_proxy(&self) -> Option<&str> {
+        self.frequency()
+            .into_iter()
+            .max_by_key(|(_, v)| *v)
+            .map(|(k, _)| k)
+    }
+
+    pub fn frequency(&self) -> HashMap<&str, usize> {
         self.rules
             .iter()
             .filter(|x| x.proxy != "DIRECT" && x.proxy != "REJECT")
+            .map(|x| x.proxy.as_str())
             .counts()
-            .into_iter()
-            .max_by_key(|(_, v)| *v)
-            .map(|(k, _)| k.proxy.to_owned())
     }
 }
