@@ -15,6 +15,7 @@ pub enum Level {
     Debug,
 }
 
+// TODO Parse log
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Log {
     #[serde(rename = "type")]
