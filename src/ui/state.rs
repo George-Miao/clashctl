@@ -136,22 +136,21 @@ impl<'a> TuiStates<'a> {
                 Some(state) => state.handle(event),
                 None => {
                     if self.title() == "Proxies" {
-                        self.proxy_tree.handle(event)
+                        return Ok(self.proxy_tree.handle(event));
                     }
                 }
             },
             InputEvent::TestLatency => {
-                if self.title() == "Proxies" && !self.proxy_tree.testing() {
+                if self.title() == "Proxies" && !self.proxy_tree.is_testing() {
                     self.proxy_tree.start_testing();
                     let group = self.proxy_tree.current_group();
-                    return Ok(Some(Action::TestLatency {
-                        proxies: group
-                            .members
-                            .iter()
-                            .filter(|x| x.proxy_type.is_normal())
-                            .map(|x| x.name.to_owned())
-                            .collect(),
-                    }));
+                    let proxies = group
+                        .members
+                        .iter()
+                        .filter(|x| x.proxy_type.is_normal())
+                        .map(|x| x.name.to_owned())
+                        .collect();
+                    return Ok(Some(Action::TestLatency { proxies }));
                 }
             }
             InputEvent::Esc => match self.active_list_state() {

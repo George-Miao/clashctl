@@ -14,7 +14,7 @@ use crate::{
         components::{Consts, Footer, FooterItem, FooterWidget},
         help_footer,
         utils::{get_block, get_focused_block, get_text_style},
-        ListEvent,
+        Action, ListEvent,
     },
 };
 
@@ -271,7 +271,7 @@ impl<'a> ProxyTree<'a> {
         self.update_footer();
     }
 
-    pub fn handle(&mut self, event: ListEvent) {
+    pub fn handle(&mut self, event: ListEvent) -> Option<Action> {
         if self.expanded {
             let step = if event.fast { 3 } else { 1 };
             let group = &mut self.groups[self.cursor];
@@ -283,8 +283,16 @@ impl<'a> ProxyTree<'a> {
                 }
                 KeyCode::Down => {
                     let left = group.members.len().saturating_sub(group.cursor + 1);
-                    if left > 0 {
-                        group.cursor += left.min(step)
+
+                    group.cursor += left.min(step)
+                }
+                KeyCode::Right | KeyCode::Enter => {
+                    if group.proxy_type.is_selector() {
+                        let current = group.members[group.cursor].name.to_owned();
+                        return Some(Action::ApplySelection {
+                            group: group.name.to_owned(),
+                            proxy: current,
+                        });
                     }
                 }
                 _ => {}
@@ -301,10 +309,12 @@ impl<'a> ProxyTree<'a> {
                         self.cursor = self.cursor.saturating_add(1)
                     }
                 }
+                KeyCode::Enter => self.expanded = true,
                 _ => {}
             }
         }
-        self.update_footer()
+        self.update_footer();
+        None
     }
 
     #[inline]
@@ -328,7 +338,7 @@ impl<'a> ProxyTree<'a> {
     }
 
     #[inline]
-    pub fn testing(&self) -> bool {
+    pub fn is_testing(&self) -> bool {
         self.testing
     }
 

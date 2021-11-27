@@ -124,7 +124,7 @@ impl TryFrom<KC> for Event {
             KC::Char('t') => Ok(Event::Input(InputEvent::TestLatency)),
             KC::Char('s') => Ok(Event::Input(InputEvent::Sort)),
             KC::Esc => Ok(Event::Input(InputEvent::Esc)),
-            KC::Char(' ') | KC::Enter => Ok(Event::Input(InputEvent::ToggleHold)),
+            KC::Char(' ') => Ok(Event::Input(InputEvent::ToggleHold)),
             KC::Char(char) if char.is_ascii_digit() => Ok(Event::Input(InputEvent::TabGoto(
                 char.to_digit(10)
                     .expect("char.is_ascii_digit() should be able to parse into number")
@@ -140,7 +140,7 @@ impl From<KE> for Event {
         match (value.modifiers, value.code) {
             (KM::CONTROL, KC::Char('c')) => Self::Quit,
             (KM::CONTROL, KC::Char('d')) => Self::Input(InputEvent::ToggleDebug),
-            (modi, arrow @ (KC::Left | KC::Right | KC::Up | KC::Down)) => {
+            (modi, arrow @ (KC::Left | KC::Right | KC::Up | KC::Down | KC::Enter)) => {
                 Event::Input(InputEvent::List(ListEvent {
                     fast: matches!(modi, KM::CONTROL | KM::SHIFT),
                     code: arrow,
