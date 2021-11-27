@@ -10,7 +10,7 @@ use std::{
 use log::{LevelFilter, Record};
 use tui::{
     style::{Color, Style},
-    text::{Span, Spans},
+    text::{Span, Spans, StyledGrapheme},
     widgets::{Block, Borders},
 };
 
@@ -231,34 +231,43 @@ macro_rules! define_widget {
     };
 }
 
-pub struct StyledChar {
-    content: char,
-    style: Style,
+pub trait IntoSpan<'a> {
+    fn into_span(self) -> Span<'a>;
 }
 
-pub trait IntoSpans {
-    fn into_spans<'a>(self) -> Spans<'a>;
+impl<'a> IntoSpan<'a> for StyledGrapheme<'a> {
+    fn into_span(self) -> Span<'a> {
+        Span::styled(self.symbol, self.style)
+    }
 }
 
-impl IntoSpans for Vec<StyledChar> {
-    fn into_spans<'a>(self) -> Spans<'a> {
-        self.group_by(|a, b| a.style == b.style)
-            .map(|x| {
-                let style = x
-                    .get(0)
-                    .expect("Should be at least one item in grouped slices")
-                    .style;
-                let content = x.iter().fold(String::new(), |mut acc, x| {
-                    acc.push(x.content);
-                    acc
-                });
-                Span {
-                    content: content.into(),
-                    style,
+pub trait IntoSpans<'a> {
+    fn into_spans(self) -> Spans<'a>;
+}
+
+impl<'a, T> IntoSpans<'a> for T
+where
+    T: Iterator<Item = StyledGrapheme<'a>>,
+{
+    fn into_spans(self) -> Spans<'a> {
+        self.fold(None, |mut acc: Option<(Vec<Span<'a>>, Style)>, x| {
+            let x_style = x.style;
+            match acc {
+                Some((ref mut vec, ref mut style)) => {
+                    if style == &x_style {
+                        vec.last_mut().expect("vec.len() >= 1").content += x.symbol;
+                    } else {
+                        vec.push(x.into_span());
+                        *style = x_style
+                    }
                 }
-            })
-            .collect::<Vec<_>>()
-            .into()
+                None => return Some((vec![x.into_span()], x_style)),
+            };
+            acc
+        })
+        .map(|x| x.0)
+        .unwrap_or_default()
+        .into()
     }
 }
 
@@ -266,21 +275,15 @@ pub fn string_window(string: &str, range: &Range<usize>) -> String {
     string.chars().skip(range.start).take(range.end).collect()
 }
 
-pub fn spans_window<'a, 'b>(spans: &'a Spans, range: &Range<usize>) -> Spans<'b> {
+pub fn spans_window<'a>(spans: &'a Spans, range: &Range<usize>) -> Spans<'a> {
     let (start, end) = (range.start, range.end);
-    let mut ret = Vec::with_capacity(spans.width());
-    for Span { content, style } in &spans.0 {
-        content.chars().for_each(|c| {
-            ret.push(StyledChar {
-                content: c,
-                style: *style,
-            })
-        })
-    }
-    ret.into_iter()
+
+    spans
+        .0
+        .iter()
+        .flat_map(|x| x.styled_graphemes(Style::default()))
         .skip(start)
         .take(end - start)
-        .collect::<Vec<_>>()
         .into_spans()
 }
 
@@ -311,23 +314,16 @@ fn test_into_span() {
     let style_plain = Style::default();
     let style_red = Style::default().fg(Color::Red);
 
-    let chars_blue = "Hello".chars().map(|c| StyledChar {
-        content: c,
-        style: style_blue,
-    });
-    let chars_plain = StyledChar {
-        content: ' ',
-        style: style_plain,
-    };
-    let chars_red = "World 中文测试".chars().map(|c| StyledChar {
-        content: c,
-        style: style_red,
-    });
-    let spans = chars_blue
-        .chain(std::iter::once(chars_plain))
-        .chain(chars_red)
-        .collect::<Vec<_>>()
-        .into_spans();
+    let (a, b, c) = (
+        Span::raw("Hello"),
+        Span::raw(" "),
+        Span::raw("World 中文测试"),
+    );
+    let chars_blue = a.styled_graphemes(style_blue);
+    let chars_plain = b.styled_graphemes(style_plain);
+    let chars_red = c.styled_graphemes(style_red);
+
+    let spans = chars_blue.chain(chars_plain).chain(chars_red).into_spans();
 
     assert_eq!(
         spans,
