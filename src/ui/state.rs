@@ -145,10 +145,10 @@ impl<'a> TuiStates<'a> {
                     self.proxy_tree.start_testing();
                     let group = self.proxy_tree.current_group();
                     let proxies = group
-                        .members
-                        .iter()
-                        .filter(|x| x.proxy_type.is_normal())
-                        .map(|x| x.name.to_owned())
+                        .members()
+                        .into_iter()
+                        .filter(|x| x.proxy_type().is_normal())
+                        .map(|x| x.name().into())
                         .collect();
                     return Ok(Some(Action::TestLatency { proxies }));
                 }

@@ -20,11 +20,11 @@ use crate::{
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ProxyGroup<'a> {
-    pub name: String,
-    pub proxy_type: ProxyType,
-    pub members: Vec<ProxyItem>,
-    pub current: Option<usize>,
-    pub cursor: usize,
+    name: String,
+    proxy_type: ProxyType,
+    members: Vec<ProxyItem>,
+    current: Option<usize>,
+    cursor: usize,
     _life: PhantomData<&'a ()>,
 }
 
@@ -35,11 +35,18 @@ pub enum ProxyGroupFocusStatus {
 }
 
 impl<'a> ProxyGroup<'a> {
+    pub fn proxy_type(&self) -> ProxyType {
+        self.proxy_type
+    }
+
+    pub fn members(&self) -> &Vec<ProxyItem> {
+        &self.members
+    }
     pub fn get_summary_widget(&self) -> impl Iterator<Item = Span> {
         self.members.iter().map(|x| {
             if x.proxy_type.is_normal() {
                 match x.history {
-                    Some(History { delay, .. }) => Self::get_delay_span(delay),
+                    Some(ref history) => Self::get_delay_span(history.delay),
                     None => Consts::NO_LATENCY_SPAN,
                 }
             } else {
@@ -205,11 +212,11 @@ impl<'a> Default for ProxyGroup<'a> {
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ProxyItem {
-    pub name: String,
-    pub proxy_type: ProxyType,
-    pub history: Option<History>,
-    pub udp: bool,
-    pub now: Option<String>,
+    name: String,
+    proxy_type: ProxyType,
+    history: Option<History>,
+    udp: bool,
+    now: Option<String>,
 }
 
 impl<'a> From<(&'a str, &'a Proxy)> for ProxyItem {
@@ -222,6 +229,16 @@ impl<'a> From<(&'a str, &'a Proxy)> for ProxyItem {
             udp: proxy.udp,
             now: proxy.now.as_ref().map(Into::into),
         }
+    }
+}
+
+impl ProxyItem {
+    pub fn proxy_type(&self) -> ProxyType {
+        self.proxy_type
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
     }
 }
 
@@ -457,7 +474,10 @@ impl<'a> From<Proxies> for ProxyTree<'a> {
             ..Default::default()
         };
         for (name, group) in val.groups() {
-            let all = group.all.as_ref().expect("ProxyGroup should have member");
+            let all = group
+                .all
+                .as_ref()
+                .expect("ProxyGroup should have member vec");
             let mut members = Vec::with_capacity(all.len());
             for x in all.iter() {
                 let member = (
