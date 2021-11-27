@@ -23,7 +23,7 @@ pub enum Error {
     ServerNotFound,
 
     #[cfg(feature = "interactive")]
-    #[error("{0} is not a file")]
+    #[error("{0} is not a directory")]
     ConfigFileTypeError(PathBuf),
 
     #[cfg(feature = "interactive")]
