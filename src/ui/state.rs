@@ -105,6 +105,7 @@ impl<'a> TuiStates<'a> {
                 self.log_state.push(MovableListItem::Spans(log.into()));
             }
             UpdateEvent::Rules(rules) => self.rule_state.merge(rules.into()),
+            UpdateEvent::ProxyTestLatencyDone => self.proxy_tree.end_testing(),
         }
         Ok(())
     }
@@ -141,10 +142,25 @@ impl<'a> TuiStates<'a> {
                     }
                 }
             },
-            // InterfaceEvent::Other(event) => self.handle_list(event),
-            _ => {}
+            InputEvent::TestLatency => {
+                if self.title() == "Proxies" && !self.proxy_tree.testing() {
+                    self.proxy_tree.start_testing();
+                    let group = self.proxy_tree.current_group();
+                    return Ok(Some(Action::TestLatency {
+                        proxies: group
+                            .members
+                            .iter()
+                            .filter(|x| x.proxy_type.is_normal())
+                            .map(|x| x.name.to_owned())
+                            .collect(),
+                    }));
+                }
+            }
+            InputEvent::Sort => {}
+            InputEvent::Esc => {}
+            InputEvent::Other(_) => {} // InterfaceEvent::Other(event) => self.handle_list(event),
         }
-        Ok(())
+        Ok(None)
     }
 
     pub fn debug_page_index(&self) -> usize {

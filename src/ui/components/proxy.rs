@@ -239,9 +239,10 @@ impl<'a> From<(&'a str, &'a Proxy)> for ProxyItem {
 // - `T`, `S`, `/` in proxy event handling
 #[derive(Clone, Debug, PartialEq)]
 pub struct ProxyTree<'a> {
-    pub groups: Vec<ProxyGroup<'a>>,
-    pub expanded: bool,
-    pub cursor: usize,
+    groups: Vec<ProxyGroup<'a>>,
+    expanded: bool,
+    cursor: usize,
+    testing: bool,
     footer: Footer<'a>,
 }
 
@@ -252,6 +253,7 @@ impl<'a> Default for ProxyTree<'a> {
             expanded: Default::default(),
             cursor: Default::default(),
             footer: Default::default(),
+            testing: Default::default(),
         };
         ret.update_footer();
         ret
@@ -300,23 +302,73 @@ impl<'a> ProxyTree<'a> {
         self.update_footer()
     }
 
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.groups.len()
+    }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.groups.is_empty()
+    }
+
+    #[inline]
+    pub fn cursor(&self) -> usize {
+        self.cursor
+    }
+
+    #[inline]
+    pub fn current_group(&self) -> &ProxyGroup {
+        &self.groups[self.cursor]
+    }
+
+    #[inline]
+    pub fn testing(&self) -> bool {
+        self.testing
+    }
+
+    #[inline]
+    pub fn start_testing(&mut self) {
+        self.testing = true;
+        self.update_footer()
+    }
+
+    #[inline]
+    pub fn end_testing(&mut self) {
+        self.testing = false;
+        self.update_footer()
+    }
+
     pub fn update_footer(&mut self) {
         let mut footer = Footer::default();
         let current_group = match self.groups.get(self.cursor) {
             Some(grp) => grp,
             _ => return,
         };
+
         if !self.expanded {
             let group_name = current_group.name.clone();
             let style = Style::default()
                 .fg(Color::Blue)
                 .add_modifier(Modifier::REVERSED);
             let highlight = style.add_modifier(Modifier::BOLD);
-            footer.push_left(FooterItem::span(Span::styled(" FREE ", style)));
-            footer.push_left(FooterItem::span(Span::styled(" SPACE to expand ", style)));
-            footer.push_left(FooterItem::spans(help_footer("Test", style, highlight)).wrapped());
-            footer.push_left(FooterItem::spans(help_footer("Sort", style, highlight)).wrapped());
-            footer.push_right(FooterItem::span(Span::styled(group_name, style)).wrapped());
+
+            let mut left = vec![
+                FooterItem::span(Span::styled(" FREE ", style)),
+                FooterItem::span(Span::styled(" SPACE to expand ", style)),
+                if !self.testing {
+                    FooterItem::spans(help_footer("Test", style, highlight)).wrapped()
+                } else {
+                    FooterItem::span(Span::styled(" Testing ", highlight.fg(Color::Green)))
+                },
+                FooterItem::spans(help_footer("Sort", style, highlight)).wrapped(),
+            ];
+
+            footer.append_left(&mut left);
+
+            let name = FooterItem::span(Span::styled(group_name, style)).wrapped();
+            footer.push_right(name);
+
             if let Some(now) = current_group.current {
                 footer.push_right(
                     FooterItem::span(Span::raw(current_group.members[now].name.to_owned()))
@@ -328,13 +380,22 @@ impl<'a> ProxyTree<'a> {
                 .fg(Color::Green)
                 .add_modifier(Modifier::REVERSED);
             let highlight = style.add_modifier(Modifier::BOLD);
+
             footer.push_left(FooterItem::span(Span::styled(" [^] ▲ ▼ Move ", style)));
+
             if current_group.proxy_type.is_selector() {
                 footer.push_left(FooterItem::span(Span::styled(" ▶ Select ", style)));
             }
+
             let current_item = &current_group.members[current_group.cursor];
-            footer.push_left(FooterItem::spans(help_footer("Test", style, highlight)).wrapped());
+            footer.push_left(if !self.testing {
+                FooterItem::spans(help_footer("Test", style, highlight)).wrapped()
+            } else {
+                FooterItem::span(Span::styled(" Testing ", highlight.fg(Color::Blue)))
+            });
+
             footer.push_left(FooterItem::spans(help_footer("Sort", style, highlight)).wrapped());
+
             if let Some(now) = &current_item.now {
                 footer.push_right(FooterItem::span(Span::raw(now.to_owned())).wrapped());
             }
