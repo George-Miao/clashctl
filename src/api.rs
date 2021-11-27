@@ -191,6 +191,8 @@ impl Clash {
     }
 
     pub fn get_proxy_delay(&self, proxy: &str, test_url: &str, timeout: u64) -> Result<Delay> {
+        use urlencoding::encode as e;
+        let (proxy, test_url) = (e(proxy), e(test_url));
         self.get(&format!(
             "proxies/{}/delay?url={}&timeout={}",
             proxy, test_url, timeout
