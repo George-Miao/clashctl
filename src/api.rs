@@ -218,7 +218,7 @@ impl<T: DeserializeOwned> LongHaul<T> {
     }
 
     pub fn next_item(&mut self) -> Option<Result<T>> {
-        self.next_raw().map(|x| x.and_then(Convert::convert))
+        Some(self.next_raw()?.and_then(Convert::convert))
     }
 
     pub fn next_raw(&mut self) -> Option<Result<String>> {

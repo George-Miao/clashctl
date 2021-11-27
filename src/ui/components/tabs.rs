@@ -34,7 +34,7 @@ impl<'a> Widget for Tabs<'a> {
                     .fg(Color::White)
                     .add_modifier(Modifier::BOLD),
             )
-            .select(self.state.page_index);
+            .select(self.state.page_index.into());
         tabs.render(area, buf)
     }
 }

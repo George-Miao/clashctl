@@ -20,7 +20,7 @@ define_widget!(StatusPage);
 impl<'a> Widget for StatusPage<'a> {
     fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer) {
         let main = Layout::default()
-            .constraints([Constraint::Length(30), Constraint::Min(0)])
+            .constraints([Constraint::Length(35), Constraint::Min(0)])
             .direction(Direction::Horizontal)
             .split(area);
 
@@ -87,7 +87,6 @@ impl<'a> Widget for StatusPage<'a> {
             ),
             ("▲ Total", &ByteSize(total_up).to_string_as(true)),
             ("▼ Total", &ByteSize(total_down).to_string_as(true)),
-            ("", ""),
         ];
 
         let info_str = info
@@ -97,7 +96,7 @@ impl<'a> Widget for StatusPage<'a> {
                     .take((height as usize).saturating_sub(info.len() + tails.len() + 2)),
             )
             .chain(tails.into_iter())
-            .map(|(title, content)| format!(" {:<15}{:>11} ", title, content))
+            .map(|(title, content)| format!(" {:<13}{:>18} ", title, content))
             .fold(String::with_capacity((30 * height).into()), |mut a, b| {
                 a.push_str(&b);
                 a.push('\n');
