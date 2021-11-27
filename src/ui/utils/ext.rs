@@ -1,5 +1,5 @@
 use tui::{
-    style::{Color, Style},
+    style::Style,
     text::{Span, Spans, StyledGrapheme},
 };
 
@@ -37,7 +37,7 @@ where
             };
             acc
         })
-        .map(|x| x.0)
+        .map(|(vec, _)| vec)
         .unwrap_or_default()
         .into()
     }
@@ -45,6 +45,8 @@ where
 
 #[test]
 fn test_into_span() {
+    use tui::style::Color;
+
     let style_blue = Style::default().fg(Color::Blue);
     let style_plain = Style::default();
     let style_red = Style::default().fg(Color::Red);
