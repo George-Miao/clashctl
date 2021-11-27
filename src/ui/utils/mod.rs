@@ -358,10 +358,18 @@ pub struct Coord {
 impl Coord {
     pub fn toggle(&mut self) {
         if self.hold {
-            *self = Self::default()
+            self.end()
         } else {
-            self.hold = true
+            self.hold()
         }
+    }
+
+    pub fn end(&mut self) {
+        *self = Self::default()
+    }
+
+    pub fn hold(&mut self) {
+        self.hold = true
     }
 }
 

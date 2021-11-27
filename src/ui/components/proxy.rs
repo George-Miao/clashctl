@@ -266,6 +266,11 @@ impl<'a> ProxyTree<'a> {
         self.update_footer();
     }
 
+    pub fn end(&mut self) {
+        self.expanded = false;
+        self.update_footer();
+    }
+
     pub fn handle(&mut self, event: ListEvent) {
         if self.expanded {
             let step = if event.fast { 3 } else { 1 };

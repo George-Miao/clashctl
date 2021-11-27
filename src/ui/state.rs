@@ -154,8 +154,15 @@ impl<'a> TuiStates<'a> {
                     }));
                 }
             }
+            InputEvent::Esc => match self.active_list_state() {
+                Some(state) => state.end(),
+                None => {
+                    if self.title() == "Proxies" {
+                        self.proxy_tree.end()
+                    }
+                }
+            },
             InputEvent::Sort => {}
-            InputEvent::Esc => {}
             InputEvent::Other(_) => {} // InterfaceEvent::Other(event) => self.handle_list(event),
         }
         Ok(None)
