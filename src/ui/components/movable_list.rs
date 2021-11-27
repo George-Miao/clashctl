@@ -44,30 +44,21 @@ impl<'a> MovableList<'a> {
         )));
 
         if pos.hold {
-            footer.push_left(FooterItem::span(Span::styled(
-                " HOLD ",
-                Style::default()
-                    .fg(Color::Green)
-                    .add_modifier(Modifier::REVERSED),
-            )));
-            footer.push_left(FooterItem::span(Span::styled(
-                " [^] ▲ ▼ ◀ ▶ Move ",
-                Style::default()
-                    .fg(Color::Green)
-                    .add_modifier(Modifier::REVERSED),
-            )));
+            let style = Style::default()
+                .fg(Color::Green)
+                .add_modifier(Modifier::REVERSED);
+
+            footer.push_left(FooterItem::span(Span::styled(" FREE ", style)));
+            footer.push_left(FooterItem::span(Span::styled(" [^] ▲ ▼ ◀ ▶ Move ", style)));
         } else {
+            let style = Style::default()
+                .fg(Color::Blue)
+                .add_modifier(Modifier::REVERSED);
+
+            footer.push_left(FooterItem::span(Span::styled(" NORMAL ", style)));
             footer.push_left(FooterItem::span(Span::styled(
-                " FREE ",
-                Style::default()
-                    .fg(Color::Blue)
-                    .add_modifier(Modifier::REVERSED),
-            )));
-            footer.push_left(FooterItem::span(Span::styled(
-                " SPACE to hold ",
-                Style::default()
-                    .fg(Color::Blue)
-                    .add_modifier(Modifier::REVERSED),
+                " SPACE / [^] ▲ ▼ ◀ ▶ Move ",
+                style,
             )));
         }
 
@@ -145,6 +136,14 @@ impl<'a> MovableListState<'a> {
         self.offset.toggle()
     }
 
+    pub fn end(&mut self) {
+        self.offset.end()
+    }
+
+    pub fn hold(&mut self) {
+        self.offset.hold()
+    }
+
     pub fn push(&mut self, item: MovableListItem<'a>) {
         self.items.push(item);
         if self.offset.hold {
@@ -156,18 +155,20 @@ impl<'a> MovableListState<'a> {
         let len = self.len().saturating_sub(1);
         let offset = &mut self.offset;
 
-        if offset.hold {
-            match (event.fast, event.code) {
-                (true, KeyCode::Left) => offset.x = offset.x.saturating_sub(7),
-                (true, KeyCode::Right) => offset.x = offset.x.saturating_add(7),
-                (true, KeyCode::Up) => offset.y = offset.y.saturating_sub(5),
-                (true, KeyCode::Down) => offset.y = offset.y.saturating_add(5).min(len),
-                (false, KeyCode::Left) => offset.x = offset.x.saturating_sub(1),
-                (false, KeyCode::Right) => offset.x = offset.x.saturating_add(1),
-                (false, KeyCode::Up) => offset.y = offset.y.saturating_sub(1),
-                (false, KeyCode::Down) => offset.y = offset.y.saturating_add(1).min(len),
-                _ => {}
-            }
+        if !offset.hold {
+            offset.hold = true;
+        }
+
+        match (event.fast, event.code) {
+            (true, KeyCode::Left) => offset.x = offset.x.saturating_sub(7),
+            (true, KeyCode::Right) => offset.x = offset.x.saturating_add(7),
+            (true, KeyCode::Up) => offset.y = offset.y.saturating_sub(5),
+            (true, KeyCode::Down) => offset.y = offset.y.saturating_add(5).min(len),
+            (false, KeyCode::Left) => offset.x = offset.x.saturating_sub(1),
+            (false, KeyCode::Right) => offset.x = offset.x.saturating_add(1),
+            (false, KeyCode::Up) => offset.y = offset.y.saturating_sub(1),
+            (false, KeyCode::Down) => offset.y = offset.y.saturating_add(1).min(len),
+            _ => {}
         }
     }
 
