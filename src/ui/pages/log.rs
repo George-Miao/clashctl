@@ -40,6 +40,7 @@ impl<'a> From<&Log> for Spans<'a> {
 
 define_widget!(LogPage);
 
+// TODO Pretty print parsed Log
 impl<'a> Widget for LogPage<'a> {
     fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer) {
         let list = MovableList::new("Logs", &self.state.log_state);
