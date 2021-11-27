@@ -1,7 +1,12 @@
+use std::ops::Range;
+
 use tui::{
-    style::Style,
+    style::{Color, Style},
     text::{Span, Spans},
+    widgets::{Block, Borders},
 };
+
+use crate::ui::IntoSpans;
 
 pub fn help_footer(content: &str, normal: Style, highlight: Style) -> Spans {
     if content.is_empty() {
@@ -18,4 +23,41 @@ pub fn help_footer(content: &str, normal: Style, highlight: Style) -> Spans {
             Span::styled(rest, normal),
         ])
     }
+}
+
+pub fn string_window(string: &str, range: &Range<usize>) -> String {
+    string.chars().skip(range.start).take(range.end).collect()
+}
+
+pub fn spans_window<'a>(spans: &'a Spans, range: &Range<usize>) -> Spans<'a> {
+    let (start, end) = (range.start, range.end);
+
+    spans
+        .0
+        .iter()
+        .flat_map(|x| x.styled_graphemes(Style::default()))
+        .skip(start)
+        .take(end - start)
+        .into_spans()
+}
+
+pub fn get_block(title: &str) -> Block {
+    Block::default()
+        .borders(Borders::ALL)
+        .style(Style::default().fg(Color::LightBlue))
+        .title(Span::raw(format!(" {} ", title)))
+}
+
+pub fn get_focused_block(title: &str) -> Block {
+    Block::default()
+        .borders(Borders::ALL)
+        .title(Span::styled(
+            format!(" {} ", title),
+            Style::default().fg(Color::LightGreen),
+        ))
+        .style(Style::default().fg(Color::Green))
+}
+
+pub fn get_text_style() -> Style {
+    Style::default().fg(Color::White)
 }
