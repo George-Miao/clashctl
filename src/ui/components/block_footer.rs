@@ -65,6 +65,16 @@ impl<'a> Footer<'a> {
         self
     }
 
+    pub fn append_left(&mut self, item: &mut Vec<FooterItem<'a>>) -> &mut Self {
+        self.left.append(item);
+        self
+    }
+
+    pub fn append_right(&mut self, item: &mut Vec<FooterItem<'a>>) -> &mut Self {
+        self.right.append(item);
+        self
+    }
+
     pub fn pop_left(&mut self) -> Option<FooterItem<'a>> {
         self.left.pop()
     }
@@ -155,10 +165,19 @@ impl<'a> FooterItem<'a> {
             FooterItemInner::Span(ref mut span) => {
                 span.content = format!(" {} ", span.content).into()
             }
-            FooterItemInner::Spans(ref mut spans) => {
-                spans.0.insert(0, Span::raw(" "));
-                spans.0.push(Span::raw(" "))
-            }
+            FooterItemInner::Spans(Spans(ref mut inner)) => match inner.len() {
+                0 => inner.push(Span::raw("  ")),
+                1 => {
+                    let span = &mut inner[0];
+                    span.content = format!(" {} ", span.content).into()
+                }
+                _ => {
+                    let first_span = &mut inner[0];
+                    first_span.content = format!(" {}", first_span.content).into();
+                    let last_span = inner.last_mut().unwrap();
+                    last_span.content = format!("{} ", last_span.content).into();
+                }
+            },
         }
         self
     }

@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::{KeyCode as KC, KeyEvent as KE, KeyModifiers as KM};
 use log::Level;
 use tui::{
     style::{Color, Style},
@@ -9,15 +9,15 @@ use tui::{
 
 use crate::{
     model::{Connections, Log, Proxies, Rules, Traffic, Version},
-    ui::AsColor,
+    ui::utils::AsColor,
+    Error, Result,
 };
-use crate::{Error, Result};
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone)]
 #[non_exhaustive]
 pub enum Event {
     Quit,
-    Interface(Input),
+    Input(InputEvent),
     Update(UpdateEvent),
     Diagnostic(DiagnosticEvent),
 }
@@ -30,7 +30,7 @@ impl<'a, 'b> From<&Event> for Spans<'a> {
                 Span::styled("⇵  ", Style::default().fg(Color::Yellow)),
                 Span::raw(event.to_string()),
             ]),
-            Event::Interface(event) => Spans(vec![
+            Event::Input(event) => Spans(vec![
                 Span::styled("✜  ", Style::default().fg(Color::Green)),
                 Span::raw(format!("{:?}", event)),
             ]),
@@ -53,7 +53,7 @@ impl Event {
     }
 
     pub fn is_interface(&self) -> bool {
-        matches!(self, Event::Interface(_))
+        matches!(self, Event::Input(_))
     }
 
     pub fn is_update(&self) -> bool {
@@ -65,24 +65,26 @@ impl Event {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone)]
 #[non_exhaustive]
-pub enum Input {
+pub enum InputEvent {
     Esc,
-    TabGoto(usize),
+    TabGoto(u8),
     ToggleDebug,
     ToggleHold,
     List(ListEvent),
-    Other(KeyEvent),
+    TestLatency,
+    Sort,
+    Other(KE),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone)]
 pub struct ListEvent {
     pub fast: bool,
-    pub code: KeyCode,
+    pub code: KC,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone)]
 #[non_exhaustive]
 pub enum UpdateEvent {
     Connection(Connections),
@@ -91,6 +93,7 @@ pub enum UpdateEvent {
     Proxies(Proxies),
     Rules(Rules),
     Log(Log),
+    ProxyTestLatencyDone,
 }
 
 impl Display for UpdateEvent {
@@ -102,47 +105,51 @@ impl Display for UpdateEvent {
             UpdateEvent::Proxies(x) => write!(f, "{:?}", x),
             UpdateEvent::Rules(x) => write!(f, "{:?}", x),
             UpdateEvent::Log(x) => write!(f, "{:?}", x),
+            UpdateEvent::ProxyTestLatencyDone => write!(f, "Test latency done"),
         }
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone)]
 #[non_exhaustive]
 pub enum DiagnosticEvent {
     Log(Level, String),
 }
 
-impl TryFrom<KeyCode> for Event {
+impl TryFrom<KC> for Event {
     type Error = Error;
-    fn try_from(value: KeyCode) -> Result<Self> {
+    fn try_from(value: KC) -> Result<Self> {
         match value {
-            KeyCode::Char('q') | KeyCode::Char('x') => Ok(Event::Quit),
-            KeyCode::Esc => Ok(Event::Interface(Input::Esc)),
-            KeyCode::Char(' ') | KeyCode::Enter => Ok(Event::Interface(Input::ToggleHold)),
-            KeyCode::Char(char) if char.is_ascii_digit() => char
-                .to_digit(10)
-                .ok_or(Error::TuiInternalErr)
-                .map(|x| Event::Interface(Input::TabGoto(x as usize))),
+            KC::Char('q') | KC::Char('x') => Ok(Event::Quit),
+            KC::Char('t') => Ok(Event::Input(InputEvent::TestLatency)),
+            KC::Char('s') => Ok(Event::Input(InputEvent::Sort)),
+            KC::Esc => Ok(Event::Input(InputEvent::Esc)),
+            KC::Char(' ') => Ok(Event::Input(InputEvent::ToggleHold)),
+            KC::Char(char) if char.is_ascii_digit() => Ok(Event::Input(InputEvent::TabGoto(
+                char.to_digit(10)
+                    .expect("char.is_ascii_digit() should be able to parse into number")
+                    as u8,
+            ))),
             _ => Err(Error::TuiInternalErr),
         }
     }
 }
 
-impl From<KeyEvent> for Event {
-    fn from(value: KeyEvent) -> Self {
+impl From<KE> for Event {
+    fn from(value: KE) -> Self {
         match (value.modifiers, value.code) {
-            (KeyModifiers::CONTROL, KeyCode::Char('c')) => Self::Quit,
-            (KeyModifiers::CONTROL, KeyCode::Char('d')) => Self::Interface(Input::ToggleDebug),
-            bind @ (modifier, KeyCode::Left | KeyCode::Right | KeyCode::Up | KeyCode::Down) => {
-                Event::Interface(Input::List(ListEvent {
-                    fast: matches!(modifier, KeyModifiers::CONTROL | KeyModifiers::SHIFT),
-                    code: bind.1,
+            (KM::CONTROL, KC::Char('c')) => Self::Quit,
+            (KM::CONTROL, KC::Char('d')) => Self::Input(InputEvent::ToggleDebug),
+            (modi, arrow @ (KC::Left | KC::Right | KC::Up | KC::Down | KC::Enter)) => {
+                Event::Input(InputEvent::List(ListEvent {
+                    fast: matches!(modi, KM::CONTROL | KM::SHIFT),
+                    code: arrow,
                 }))
             }
-            (KeyModifiers::NONE, key_code) => key_code
+            (KM::NONE, key_code) => key_code
                 .try_into()
-                .unwrap_or_else(|_| Self::Interface(Input::Other(value))),
-            _ => Self::Interface(Input::Other(value)),
+                .unwrap_or_else(|_| Self::Input(InputEvent::Other(value))),
+            _ => Self::Input(InputEvent::Other(value)),
         }
     }
 }

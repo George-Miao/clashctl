@@ -67,6 +67,7 @@ pub struct Clash {
     url: Url,
     secret: Option<String>,
     timeout: Option<Duration>,
+    agent: Agent,
 }
 
 impl Clash {
@@ -80,12 +81,13 @@ impl Clash {
             url,
             secret: None,
             timeout: None,
+            agent: Agent::new(),
         }
     }
 
     fn build_request(&self, endpoint: &str, method: &str) -> Result<Request> {
         let url = self.url.join(endpoint).map_err(|_| Error::UrlParseError)?;
-        let mut req = Agent::new().request_url(method, &url);
+        let mut req = self.agent.request_url(method, &url);
 
         if let Some(timeout) = self.timeout {
             req = req.timeout(timeout)
@@ -100,7 +102,7 @@ impl Clash {
 
     fn build_request_without_timeout(&self, endpoint: &str, method: &str) -> Result<Request> {
         let url = self.url.join(endpoint).map_err(|_| Error::UrlParseError)?;
-        let mut req = Agent::new().request_url(method, &url);
+        let mut req = self.agent.request_url(method, &url);
 
         if let Some(ref secret) = self.secret {
             req = req.set("Authorization", &format!("Bearer {}", secret))
@@ -189,6 +191,8 @@ impl Clash {
     }
 
     pub fn get_proxy_delay(&self, proxy: &str, test_url: &str, timeout: u64) -> Result<Delay> {
+        use urlencoding::encode as e;
+        let (proxy, test_url) = (e(proxy), e(test_url));
         self.get(&format!(
             "proxies/{}/delay?url={}&timeout={}",
             proxy, test_url, timeout
@@ -216,7 +220,7 @@ impl<T: DeserializeOwned> LongHaul<T> {
     }
 
     pub fn next_item(&mut self) -> Option<Result<T>> {
-        self.next_raw().map(|x| x.and_then(Convert::convert))
+        Some(self.next_raw()?.and_then(Convert::convert))
     }
 
     pub fn next_raw(&mut self) -> Option<Result<String>> {

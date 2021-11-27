@@ -12,8 +12,9 @@ use crate::{
     model::{History, Proxies, Proxy, ProxyType},
     ui::{
         components::{Consts, Footer, FooterItem, FooterWidget},
+        help_footer,
         utils::{get_block, get_focused_block, get_text_style},
-        ListEvent,
+        Action, ListEvent,
     },
 };
 
@@ -34,7 +35,7 @@ pub enum ProxyGroupFocusStatus {
 }
 
 impl<'a> ProxyGroup<'a> {
-    pub(crate) fn get_summary_widget(&self) -> impl Iterator<Item = Span> {
+    pub fn get_summary_widget(&self) -> impl Iterator<Item = Span> {
         self.members.iter().map(|x| {
             if x.proxy_type.is_normal() {
                 match x.history {
@@ -47,11 +48,7 @@ impl<'a> ProxyGroup<'a> {
         })
     }
 
-    pub(crate) fn get_widget(
-        &'a self,
-        width: usize,
-        status: ProxyGroupFocusStatus,
-    ) -> Vec<Spans<'a>> {
+    pub fn get_widget(&'a self, width: usize, status: ProxyGroupFocusStatus) -> Vec<Spans<'a>> {
         let delimiter = Span::raw(" ");
         let prefix = if matches!(status, ProxyGroupFocusStatus::Focused) {
             Consts::FOCUSED_INDICATOR_SPAN
@@ -212,6 +209,7 @@ pub struct ProxyItem {
     pub proxy_type: ProxyType,
     pub history: Option<History>,
     pub udp: bool,
+    pub now: Option<String>,
 }
 
 impl<'a> From<(&'a str, &'a Proxy)> for ProxyItem {
@@ -222,6 +220,7 @@ impl<'a> From<(&'a str, &'a Proxy)> for ProxyItem {
             proxy_type: proxy.proxy_type,
             history: proxy.history.get(0).cloned(),
             udp: proxy.udp,
+            now: proxy.now.as_ref().map(Into::into),
         }
     }
 }
@@ -240,9 +239,10 @@ impl<'a> From<(&'a str, &'a Proxy)> for ProxyItem {
 // - `T`, `S`, `/` in proxy event handling
 #[derive(Clone, Debug, PartialEq)]
 pub struct ProxyTree<'a> {
-    pub groups: Vec<ProxyGroup<'a>>,
-    pub expanded: bool,
-    pub cursor: usize,
+    groups: Vec<ProxyGroup<'a>>,
+    expanded: bool,
+    cursor: usize,
+    testing: bool,
     footer: Footer<'a>,
 }
 
@@ -253,6 +253,7 @@ impl<'a> Default for ProxyTree<'a> {
             expanded: Default::default(),
             cursor: Default::default(),
             footer: Default::default(),
+            testing: Default::default(),
         };
         ret.update_footer();
         ret
@@ -265,7 +266,12 @@ impl<'a> ProxyTree<'a> {
         self.update_footer();
     }
 
-    pub fn handle(&mut self, event: ListEvent) {
+    pub fn end(&mut self) {
+        self.expanded = false;
+        self.update_footer();
+    }
+
+    pub fn handle(&mut self, event: ListEvent) -> Option<Action> {
         if self.expanded {
             let step = if event.fast { 3 } else { 1 };
             let group = &mut self.groups[self.cursor];
@@ -277,8 +283,16 @@ impl<'a> ProxyTree<'a> {
                 }
                 KeyCode::Down => {
                     let left = group.members.len().saturating_sub(group.cursor + 1);
-                    if left > 0 {
-                        group.cursor += left.min(step)
+
+                    group.cursor += left.min(step)
+                }
+                KeyCode::Right | KeyCode::Enter => {
+                    if group.proxy_type.is_selector() {
+                        let current = group.members[group.cursor].name.to_owned();
+                        return Some(Action::ApplySelection {
+                            group: group.name.to_owned(),
+                            proxy: current,
+                        });
                     }
                 }
                 _ => {}
@@ -295,39 +309,111 @@ impl<'a> ProxyTree<'a> {
                         self.cursor = self.cursor.saturating_add(1)
                     }
                 }
+                KeyCode::Enter => self.expanded = true,
                 _ => {}
             }
         }
+        self.update_footer();
+        None
+    }
+
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.groups.len()
+    }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.groups.is_empty()
+    }
+
+    #[inline]
+    pub fn cursor(&self) -> usize {
+        self.cursor
+    }
+
+    #[inline]
+    pub fn current_group(&self) -> &ProxyGroup {
+        &self.groups[self.cursor]
+    }
+
+    #[inline]
+    pub fn is_testing(&self) -> bool {
+        self.testing
+    }
+
+    #[inline]
+    pub fn start_testing(&mut self) {
+        self.testing = true;
+        self.update_footer()
+    }
+
+    #[inline]
+    pub fn end_testing(&mut self) {
+        self.testing = false;
         self.update_footer()
     }
 
     pub fn update_footer(&mut self) {
         let mut footer = Footer::default();
-        let pointed = match self.groups.get(self.cursor) {
+        let current_group = match self.groups.get(self.cursor) {
             Some(grp) => grp,
             _ => return,
         };
-        let name = pointed.name.clone();
+
         if !self.expanded {
+            let group_name = current_group.name.clone();
             let style = Style::default()
                 .fg(Color::Blue)
                 .add_modifier(Modifier::REVERSED);
-            footer.push_left(FooterItem::span(Span::styled(" SPACE ", style)));
-            footer.push_left(FooterItem::span(Span::styled(" T: Test ", style)));
-            footer.push_right(FooterItem::span(Span::styled(name, style)).wrapped());
+            let highlight = style.add_modifier(Modifier::BOLD);
+
+            let mut left = vec![
+                FooterItem::span(Span::styled(" FREE ", style)),
+                FooterItem::span(Span::styled(" SPACE to expand ", style)),
+                if !self.testing {
+                    FooterItem::spans(help_footer("Test", style, highlight)).wrapped()
+                } else {
+                    FooterItem::span(Span::styled(" Testing ", highlight.fg(Color::Green)))
+                },
+                FooterItem::spans(help_footer("Sort", style, highlight)).wrapped(),
+            ];
+
+            footer.append_left(&mut left);
+
+            let name = FooterItem::span(Span::styled(group_name, style)).wrapped();
+            footer.push_right(name);
+
+            if let Some(now) = current_group.current {
+                footer.push_right(
+                    FooterItem::span(Span::raw(current_group.members[now].name.to_owned()))
+                        .wrapped(),
+                );
+            }
         } else {
             let style = Style::default()
                 .fg(Color::Green)
                 .add_modifier(Modifier::REVERSED);
+            let highlight = style.add_modifier(Modifier::BOLD);
+
             footer.push_left(FooterItem::span(Span::styled(" [^] ▲ ▼ Move ", style)));
-            let ty = &pointed.proxy_type;
-            if ty.is_selector() {
+
+            if current_group.proxy_type.is_selector() {
                 footer.push_left(FooterItem::span(Span::styled(" ▶ Select ", style)));
             }
-            let focused = &pointed.members[pointed.cursor];
-            footer.push_left(FooterItem::span(Span::styled(" T: Test ", style)));
-            footer.push_right(FooterItem::span(Span::styled(name, style)).wrapped());
-            footer.push_right(FooterItem::span(Span::raw(focused.name.to_owned())).wrapped());
+
+            let current_item = &current_group.members[current_group.cursor];
+            footer.push_left(if !self.testing {
+                FooterItem::spans(help_footer("Test", style, highlight)).wrapped()
+            } else {
+                FooterItem::span(Span::styled(" Testing ", highlight.fg(Color::Blue)))
+            });
+
+            footer.push_left(FooterItem::spans(help_footer("Sort", style, highlight)).wrapped());
+
+            if let Some(now) = &current_item.now {
+                footer.push_right(FooterItem::span(Span::raw(now.to_owned())).wrapped());
+            }
         }
         self.footer = footer
     }
@@ -410,15 +496,11 @@ impl<'a> From<Proxies> for ProxyTree<'a> {
 #[derive(Clone, Debug)]
 pub struct ProxyTreeWidget<'a> {
     state: &'a ProxyTree<'a>,
-    _life: PhantomData<&'a ()>,
 }
 
 impl<'a> ProxyTreeWidget<'a> {
     pub fn new(state: &'a ProxyTree<'a>) -> Self {
-        Self {
-            _life: PhantomData,
-            state,
-        }
+        Self { state }
     }
 }
 

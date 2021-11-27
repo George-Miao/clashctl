@@ -33,12 +33,13 @@ cli = [
 ]
 
 ui = [
+  "smart-default",
   "unicode-width",
   "interactive",
   "crossterm",
   "itertools",
   "bytesize",
-  "either",
+  "rayon",
   "tui",
 ]
 
@@ -65,14 +66,15 @@ path = "src/bin/cli_ui.rs"
 required-features = ["cli", "ui"]
 
 [dependencies]
-serde_json = "~1.0"
-thiserror = "~1.0"
-log = { version = "~0.4", features = ["std"] }
-url    = { version = "~2.2", features = ["serde"] }
-serde  = { version = "~1.0", features = ["derive"] }
-chrono = { version = "~0.4", features = ["serde"] }
-semver = { version = "~1.0", features = ["serde"] }
-ureq   = { version = "~2.3", default-features = false }
+serde_json  = "~1.0"
+thiserror   = "~1.0"
+urlencoding = "~2.1"
+log         = { version = "~0.4", features = ["std"] }
+url         = { version = "~2.2", features = ["serde"] }
+serde       = { version = "~1.0", features = ["derive"] }
+chrono      = { version = "~0.4", features = ["serde"] }
+semver      = { version = "~1.0", features = ["serde"] }
+ureq        = { version = "~2.3", default-features = false }
 
 # Dependencies required by both CLI and UI
 clap          = { version = "~3.0.0-beta.5", optional = true }
@@ -94,6 +96,8 @@ tui           = { version = "~0.16.0", optional = true, default-features = false
 bytesize      = { version = "~1.1.0", optional = true }
 unicode-width = { version = "~0.1.9", optional = true }
 itertools     = { version = "~0.10.1", optional = true }
+smart-default = { version = "~0.6.0", optional = true }
+rayon         = { version = "~1.5.1", optional = true }
 
 [dev-dependencies]
 rand = { version = "0.8.4", features = ["small_rng"] }

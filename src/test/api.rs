@@ -40,7 +40,7 @@ fn test_proxy_delay() {
     let proxies = clash.get_proxies().unwrap();
     let (proxy, _) = proxies.iter().next().unwrap();
     clash
-        .get_proxy_delay(proxy, "https://google.com", 10000)
+        .get_proxy_delay(proxy, "http://www.gstatic.com/generate_204", 10000)
         .unwrap();
 }
 

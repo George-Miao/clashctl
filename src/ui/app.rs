@@ -1,13 +1,12 @@
 use std::{
     cell::RefCell,
     io::{self, Stdout},
-    sync::{Arc, Mutex, RwLock},
+    sync::{mpsc::channel, Arc, Mutex, RwLock},
+    thread::spawn,
     time::{Duration, Instant},
 };
-use std::{sync::mpsc::channel, thread::spawn};
 
 use clap::Parser;
-use crossterm::event::{DisableMouseCapture, EnableMouseCapture};
 use crossterm::execute;
 use crossterm::terminal::{
     disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
@@ -17,14 +16,11 @@ use tui::backend::CrosstermBackend;
 use tui::layout::{Constraint, Layout};
 use tui::{Frame, Terminal};
 
-use crate::ui::{
-    components::*,
-    servo::servo,
-    utils::{Interval, Logger, TicksCounter},
-    TuiStates,
+use crate::{
+    interactive::Flags,
+    ui::{components::Tabs, pages::route, Check, Interval, Logger, Servo, TicksCounter, TuiStates},
+    Result,
 };
-use crate::Result;
-use crate::{interactive::Flags, Error};
 
 thread_local!(pub(crate) static TICK_COUNTER: RefCell<TicksCounter> = RefCell::new(TicksCounter::new_with_time(Instant::now())));
 
@@ -38,7 +34,7 @@ pub struct TuiOpt {
         default_value = "5",
         about = "Interval between delay updates, in seconds"
     )]
-    interval: f32,
+    pub interval: f32,
 }
 
 impl TuiOpt {
@@ -56,7 +52,7 @@ impl Default for TuiOpt {
 fn setup() -> Result<Terminal<Backend>> {
     let mut stdout = io::stdout();
 
-    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
+    execute!(stdout, EnterAlternateScreen)?;
     enable_raw_mode()?;
 
     let backend = CrosstermBackend::new(stdout);
@@ -67,11 +63,7 @@ fn setup() -> Result<Terminal<Backend>> {
 }
 
 fn wrap_up(mut terminal: Terminal<Backend>) -> Result<()> {
-    execute!(
-        terminal.backend_mut(),
-        LeaveAlternateScreen,
-        DisableMouseCapture
-    )?;
+    execute!(terminal.backend_mut(), LeaveAlternateScreen,)?;
 
     disable_raw_mode()?;
 
@@ -84,36 +76,52 @@ pub fn main_loop(opt: TuiOpt, flag: Flags) -> Result<()> {
         return Ok(());
     };
 
-    let state = Arc::new(RwLock::new(TuiStates::new()));
+    let state = Arc::new(RwLock::new(TuiStates::default()));
     let error = Arc::new(Mutex::new(None));
 
-    let (tx, rx) = channel();
-    // let flag_clone = flag.clone();
+    let (event_tx, event_rx) = channel();
+    let (action_tx, action_rx) = channel();
 
-    Logger::new(tx.clone()).apply()?;
+    Logger::new(event_tx.clone()).apply()?;
     info!("Logger set");
+    let opt = Arc::new(opt);
+    let flag = Arc::new(flag);
 
-    let back_handle = spawn(move || servo(tx, &opt, &flag));
+    let mut servo = Servo::run(event_tx, action_rx, opt, flag)?;
 
-    let event_state = state.clone();
-    let event_error = error.clone();
+    let event_handler_state = state.clone();
+    let event_handler_error = error.clone();
 
     let handle = spawn(move || {
-        while let Ok(event) = rx.recv() {
-            let is_quit = event.is_quit();
-            let mut state = event_state.write().unwrap();
-            if let Err(e) = state.handle(event) {
-                match event_error.lock() {
-                    Ok(mut write) => write.replace(e),
-                    Err(e) => panic!("Error: {}", e),
-                };
-                break;
+        let mut should_quit;
+        while let Ok(event) = event_rx.recv() {
+            should_quit = event.is_quit();
+            let mut state = event_handler_state.write().unwrap();
+            match state.handle(event) {
+                Ok(Some(action)) => {
+                    if let Err(e) = action_tx.send(action) {
+                        event_handler_error
+                            .lock()
+                            .expect("other thread has panicked")
+                            .replace(e.into());
+                        should_quit = true;
+                    }
+                }
+                // No action needed
+                Ok(None) => {}
+                Err(e) => {
+                    event_handler_error
+                        .lock()
+                        .expect("other thread has panicked")
+                        .replace(e);
+                    should_quit = true;
+                }
             }
-            if is_quit {
+            if should_quit {
                 break;
             }
         }
-        event_state
+        event_handler_state
             .write()
             .map(|mut x| x.should_quit = true)
             .unwrap();
@@ -123,43 +131,32 @@ pub fn main_loop(opt: TuiOpt, flag: Flags) -> Result<()> {
 
     let mut interval = Interval::every(Duration::from_millis(33));
     while let Ok(state) = state.read() {
-        if !back_handle.is_running() {
-            match back_handle.join() {
-                Ok(_) => {}
-                Err(e) => match error.lock() {
-                    Ok(mut write) => {
-                        write.replace(Error::Other(format!("{:?}", e)));
-                    }
-                    Err(e) => panic!("Error: {}", e),
-                },
-            }
+        if !handle.is_running() {
             break;
         }
+
+        if !servo.ok("servo") {
+            break;
+        }
+
         if state.should_quit {
             break;
         }
         TICK_COUNTER.with(|t| t.borrow_mut().new_tick());
         if let Err(e) = terminal.draw(|f| render(&state, f)) {
-            match error.lock() {
-                Ok(mut write) => write.replace(e.into()),
-                Err(e) => panic!("Error: {}", e),
-            };
+            error.lock().unwrap().replace(e.into());
             break;
         }
         drop(state);
         interval.tick();
     }
+    drop(servo);
     drop(handle);
 
     wrap_up(terminal)?;
 
-    match error.lock() {
-        Ok(mut guard) => {
-            if let Some(error) = guard.take() {
-                return Err(error);
-            }
-        }
-        Err(e) => panic!("{}", e),
+    if let Some(error) = error.lock().unwrap().take() {
+        return Err(error);
     }
 
     Ok(())
@@ -175,5 +172,5 @@ fn render(state: &TuiStates, f: &mut Frame<Backend>) {
 
     let main = layout[1];
 
-    state.route(main, f);
+    route(state, main, f);
 }
