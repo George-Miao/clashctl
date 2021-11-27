@@ -19,7 +19,7 @@ Easy-to-use TUI & CLI to interact with [Clash](https://github.com/Dreamacro/clas
 ### From [`crates.io`](https://crates.io)
 
 ```bash
-$ cargo install clashctl --vers 0.3.0-alpha.2 --all-features
+$ cargo install clashctl --vers 0.3.0-alpha.3 --all-features
 ```
 
 ### Compile from source
@@ -161,19 +161,23 @@ Especially the command `just dev`, managed to reproduce the hot reload function 
 
 ### [`Just`](https://github.com/casey/just) commands
 
-#### `just dev`
+#### `just dev` [ alias: `d` ]
 
 Hot reload development, auto reload on `cargo-check` approved changes, with all features enabled
+
+#### `just run {{ Args }}` [ alias: `r` ]
+
+Run with feature cli & ui
 
 #### `just ui`
 
 Run UI only
 
-#### `just run {{ Args }}`
+#### `just cli`
 
-Run with feature cli & ui
+Run CLI only
 
-#### `just build`
+#### `just build` [ alias: `b` ]
 
 Build in release mode with feature cli & ui
 

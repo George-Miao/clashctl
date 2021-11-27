@@ -3,7 +3,7 @@ cargo-features = ["strip"]
 [package]
 name = "clashctl"
 description = "A TUI & CLI to interact with clash RESTful API"
-version = "0.3.0-alpha.2"
+version = "0.3.0-alpha.3"
 authors = ["George Miao <gm@miao.dev>"]
 repository = "https://github.com/George-Miao/clashctl"
 license = "MIT"
