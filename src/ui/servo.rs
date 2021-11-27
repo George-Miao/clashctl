@@ -8,8 +8,9 @@ use std::{
 };
 
 use crossterm::event::Event as CrossTermEvent;
-
 use log::warn;
+use rayon::prelude::*;
+// use rayon::prelude::*;
 
 use crate::{
     interactive::Flags,
@@ -22,7 +23,7 @@ use crate::{
     Clash, Result,
 };
 
-pub trait Check {
+pub(crate) trait Check {
     fn ok(&mut self, indent: &str) -> bool;
 }
 
@@ -60,6 +61,7 @@ pub struct Servo {
     input_handle: Option<JoinHandle<Result<()>>>,
     req_handle: Option<JoinHandle<Result<()>>>,
     log_handle: Option<JoinHandle<Result<()>>>,
+    action_handle: Option<JoinHandle<Result<()>>>,
 }
 
 // TODO change behavior based on opt
@@ -68,16 +70,22 @@ impl Servo {
     pub fn run(
         tx: Sender<Event>,
         rx: Receiver<Action>,
-        opt: &TuiOpt,
-        flags: &Flags,
+        opt: Arc<TuiOpt>,
+        flags: Arc<Flags>,
     ) -> Result<Self> {
         let clash = flags.connect_server_from_config()?;
         let clash = Arc::new(clash);
         let this = Self {
+            input_handle: Some(Self::input_job(tx.clone())),
             traffic_handle: Some(Self::traffic_job(tx.clone(), clash.clone())),
-            req_handle: Some(Self::req_job(tx.clone(), clash.clone())),
-            log_handle: Some(Self::log_job(tx.clone(), clash)),
-            input_handle: Some(Self::input_job(tx)),
+            log_handle: Some(Self::log_job(tx.clone(), clash.clone())),
+            req_handle: Some(Self::req_job(
+                opt.clone(),
+                flags.clone(),
+                tx.clone(),
+                clash.clone(),
+            )),
+            action_handle: Some(Self::action_job(opt, flags, tx, rx, clash)),
         };
         Ok(this)
     }
@@ -98,7 +106,12 @@ impl Servo {
         })
     }
 
-    fn req_job(tx: Sender<Event>, clash: Arc<Clash>) -> JoinHandle<Result<()>> {
+    fn req_job(
+        _opt: Arc<TuiOpt>,
+        _flags: Arc<Flags>,
+        tx: Sender<Event>,
+        clash: Arc<Clash>,
+    ) -> JoinHandle<Result<()>> {
         spawn(move || {
             let mut interval = Interval::every(Duration::from_millis(50));
             let mut connection_pulse = Pulse::new(20); // Every 1 s
@@ -150,6 +163,54 @@ impl Servo {
             }
         })
     }
+
+    fn action_job(
+        opt: Arc<TuiOpt>,
+        flags: Arc<Flags>,
+        tx: Sender<Event>,
+        rx: Receiver<Action>,
+        clash: Arc<Clash>,
+    ) -> JoinHandle<Result<()>> {
+        spawn(move || {
+            while let Ok(action) = rx.recv() {
+                match action {
+                    Action::TestLatency { proxies } => {
+                        let result = proxies
+                            .par_iter()
+                            .filter_map(|proxy| {
+                                clash
+                                    .get_proxy_delay(proxy, flags.test_url.as_str(), flags.timeout)
+                                    .err()
+                            })
+                            .collect::<Vec<_>>();
+
+                        let count = result.len();
+
+                        if count != 0 {
+                            warn!("({}) error(s) during test proxy delay", count);
+                            warn!(
+                                "   {}",
+                                result
+                                    .into_iter()
+                                    .map(|x| x.to_string())
+                                    .collect::<Vec<_>>()
+                                    .join(" ")
+                            )
+                        }
+
+                        tx.send(Event::Update(UpdateEvent::Proxies(clash.get_proxies()?)))?;
+                    }
+                    Action::ApplySelection { group, proxy } => {
+                        let _ = clash
+                            .set_proxygroup_selected(&group, &proxy)
+                            .map_err(|e| warn!("{:?}", e));
+                        tx.send(Event::Update(UpdateEvent::Proxies(clash.get_proxies()?)))?;
+                    }
+                }
+            }
+            Ok(())
+        })
+    }
 }
 
 impl Check for Servo {
@@ -158,5 +219,6 @@ impl Check for Servo {
             && self.traffic_handle.ok("traffic")
             && self.log_handle.ok("log")
             && self.req_handle.ok("request")
+            && self.action_handle.ok("action")
     }
 }

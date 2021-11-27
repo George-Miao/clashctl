@@ -1,16 +1,12 @@
 use std::time::Instant;
 
 use smart_default::SmartDefault;
-use tui::{layout::Rect, Frame};
 
 use crate::{
     model::{Traffic, Version},
     ui::{
         components::{MovableListItem, MovableListState, ProxyTree},
-        pages::{
-            ConfigPage, ConnectionsPage, DebugPage, LogPage, ProxiesPage, RulesPage, StatusPage,
-        },
-        Backend, Event, Input, UpdateEvent,
+        Action, Event, InputEvent, UpdateEvent,
     },
     Result,
 };
@@ -25,25 +21,27 @@ pub struct TuiStates<'a> {
     pub max_traffic: Traffic,
     pub events: Vec<Event>,
     pub all_events_recv: usize,
-    pub page_index: usize,
+    pub page_index: u8,
     pub show_debug: bool,
     pub proxy_tree: ProxyTree<'a>,
     pub debug_state: MovableListState<'a>,
     pub log_state: MovableListState<'a>,
     pub con_state: MovableListState<'a>,
     pub rule_state: MovableListState<'a>,
+    // (upload_size, download_size)
     pub con_size: (u64, u64),
 }
 
+// TODO fix: drop_events not working
 impl<'a> TuiStates<'a> {
     pub const TITLES: &'static [&'static str] = &[
         "Status", "Proxies", "Rules", "Conns", "Logs", "Configs", "Debug",
     ];
 
-    pub fn handle(&mut self, event: Event) -> Result<()> {
+    pub fn handle(&mut self, event: Event) -> Result<Option<Action>> {
         self.all_events_recv += 1;
         if self.events.len() >= 300 {
-            let _ = self.drop_events(100);
+            drop(self.drop_events(100))
         }
         self.events.push(event.to_owned());
         self.debug_state
@@ -52,11 +50,11 @@ impl<'a> TuiStates<'a> {
         match event {
             Event::Quit => {
                 self.should_quit = true;
-                Ok(())
+                Ok(None)
             }
-            Event::Interface(event) => self.handle_input(event),
+            Event::Input(event) => self.handle_input(event),
             Event::Update(update) => self.handle_update(update),
-            _ => Ok(()),
+            _ => Ok(None),
         }
     }
 
@@ -71,7 +69,7 @@ impl<'a> TuiStates<'a> {
 
     #[inline]
     pub fn title(&self) -> &str {
-        Self::TITLES[self.page_index]
+        Self::TITLES[self.page_index as usize]
     }
 
     pub fn active_list_state(&mut self) -> Option<&mut MovableListState<'a>> {
@@ -107,26 +105,26 @@ impl<'a> TuiStates<'a> {
             UpdateEvent::Rules(rules) => self.rule_state.merge(rules.into()),
             UpdateEvent::ProxyTestLatencyDone => self.proxy_tree.end_testing(),
         }
-        Ok(())
+        Ok(None)
     }
 
-    fn handle_input(&mut self, event: Input) -> Result<()> {
+    fn handle_input(&mut self, event: InputEvent) -> Result<Option<Action>> {
         match event {
-            Input::TabGoto(index) => {
-                if index >= 1 && index <= self.page_len() {
+            InputEvent::TabGoto(index) => {
+                if index >= 1 && index <= self.page_len() as u8 {
                     self.page_index = index - 1
                 }
             }
-            Input::ToggleDebug => {
+            InputEvent::ToggleDebug => {
                 self.show_debug = !self.show_debug;
                 // On the debug page
-                if self.page_index == Self::TITLES.len() - 1 {
+                if self.page_index == Self::TITLES.len() as u8 - 1 {
                     self.page_index -= 1;
                 } else if self.show_debug {
                     self.page_index = self.debug_page_index()
                 }
             }
-            Input::ToggleHold => match self.active_list_state() {
+            InputEvent::ToggleHold => match self.active_list_state() {
                 Some(state) => state.toggle(),
                 None => {
                     if self.title() == "Proxies" {
@@ -134,7 +132,7 @@ impl<'a> TuiStates<'a> {
                     }
                 }
             },
-            Input::List(event) => match self.active_list_state() {
+            InputEvent::List(event) => match self.active_list_state() {
                 Some(state) => state.handle(event),
                 None => {
                     if self.title() == "Proxies" {
@@ -163,8 +161,8 @@ impl<'a> TuiStates<'a> {
         Ok(None)
     }
 
-    pub fn debug_page_index(&self) -> usize {
-        Self::TITLES.len() - 1
+    pub const fn debug_page_index(&self) -> u8 {
+        Self::TITLES.len() as u8 - 1
     }
 
     fn drop_events(&mut self, num: usize) -> impl Iterator<Item = Event> + '_ {
