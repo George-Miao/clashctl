@@ -1,4 +1,4 @@
-use crate::interactive::SortOrder;
+use crate::interactive::{EndlessSelf, SortOrder};
 
 #[derive(
     Debug,
@@ -52,7 +52,7 @@ impl ProxySort {
     #[inline]
     pub fn by_name_asc() -> Self {
         Self {
-            by: ProxySortBy::Type,
+            by: ProxySortBy::Name,
             order: SortOrder::Ascendant,
         }
     }
@@ -90,13 +90,12 @@ impl ProxySort {
     }
 }
 
-impl Iterator for ProxySort {
-    type Item = Self;
-    fn next(&mut self) -> Option<Self::Item> {
+impl EndlessSelf for ProxySort {
+    fn next_self(self) -> Self {
         use ProxySortBy::*;
         use SortOrder::*;
 
-        let ret = match (self.by, self.order) {
+        match (self.by, self.order) {
             (Name, Ascendant) => Self {
                 by: Name,
                 order: Descendant,
@@ -121,17 +120,13 @@ impl Iterator for ProxySort {
                 by: Name,
                 order: Ascendant,
             },
-        };
-        Some(ret)
+        }
     }
-}
-
-impl DoubleEndedIterator for ProxySort {
-    fn next_back(&mut self) -> Option<Self::Item> {
+    fn prev_self(self) -> Self {
         use ProxySortBy::*;
         use SortOrder::*;
 
-        let ret = match (self.by, self.order) {
+        match (self.by, self.order) {
             (Name, Ascendant) => Self {
                 by: Delay,
                 order: Descendant,
@@ -156,8 +151,7 @@ impl DoubleEndedIterator for ProxySort {
                 by: Delay,
                 order: Ascendant,
             },
-        };
-        Some(ret)
+        }
     }
 }
 
@@ -176,6 +170,6 @@ impl ToString for ProxySort {
 
 impl Default for ProxySort {
     fn default() -> Self {
-        Self::by_name_asc()
+        Self::by_delay_asc()
     }
 }
