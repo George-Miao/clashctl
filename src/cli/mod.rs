@@ -1,9 +1,3 @@
-mod command;
-mod proxy_render;
+use crate::mod_use;
 
-mod utils;
-
-pub use command::*;
-pub use proxy_render::*;
-
-pub use utils::*;
+mod_use!(command, proxy_render, utils);

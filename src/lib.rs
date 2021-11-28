@@ -8,16 +8,9 @@
 #![feature(generic_associated_types)]
 #![feature(associated_type_defaults)]
 
-#[cfg(test)]
-mod test;
-
-mod api;
-mod error;
+mod_use!(api, error);
 
 pub mod model;
-
-pub use api::*;
-pub use error::*;
 
 #[cfg(feature = "cli")]
 pub mod cli;
@@ -27,3 +20,39 @@ pub mod interactive;
 
 #[cfg(feature = "ui")]
 pub mod ui;
+
+#[cfg(test)]
+mod test;
+
+#[macro_export]
+macro_rules! mod_use {
+    ($($name:ident $(,)?)+) => {
+        $(
+            mod $name;
+        )+
+
+        $(
+            pub use $name::*;
+        )+
+    };
+}
+
+#[macro_export]
+macro_rules! define_widget {
+    ($name:ident) => {
+        #[derive(Clone, Debug)]
+        pub struct $name<'a> {
+            state: &'a $crate::ui::TuiStates<'a>,
+            _life: ::std::marker::PhantomData<&'a ()>,
+        }
+
+        impl<'a> $name<'a> {
+            pub fn new(state: &'a $crate::ui::TuiStates<'a>) -> Self {
+                Self {
+                    _life: ::std::marker::PhantomData,
+                    state,
+                }
+            }
+        }
+    };
+}
