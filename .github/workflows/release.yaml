@@ -24,7 +24,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --features cli --release
+          args: --all-features --release
 
       - name: Rename builds
         run: |
