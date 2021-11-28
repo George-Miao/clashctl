@@ -91,11 +91,11 @@ impl ProxySort {
 }
 
 impl EndlessSelf for ProxySort {
-    fn next_self(self) -> Self {
+    fn next_self(&mut self) {
         use ProxySortBy::*;
         use SortOrder::*;
 
-        match (self.by, self.order) {
+        *self = match (self.by, self.order) {
             (Name, Ascendant) => Self {
                 by: Name,
                 order: Descendant,
@@ -122,11 +122,11 @@ impl EndlessSelf for ProxySort {
             },
         }
     }
-    fn prev_self(self) -> Self {
+    fn prev_self(&mut self) {
         use ProxySortBy::*;
         use SortOrder::*;
 
-        match (self.by, self.order) {
+        *self = match (self.by, self.order) {
             (Name, Ascendant) => Self {
                 by: Delay,
                 order: Descendant,

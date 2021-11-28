@@ -10,8 +10,8 @@ pub trait SortMethod<Item> {
 }
 
 pub trait EndlessSelf {
-    fn next_self(self) -> Self;
-    fn prev_self(self) -> Self;
+    fn next_self(&mut self);
+    fn prev_self(&mut self);
 }
 
 #[derive(
@@ -49,13 +49,9 @@ impl<Item> SortMethod<Item> for Noop {
 }
 
 impl EndlessSelf for Noop {
-    fn next_self(self) -> Self {
-        Noop
-    }
+    fn next_self(&mut self) {}
 
-    fn prev_self(self) -> Self {
-        Noop
-    }
+    fn prev_self(&mut self) {}
 }
 
 impl<T, F> SortMethod<T> for F
