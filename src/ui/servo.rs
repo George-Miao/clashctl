@@ -10,7 +10,6 @@ use std::{
 use crossterm::event::Event as CrossTermEvent;
 use log::warn;
 use rayon::prelude::*;
-// use rayon::prelude::*;
 
 use crate::{
     interactive::Flags,

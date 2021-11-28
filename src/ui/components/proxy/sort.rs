@@ -1,34 +1,32 @@
+use std::cmp::Ordering;
+
 use crate::{
     interactive::{ProxySort, ProxySortBy, SortMethod, SortOrder, Sortable},
     ui::components::{ProxyGroup, ProxyItem, ProxyTree},
 };
-
-// impl<'a> ProxyGroup<'a> {
-//     pub fn sort_by(&mut self, sort_method: ProxySort) {
-//         let vec = &mut self.members;
-//         match sort_method.by {
-//             ProxySortBy::Name => vec.sort_by(|a, b| a.name.cmp(&b.name)),
-//             ProxySortBy::Type => vec.sort_by_cached_key(|x| x.proxy_type),
-//             ProxySortBy::Delay => vec.sort_by_cached_key(|x| x.delay()),
-//         };
-//         if matches!(sort_method.order, SortOrder::Descendant) {
-//             vec.reverse()
-//         }
-//     }
-// }
-
-// impl<'a> ProxyTree<'a> {
-//     pub fn sort_groups_by(&mut self, sort_method: ProxySort) {
-//         self.groups.iter_mut().for_each(|x| x.sort_by(sort_method))
-//     }
-// }
 
 impl SortMethod<ProxyItem> for ProxySort {
     fn sort_fn(&self, a: &ProxyItem, b: &ProxyItem) -> std::cmp::Ordering {
         let cmp = match self.by() {
             ProxySortBy::Name => a.name.cmp(&b.name),
             ProxySortBy::Type => a.proxy_type.cmp(&b.proxy_type),
-            ProxySortBy::Delay => a.delay().cmp(&b.delay()),
+            ProxySortBy::Delay => {
+                use Ordering::{Equal as Eq, Greater as Gt, Less as Lt};
+                match (a.delay(), b.delay()) {
+                    (None, Some(_)) => Gt,
+                    (Some(_), None) => Lt,
+                    (Some(aa), Some(bb)) => {
+                        if aa == 0 {
+                            Gt
+                        } else if bb == 0 {
+                            Lt
+                        } else {
+                            aa.cmp(&bb)
+                        }
+                    }
+                    (None, None) => Eq,
+                }
+            }
         };
         if matches!(self.order(), SortOrder::Descendant) {
             cmp.reverse()
@@ -41,7 +39,19 @@ impl SortMethod<ProxyItem> for ProxySort {
 impl<'a> Sortable<'a, ProxySort> for ProxyGroup<'a> {
     type Item<'b> = ProxyItem;
     fn sort_with(&mut self, method: ProxySort) {
-        self.members.sort_by(|a, b| method.sort_fn(a, b))
+        let pointed = &self.members[self.cursor].name.clone();
+        let current = self.current.map(|x| self.members[x].name.clone());
+        self.members.sort_by(|a, b| method.sort_fn(a, b));
+        for (i, ProxyItem { name, .. }) in self.members.iter().enumerate() {
+            if name == pointed {
+                self.cursor = i;
+            }
+            if let Some(ref x) = current {
+                if name == x {
+                    self.current = Some(i)
+                }
+            }
+        }
     }
 }
 
