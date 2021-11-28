@@ -115,17 +115,17 @@ impl<'a> ProxyTree<'a> {
     }
 
     pub fn next_sort(&mut self) -> &mut Self {
-        let method = self.sort_method.next_self();
+        self.sort_method.next_self();
+        let method = self.sort_method;
         self.sort_with(&method);
-        self.sort_method = method;
         self.update_footer();
         self
     }
 
     pub fn prev_sort(&mut self) -> &mut Self {
-        let method = self.sort_method.prev_self();
+        self.sort_method.prev_self();
+        let method = self.sort_method;
         self.sort_with(&method);
-        self.sort_method = method;
         self.update_footer();
         self
     }

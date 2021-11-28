@@ -5,7 +5,6 @@ use tui::{
     text::{Span, Spans},
     widgets::Widget,
 };
-use unicode_width::UnicodeWidthStr;
 
 use crate::ui::Wrap;
 
@@ -218,16 +217,6 @@ enum FooterItemInner<'a> {
     Raw(String),
     Span(Span<'a>),
     Spans(Spans<'a>),
-}
-
-impl<'a> FooterItemInner<'a> {
-    pub fn width(&self) -> usize {
-        match self {
-            FooterItemInner::Raw(raw) => raw.width(),
-            FooterItemInner::Span(span) => span.width(),
-            FooterItemInner::Spans(spans) => spans.width(),
-        }
-    }
 }
 
 impl<'a> From<FooterItemInner<'a>> for Spans<'a> {

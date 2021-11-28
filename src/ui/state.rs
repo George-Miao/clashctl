@@ -3,9 +3,9 @@ use std::{collections::HashMap, time::Instant};
 use smart_default::SmartDefault;
 
 use crate::{
-    model::{Traffic, Version},
+    model::{Connection, Log, Rule, Traffic, Version},
     ui::{
-        components::{MovableListItem, MovableListState, ProxyTree},
+        components::{MovableListManage, MovableListState, ProxyTree},
         Action, Event, InputEvent, UpdateEvent,
     },
     Result,
@@ -24,13 +24,19 @@ pub struct TuiStates<'a> {
     pub page_index: u8,
     pub show_debug: bool,
     pub proxy_tree: ProxyTree<'a>,
-    pub debug_state: MovableListState<'a>,
-    pub log_state: MovableListState<'a>,
-    pub con_state: MovableListState<'a>,
-    pub rule_state: MovableListState<'a>,
     pub rule_freq: HashMap<String, usize>,
     // (upload_size, download_size)
     pub con_size: (u64, u64),
+
+    #[default(_code = "{ 
+        let mut ret = MovableListState::default(); 
+        ret.with_index().dsc_index(); 
+        ret 
+    }")]
+    pub log_state: MovableListState<'a, Log>,
+    pub con_state: MovableListState<'a, Connection>,
+    pub rule_state: MovableListState<'a, Rule>,
+    pub debug_state: MovableListState<'a, Event>,
 }
 
 // TODO fix: drop_events not working
@@ -45,8 +51,7 @@ impl<'a> TuiStates<'a> {
             drop(self.drop_events(100))
         }
         self.events.push(event.to_owned());
-        self.debug_state
-            .push(MovableListItem::Spans((&event).into()));
+        // self.debug_state.push(event);
 
         match event {
             Event::Quit => {
@@ -73,21 +78,12 @@ impl<'a> TuiStates<'a> {
         Self::TITLES[self.page_index as usize]
     }
 
-    pub fn active_list_state(&mut self) -> Option<&mut MovableListState<'a>> {
-        match self.title() {
-            "Logs" => Some(&mut self.log_state),
-            "Debug" => Some(&mut self.debug_state),
-            "Rules" => Some(&mut self.rule_state),
-            "Conns" => Some(&mut self.con_state),
-            _ => None,
-        }
-    }
-
     fn handle_update(&mut self, update: UpdateEvent) -> Result<Option<Action>> {
         match update {
             UpdateEvent::Connection(connection) => {
                 self.con_size = (connection.upload_total, connection.download_total);
-                self.con_state.merge(connection.into());
+                self.con_state.sorted_merge(connection.connections);
+                self.con_state.with_index();
             }
             UpdateEvent::Version(version) => self.version = Some(version),
             UpdateEvent::Traffic(traffic) => {
@@ -101,12 +97,11 @@ impl<'a> TuiStates<'a> {
                 new_tree.sort_groups_with_frequency(&self.rule_freq);
                 self.proxy_tree.replace_with(new_tree);
             }
-            UpdateEvent::Log(log) => {
-                self.log_state.push(MovableListItem::Spans(log.into()));
-            }
+            UpdateEvent::Log(log) => self.log_state.push(log),
             UpdateEvent::Rules(rules) => {
                 self.rule_freq = rules.owned_frequency();
-                self.rule_state.merge(rules.into());
+                self.rule_state.sorted_merge(rules.rules);
+                self.rule_state.with_index();
             }
             UpdateEvent::ProxyTestLatencyDone => {
                 self.proxy_tree.end_testing();
@@ -131,22 +126,9 @@ impl<'a> TuiStates<'a> {
                     self.page_index = self.debug_page_index()
                 }
             }
-            InputEvent::ToggleHold => match self.active_list_state() {
-                Some(state) => state.toggle(),
-                None => {
-                    if self.title() == "Proxies" {
-                        self.proxy_tree.toggle();
-                    }
-                }
-            },
-            InputEvent::List(event) => match self.active_list_state() {
-                Some(state) => state.handle(event),
-                None => {
-                    if self.title() == "Proxies" {
-                        return Ok(self.proxy_tree.handle(event));
-                    }
-                }
-            },
+            InputEvent::Esc => {}
+            InputEvent::ToggleHold => {}
+            InputEvent::List(list_event) => {}
             InputEvent::TestLatency => {
                 if self.title() == "Proxies" && !self.proxy_tree.is_testing() {
                     self.proxy_tree.start_testing();
@@ -160,17 +142,14 @@ impl<'a> TuiStates<'a> {
                     return Ok(Some(Action::TestLatency { proxies }));
                 }
             }
-            InputEvent::Esc => match self.active_list_state() {
-                Some(state) => state.end(),
-                None => {
-                    if self.title() == "Proxies" {
-                        self.proxy_tree.end();
-                    }
-                }
-            },
-            InputEvent::Sort => {
+            InputEvent::NextSort => {
                 if self.title() == "Proxies" {
                     self.proxy_tree.next_sort();
+                }
+            }
+            InputEvent::PrevSort => {
+                if self.title() == "Proxies" {
+                    self.proxy_tree.prev_sort();
                 }
             }
             InputEvent::Other(_) => {} // InterfaceEvent::Other(event) => self.handle_list(event),

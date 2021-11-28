@@ -10,7 +10,7 @@ use tui::{
 use crate::{
     define_widget,
     ui::{
-        components::Traffics,
+        components::{MovableListManage, Traffics},
         utils::{get_block, get_text_style},
     },
 };

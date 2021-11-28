@@ -9,11 +9,11 @@ use tui::{
 
 use crate::{
     model::{Connections, Log, Proxies, Rules, Traffic, Version},
-    ui::utils::AsColor,
+    ui::{components::MovableListItem, utils::AsColor},
     Error, Result,
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum Event {
     Quit,
@@ -22,9 +22,9 @@ pub enum Event {
     Diagnostic(DiagnosticEvent),
 }
 
-impl<'a, 'b> From<&Event> for Spans<'a> {
-    fn from(val: &Event) -> Self {
-        match val {
+impl<'a> MovableListItem<'a> for Event {
+    fn to_spans(&self) -> Spans<'a> {
+        match self {
             Event::Quit => Spans(vec![]),
             Event::Update(event) => Spans(vec![
                 Span::styled("⇵  ", Style::default().fg(Color::Yellow)),
@@ -65,7 +65,7 @@ impl Event {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum InputEvent {
     Esc,
@@ -74,17 +74,18 @@ pub enum InputEvent {
     ToggleHold,
     List(ListEvent),
     TestLatency,
-    Sort,
+    NextSort,
+    PrevSort,
     Other(KE),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ListEvent {
     pub fast: bool,
     pub code: KC,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum UpdateEvent {
     Connection(Connections),
@@ -110,7 +111,7 @@ impl Display for UpdateEvent {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum DiagnosticEvent {
     Log(Level, String),
@@ -122,7 +123,6 @@ impl TryFrom<KC> for Event {
         match value {
             KC::Char('q') | KC::Char('x') => Ok(Event::Quit),
             KC::Char('t') => Ok(Event::Input(InputEvent::TestLatency)),
-            KC::Char('s') => Ok(Event::Input(InputEvent::Sort)),
             KC::Esc => Ok(Event::Input(InputEvent::Esc)),
             KC::Char(' ') => Ok(Event::Input(InputEvent::ToggleHold)),
             KC::Char(char) if char.is_ascii_digit() => Ok(Event::Input(InputEvent::TabGoto(
@@ -146,6 +146,8 @@ impl From<KE> for Event {
                     code: arrow,
                 }))
             }
+            (KM::ALT, KC::Char('s')) => Self::Input(InputEvent::PrevSort),
+            (KM::NONE, KC::Char('s')) => Self::Input(InputEvent::NextSort),
             (KM::NONE, key_code) => key_code
                 .try_into()
                 .unwrap_or_else(|_| Self::Input(InputEvent::Other(value))),
