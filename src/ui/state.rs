@@ -3,7 +3,6 @@ use std::{collections::HashMap, time::Instant};
 use smart_default::SmartDefault;
 
 use crate::{
-    interactive::ProxySort,
     model::{Traffic, Version},
     ui::{
         components::{MovableListItem, MovableListState, ProxyTree},
@@ -25,7 +24,6 @@ pub struct TuiStates<'a> {
     pub page_index: u8,
     pub show_debug: bool,
     pub proxy_tree: ProxyTree<'a>,
-    pub proxy_sort: ProxySort,
     pub debug_state: MovableListState<'a>,
     pub log_state: MovableListState<'a>,
     pub con_state: MovableListState<'a>,
@@ -100,7 +98,7 @@ impl<'a> TuiStates<'a> {
             }
             UpdateEvent::Proxies(proxies) => {
                 let mut new_tree = Into::<ProxyTree>::into(proxies);
-                new_tree.sort_with_frequency(&self.rule_freq);
+                new_tree.sort_groups_with_frequency(&self.rule_freq);
                 self.proxy_tree.replace_with(new_tree);
             }
             UpdateEvent::Log(log) => {
@@ -170,7 +168,11 @@ impl<'a> TuiStates<'a> {
                     }
                 }
             },
-            InputEvent::Sort => {}
+            InputEvent::Sort => {
+                if self.title() == "Proxies" {
+                    self.proxy_tree.next_sort();
+                }
+            }
             InputEvent::Other(_) => {} // InterfaceEvent::Other(event) => self.handle_list(event),
         }
         Ok(None)

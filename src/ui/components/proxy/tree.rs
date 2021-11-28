@@ -8,10 +8,11 @@ use tui::{
 };
 
 use crate::{
+    interactive::{ProxySort, Sortable},
     model::Proxies,
     ui::{
         components::{Footer, FooterItem, ProxyGroup, ProxyItem},
-        help_footer, Action, ListEvent,
+        help_footer, Action, ListEvent, Wrap,
     },
 };
 
@@ -34,6 +35,7 @@ pub struct ProxyTree<'a> {
     pub(super) cursor: usize,
     pub(super) testing: bool,
     pub(super) footer: Footer<'a>,
+    sort_method: ProxySort,
 }
 
 impl<'a> Default for ProxyTree<'a> {
@@ -44,6 +46,7 @@ impl<'a> Default for ProxyTree<'a> {
             cursor: Default::default(),
             footer: Default::default(),
             testing: Default::default(),
+            sort_method: Default::default(),
         };
         ret.update_footer();
         ret
@@ -100,7 +103,7 @@ impl<'a> ProxyTree<'a> {
         self.update_footer()
     }
 
-    pub fn sort_with_frequency(&mut self, freq: &HashMap<String, usize>) -> &mut Self {
+    pub fn sort_groups_with_frequency(&mut self, freq: &HashMap<String, usize>) -> &mut Self {
         self.groups
             .sort_by(|a, b| match (freq.get(&a.name), freq.get(&b.name)) {
                 (Some(a_freq), Some(b_freq)) => b_freq.cmp(a_freq),
@@ -108,6 +111,28 @@ impl<'a> ProxyTree<'a> {
                 (None, Some(_)) => Ordering::Greater,
                 (None, None) => a.name.cmp(&b.name),
             });
+        self
+    }
+
+    pub fn next_sort(&mut self) -> &mut Self {
+        let method = self
+            .sort_method
+            .next()
+            .expect("ProxySort is an infinite Iterator");
+        self.sort_with(method);
+        self.sort_method = method;
+        self.update_footer();
+        self
+    }
+
+    pub fn next_back_sort(&mut self) -> &mut Self {
+        let method = self
+            .sort_method
+            .next_back()
+            .expect("ProxySort is an infinite Iterator");
+        self.sort_with(method);
+        self.sort_method = method;
+        self.update_footer();
         self
     }
 
@@ -164,12 +189,21 @@ impl<'a> ProxyTree<'a> {
             _ => return self,
         };
 
+        let sort_style = Style::default()
+            .fg(Color::White)
+            .add_modifier(Modifier::REVERSED);
+
+        let sort_method = Span::styled(self.sort_method.to_string().wrapped(), sort_style);
+
         if !self.expanded {
             let group_name = current_group.name.clone();
             let style = Style::default()
                 .fg(Color::Blue)
                 .add_modifier(Modifier::REVERSED);
+
             let highlight = style.add_modifier(Modifier::BOLD);
+            let mut sort = help_footer("Sort", style, highlight).wrapped();
+            sort.0.push(sort_method);
 
             let mut left = vec![
                 FooterItem::span(Span::styled(" FREE ", style)),
@@ -179,7 +213,7 @@ impl<'a> ProxyTree<'a> {
                 } else {
                     FooterItem::span(Span::styled(" Testing ", highlight.fg(Color::Green)))
                 },
-                FooterItem::spans(help_footer("Sort", style, highlight)).wrapped(),
+                FooterItem::spans(sort),
             ];
 
             footer.append_left(&mut left);
@@ -212,7 +246,9 @@ impl<'a> ProxyTree<'a> {
                 FooterItem::span(Span::styled(" Testing ", highlight.fg(Color::Blue)))
             });
 
-            footer.push_left(FooterItem::spans(help_footer("Sort", style, highlight)).wrapped());
+            let mut sort = help_footer("Sort", style, highlight).wrapped();
+            sort.0.push(sort_method);
+            footer.push_left(FooterItem::spans(sort));
 
             if let Some(now) = &current_item.now {
                 footer.push_right(FooterItem::span(Span::raw(now.to_owned())).wrapped());
@@ -223,10 +259,6 @@ impl<'a> ProxyTree<'a> {
     }
 
     pub fn replace_with(&mut self, mut new_tree: ProxyTree<'a>) -> &mut Self {
-        if self == &new_tree {
-            return self;
-        }
-        new_tree.expanded = self.expanded;
         // let map = HashMap::<_, _, RandomState>::from_iter(self.groups.iter().map(|x| (&x.name, x)));
         let old_groups = &self.groups;
         let current_group = self.groups.get(self.cursor);
@@ -248,7 +280,8 @@ impl<'a> ProxyTree<'a> {
                     .unwrap_or_default()
             }
         }
-        *self = new_tree;
+        self.groups = new_tree.groups;
+        self.sort_with(self.sort_method);
         self.update_footer()
     }
 }

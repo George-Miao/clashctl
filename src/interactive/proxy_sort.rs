@@ -164,11 +164,11 @@ impl DoubleEndedIterator for ProxySort {
 impl ToString for ProxySort {
     fn to_string(&self) -> String {
         format!(
-            "{}{}",
+            "{} {}",
             self.by,
             match self.order {
-                SortOrder::Ascendant => "Asc",
-                SortOrder::Descendant => "Dsc",
+                SortOrder::Ascendant => "▲",
+                SortOrder::Descendant => "▼",
             }
         )
     }
