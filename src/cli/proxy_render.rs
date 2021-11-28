@@ -39,7 +39,7 @@ impl Proxies {
         let mut list = self.iter().collect::<Vec<_>>();
         let sort_method = ProxySort::new(opt.sort_by, opt.sort_order);
 
-        list.sort_with(sort_method);
+        list.sort_with(&sort_method);
 
         let iter = if opt.reverse {
             Either::Left(list.into_iter().rev())
@@ -98,7 +98,7 @@ impl Proxies {
                 .iter()
                 .map(|member_name| self.iter().find(|(name, _)| &member_name == name).unwrap())
                 .collect::<Vec<_>>();
-            members.sort_with(sort_method);
+            members.sort_with(&sort_method);
             for (
                 name,
                 Proxy {
@@ -145,13 +145,5 @@ impl SortMethod<(&String, &Proxy)> for ProxySort {
             SortOrder::Ascendant => ret,
             SortOrder::Descendant => ret.reverse(),
         }
-    }
-}
-
-impl<'a> Sortable<'a, ProxySort> for Vec<(&String, &Proxy)> {
-    type Item<'b> = (&'b String, &'b Proxy);
-
-    fn sort_with(&mut self, method: ProxySort) {
-        self.sort_by(|a, b| method.sort_fn(a, b))
     }
 }

@@ -3,6 +3,7 @@
 #![feature(extend_one)]
 #![feature(int_abs_diff)]
 #![feature(slice_group_by)]
+#![feature(assert_matches)]
 #![feature(thread_is_running)]
 #![feature(exclusive_range_pattern)]
 #![feature(generic_associated_types)]

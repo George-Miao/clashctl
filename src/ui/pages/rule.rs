@@ -9,6 +9,7 @@ use tui::{
 
 use crate::{
     define_widget,
+    interactive::{EndlessSelf, SortMethod, SortOrder},
     model::{Rule, RuleType, Rules},
     ui::{
         components::{MovableList, MovableListItem, MovableListState},
@@ -43,23 +44,14 @@ impl AsColor for RuleType {
     }
 }
 
-impl<'a> From<Rules> for MovableListState<'a> {
+impl<'a> From<Rules> for MovableListState<'a, Rule, RuleSort> {
     fn from(val: Rules) -> Self {
-        let items = val
-            .rules
-            .into_iter()
-            .enumerate()
-            .map(|(i, x)| x.into_list_item(i + 1))
-            .rev()
-            .collect::<Vec<_>>();
-        let mut ret = Self::default();
-        ret.set_items(items);
-        ret
+        Self::new_with_sort(val.rules, RuleSort::noop())
     }
 }
 
-impl Rule {
-    pub fn into_list_item<'a>(self, index: usize) -> MovableListItem<'a> {
+impl<'a> MovableListItem<'a> for Rule {
+    fn to_spans(&self) -> Spans<'a> {
         let type_color = self.rule_type.as_color();
         let name_color = if self.proxy == "DIRECT" || self.proxy == "REJECT" {
             Color::DarkGray
@@ -69,17 +61,16 @@ impl Rule {
         let gray = Style::default().fg(Color::DarkGray);
         let r_type: &'static str = self.rule_type.into();
         let dash: String = "─".repeat(35_usize.saturating_sub(self.payload.len()) + 2) + " ";
-        let vec = vec![
-            Span::styled(format!("{:>3} ", index), gray),
+        vec![
             Span::styled(format!("{:16}", r_type), Style::default().fg(type_color)),
             Span::styled(
-                self.payload + " ",
+                self.payload.to_owned() + " ",
                 Style::default().add_modifier(Modifier::BOLD),
             ),
             Span::styled(dash, gray),
-            Span::styled(self.proxy, Style::default().fg(name_color)),
-        ];
-        MovableListItem::Spans(Spans(vec))
+            Span::styled(self.proxy.to_owned(), Style::default().fg(name_color)),
+        ]
+        .into()
     }
 }
 
