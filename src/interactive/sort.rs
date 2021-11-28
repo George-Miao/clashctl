@@ -2,11 +2,16 @@ use std::cmp::Ordering;
 
 pub trait Sortable<'a, S: SortMethod<Self::Item<'a>>> {
     type Item<'b>;
-    fn sort_with(&mut self, method: S);
+    fn sort_with(&mut self, method: &S);
 }
 
 pub trait SortMethod<Item> {
     fn sort_fn(&self, a: &Item, b: &Item) -> Ordering;
+}
+
+pub trait EndlessSelf {
+    fn next_self(self) -> Self;
+    fn prev_self(self) -> Self;
 }
 
 #[derive(
@@ -27,7 +32,14 @@ pub enum SortOrder {
     Descendant,
 }
 
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug, Default, Hash)]
 pub struct Noop;
+
+impl Noop {
+    pub const fn new() -> Self {
+        Noop
+    }
+}
 
 impl<Item> SortMethod<Item> for Noop {
     #[inline]
@@ -36,11 +48,14 @@ impl<Item> SortMethod<Item> for Noop {
     }
 }
 
-impl<'a, T> Sortable<'a, Noop> for T {
-    type Item<'b> = ();
+impl EndlessSelf for Noop {
+    fn next_self(self) -> Self {
+        Noop
+    }
 
-    #[inline]
-    fn sort_with(&mut self, _: Noop) {}
+    fn prev_self(self) -> Self {
+        Noop
+    }
 }
 
 impl<T, F> SortMethod<T> for F
@@ -53,14 +68,14 @@ where
     }
 }
 
-impl<'a, T, F> Sortable<'a, F> for Vec<T>
+impl<'a, T, M> Sortable<'a, M> for Vec<T>
 where
-    F: Fn(&T, &T) -> Ordering,
+    M: SortMethod<T>,
 {
     type Item<'b> = T;
 
     #[inline]
-    fn sort_with(&mut self, method: F) {
-        self.sort_by(method)
+    fn sort_with(&mut self, method: &M) {
+        self.sort_by(|a, b| method.sort_fn(a, b))
     }
 }
