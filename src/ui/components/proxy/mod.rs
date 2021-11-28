@@ -1,11 +1,3 @@
-mod group;
-mod item;
-mod sort;
-mod tree;
-mod tree_widget;
+use crate::mod_use;
 
-pub use group::*;
-pub use item::*;
-pub use sort::*;
-pub use tree::*;
-pub use tree_widget::*;
+mod_use!(group, item, sort, tree, tree_widget);

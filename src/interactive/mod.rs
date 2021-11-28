@@ -1,9 +1,3 @@
-mod config;
-mod flags;
-mod proxy_sort;
-mod sort;
+use crate::mod_use;
 
-pub use config::*;
-pub use flags::*;
-pub use proxy_sort::*;
-pub use sort::*;
+mod_use!(config, flags, proxy_sort, sort);

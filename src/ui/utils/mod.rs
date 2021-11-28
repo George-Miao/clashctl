@@ -1,21 +1,14 @@
-mod as_color;
-mod coord;
-mod ext;
-mod helper;
-mod hms;
-mod interval;
-mod macros;
-mod pulse;
-mod ticks_counter;
-mod tui_logger;
+use crate::mod_use;
 
-pub use as_color::*;
-pub use coord::*;
-pub use ext::*;
-pub use helper::*;
-pub use hms::*;
-pub use interval::*;
-pub use macros::*;
-pub use pulse::*;
-pub use ticks_counter::*;
-pub use tui_logger::*;
+mod_use!(
+    hms,
+    ext,
+    wrap,
+    coord,
+    pulse,
+    helper,
+    interval,
+    as_color,
+    tui_logger
+    ticks_counter,
+);

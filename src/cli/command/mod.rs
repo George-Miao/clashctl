@@ -1,14 +1,8 @@
 use clap::{Parser, Subcommand};
 
-mod completion;
-mod proxy;
-mod server;
+use crate::{interactive::Flags, mod_use};
 
-pub use completion::*;
-pub use proxy::*;
-pub use server::*;
-
-use crate::interactive::Flags;
+mod_use!(completion, proxy, server);
 
 #[derive(Parser, Debug)]
 #[clap(

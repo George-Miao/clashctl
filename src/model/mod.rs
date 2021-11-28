@@ -1,16 +1,9 @@
-mod config;
-mod connection;
-mod log;
-mod proxy;
-mod rule;
-mod traffic;
+use crate::mod_use;
 
+mod_use!(config, connection, proxy, rule, traffic);
+
+mod log;
 pub use self::log::*;
-pub use config::*;
-pub use connection::*;
-pub use proxy::*;
-pub use rule::*;
-pub use traffic::*;
 
 use serde::{Deserialize, Serialize};
 
