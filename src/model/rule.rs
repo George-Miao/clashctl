@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 // #[serde(rename_all = "UPPERCASE")]
 #[cfg_attr(
     feature = "interactive",
@@ -28,7 +28,7 @@ pub enum RuleType {
     Reject,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Rule {
     #[serde(rename = "type")]
     pub rule_type: RuleType,
@@ -36,7 +36,7 @@ pub struct Rule {
     pub proxy: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default, Hash)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Rules {
     pub rules: Vec<Rule>,
 }
