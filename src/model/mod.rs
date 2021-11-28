@@ -25,7 +25,7 @@ pub struct Delay {
     pub delay: u64,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "lowercase")]
 pub struct Version {
     pub version: semver::Version,
