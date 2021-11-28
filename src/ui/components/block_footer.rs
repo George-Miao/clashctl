@@ -7,6 +7,8 @@ use tui::{
 };
 use unicode_width::UnicodeWidthStr;
 
+use crate::ui::Wrap;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Footer<'a> {
     left_offset: u16,
@@ -159,29 +161,6 @@ impl<'a> FooterItem<'a> {
         }
     }
 
-    pub fn wrapped(mut self) -> Self {
-        match self.inner {
-            FooterItemInner::Raw(ref mut raw) => *raw = format!(" {} ", raw),
-            FooterItemInner::Span(ref mut span) => {
-                span.content = format!(" {} ", span.content).into()
-            }
-            FooterItemInner::Spans(Spans(ref mut inner)) => match inner.len() {
-                0 => inner.push(Span::raw("  ")),
-                1 => {
-                    let span = &mut inner[0];
-                    span.content = format!(" {} ", span.content).into()
-                }
-                _ => {
-                    let first_span = &mut inner[0];
-                    first_span.content = format!(" {}", first_span.content).into();
-                    let last_span = inner.last_mut().unwrap();
-                    last_span.content = format!("{} ", last_span.content).into();
-                }
-            },
-        }
-        self
-    }
-
     pub fn raw(content: String) -> Self {
         Self {
             inner: FooterItemInner::Raw(content),
@@ -216,8 +195,26 @@ impl<'a> FooterItem<'a> {
     }
 }
 
+impl<'a> From<Span<'a>> for FooterItem<'a> {
+    fn from(val: Span<'a>) -> Self {
+        Self::span(val)
+    }
+}
+
+impl<'a> From<Spans<'a>> for FooterItem<'a> {
+    fn from(val: Spans<'a>) -> Self {
+        Self::spans(val)
+    }
+}
+
+impl<'a> From<String> for FooterItem<'a> {
+    fn from(val: String) -> Self {
+        Self::raw(val)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
-pub enum FooterItemInner<'a> {
+enum FooterItemInner<'a> {
     Raw(String),
     Span(Span<'a>),
     Spans(Spans<'a>),
@@ -246,5 +243,22 @@ impl<'a> From<FooterItemInner<'a>> for Spans<'a> {
 impl<'a> From<FooterItem<'a>> for Spans<'a> {
     fn from(val: FooterItem<'a>) -> Self {
         val.inner.into()
+    }
+}
+
+impl<'a> Wrap for FooterItem<'a> {
+    fn wrap_by(mut self, char: char) -> Self {
+        match self.inner {
+            FooterItemInner::Raw(ref mut raw) => {
+                raw.wrap_by(char);
+            }
+            FooterItemInner::Span(ref mut span) => {
+                span.wrap_by(char);
+            }
+            FooterItemInner::Spans(ref mut spans) => {
+                spans.wrap_by(char);
+            }
+        };
+        self
     }
 }
