@@ -38,7 +38,7 @@ impl SortMethod<ProxyItem> for ProxySort {
 
 impl<'a> Sortable<'a, ProxySort> for ProxyGroup<'a> {
     type Item<'b> = ProxyItem;
-    fn sort_with(&mut self, method: ProxySort) {
+    fn sort_with(&mut self, method: &ProxySort) {
         let pointed = &self.members[self.cursor].name.clone();
         let current = self.current.map(|x| self.members[x].name.clone());
         self.members.sort_by(|a, b| method.sort_fn(a, b));
@@ -57,7 +57,7 @@ impl<'a> Sortable<'a, ProxySort> for ProxyGroup<'a> {
 
 impl<'a> Sortable<'a, ProxySort> for ProxyTree<'a> {
     type Item<'b> = ProxyItem;
-    fn sort_with(&mut self, method: ProxySort) {
+    fn sort_with(&mut self, method: &ProxySort) {
         self.groups.iter_mut().for_each(|x| x.sort_with(method))
     }
 }
