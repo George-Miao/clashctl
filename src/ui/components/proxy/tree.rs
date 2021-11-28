@@ -8,7 +8,7 @@ use tui::{
 };
 
 use crate::{
-    interactive::{ProxySort, Sortable},
+    interactive::{EndlessSelf, ProxySort, Sortable},
     model::Proxies,
     ui::{
         components::{Footer, FooterItem, ProxyGroup, ProxyItem},
@@ -21,7 +21,7 @@ use crate::{
 // - [X] Right & Enter can be used to apply selection
 // - [X] Esc for exist expand mode
 // - [X] T for test latency of current group
-// - [ ] S for switch between sorting strategies
+// - [X] S for switch between sorting strategies
 // - [ ] / for searching
 //
 // In order for functions to be implemented, these are required:
@@ -115,22 +115,16 @@ impl<'a> ProxyTree<'a> {
     }
 
     pub fn next_sort(&mut self) -> &mut Self {
-        let method = self
-            .sort_method
-            .next()
-            .expect("ProxySort is an infinite Iterator");
-        self.sort_with(method);
+        let method = self.sort_method.next_self();
+        self.sort_with(&method);
         self.sort_method = method;
         self.update_footer();
         self
     }
 
-    pub fn next_back_sort(&mut self) -> &mut Self {
-        let method = self
-            .sort_method
-            .next_back()
-            .expect("ProxySort is an infinite Iterator");
-        self.sort_with(method);
+    pub fn prev_sort(&mut self) -> &mut Self {
+        let method = self.sort_method.prev_self();
+        self.sort_with(&method);
         self.sort_method = method;
         self.update_footer();
         self
@@ -281,7 +275,8 @@ impl<'a> ProxyTree<'a> {
             }
         }
         self.groups = new_tree.groups;
-        self.sort_with(self.sort_method);
+        let method = self.sort_method;
+        self.sort_with(&method);
         self.update_footer()
     }
 }
