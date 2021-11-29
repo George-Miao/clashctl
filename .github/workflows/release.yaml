@@ -26,11 +26,11 @@ jobs:
           command: build
           args: --all-features --release
 
-      - name: Rename builds
+      - name: Rename build artifacts
         run: |
           pushd target/release
           rm clashctl*.d
-          mv clashctl clashctl-${{ runner.os }}
+          mv clashctl-bin clashctl-${{ runner.os }}
           mv clashctl_ui clashctl-ui-${{ runner.os }}
           mv clashctl_cli clashctl-cli-${{ runner.os }}
           popd
