@@ -44,6 +44,65 @@ impl Connection {
     }
 }
 
+#[derive(Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
+pub struct ConnectionsWithSpeed {
+    pub connections: Vec<ConnectionWithSpeed>,
+    pub download_total: u64,
+    pub upload_total: u64,
+}
+
+impl From<Connections> for ConnectionsWithSpeed {
+    fn from(val: Connections) -> Self {
+        Self {
+            connections: val.connections.into_iter().map(Into::into).collect(),
+            download_total: val.download_total,
+            upload_total: val.upload_total,
+        }
+    }
+}
+
+impl From<ConnectionsWithSpeed> for Connections {
+    fn from(val: ConnectionsWithSpeed) -> Self {
+        Self {
+            connections: val.connections.into_iter().map(Into::into).collect(),
+            download_total: val.download_total,
+            upload_total: val.upload_total,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct ConnectionWithSpeed {
+    pub connection: Connection,
+    pub upload: Option<u64>,
+    pub download: Option<u64>,
+}
+
+impl From<Connection> for ConnectionWithSpeed {
+    fn from(val: Connection) -> Self {
+        let elapsed = (Utc::now() - val.start).num_seconds();
+        if elapsed <= 0 {
+            Self {
+                connection: val,
+                upload: None,
+                download: None,
+            }
+        } else {
+            Self {
+                download: Some(val.download / elapsed as u64),
+                upload: Some(val.upload / elapsed as u64),
+                connection: val,
+            }
+        }
+    }
+}
+
+impl From<ConnectionWithSpeed> for Connection {
+    fn from(val: ConnectionWithSpeed) -> Self {
+        val.connection
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "camelCase")]
 pub struct Metadata {
