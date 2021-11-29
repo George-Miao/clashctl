@@ -1,12 +1,12 @@
 use std::{borrow::Cow, ops::Range};
 
 use tui::{
-    style::{Color, Style},
+    style::{Color, Modifier, Style},
     text::{Span, Spans},
     widgets::{Block, Borders},
 };
 
-use crate::ui::IntoSpans;
+use crate::ui::{IntoSpans, Wrap};
 
 pub fn help_footer(content: &str, normal: Style, highlight: Style) -> Spans {
     if content.is_empty() {
@@ -23,6 +23,17 @@ pub fn help_footer(content: &str, normal: Style, highlight: Style) -> Spans {
             Span::styled(rest, normal),
         ])
     }
+}
+
+pub fn tagged_footer<T: ToString>(label: &str, style: Style, content: T) -> Spans {
+    let mut ret = help_footer(label, style, style.add_modifier(Modifier::BOLD)).wrapped();
+    ret.0.push(Span::styled(
+        content.to_string().wrapped(),
+        Style::default()
+            .fg(Color::White)
+            .add_modifier(Modifier::REVERSED),
+    ));
+    ret
 }
 
 pub fn string_window<'a>(string: &'a str, range: &Range<usize>) -> Cow<'a, str> {
