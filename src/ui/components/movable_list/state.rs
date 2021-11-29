@@ -1,12 +1,21 @@
-use std::{borrow::Cow, fmt::Debug};
+use std::{
+    borrow::Cow,
+    fmt::Debug,
+    ops::{Deref, DerefMut},
+};
 
 use crossterm::event::KeyCode;
+use match_any::match_any;
 use paste::paste;
 use smart_default::SmartDefault;
 
 use crate::{
-    interactive::{EndlessSelf, Noop, SortMethod, Sortable},
-    ui::{components::MovableListItem, utils::Coord, ListEvent},
+    interactive::{EndlessSelf, SortMethod, Sortable},
+    ui::{
+        components::{MovableListItem, ProxyTree},
+        utils::Coord,
+        Action, ConListState, DebugListState, ListEvent, LogListState, RuleListState,
+    },
 };
 
 macro_rules! impl_setter {
@@ -32,23 +41,10 @@ macro_rules! impl_setter {
     };
 }
 
-// TODO: Use lazy updated footer
-#[derive(Debug, Clone, PartialEq, SmartDefault)]
-pub struct MovableListState<'a, T: MovableListItem<'a>, S = Noop> {
-    pub(super) offset: Coord,
-    pub(super) items: Vec<T>,
-    pub(super) placeholder: Option<Cow<'a, str>>,
-    #[default = 1]
-    pub(super) padding: u16,
-    pub(super) sort: Option<S>,
-    pub(super) with_index: bool,
-    pub(super) reverse_index: bool,
-}
-
 impl<'a, T, S> MovableListState<'a, T, S>
 where
     T: MovableListItem<'a>,
-    S: SortMethod<T> + EndlessSelf,
+    S: SortMethod<T> + EndlessSelf + Default,
 {
     pub fn new(items: Vec<T>) -> Self
     where
@@ -67,7 +63,7 @@ where
 
         Self {
             items,
-            sort: Some(sort),
+            sort,
             ..Default::default()
         }
     }
@@ -83,11 +79,58 @@ where
         self.placeholder = Some(content.into());
         self
     }
+
+    pub fn sorted_merge(&mut self, other: Vec<T>) {
+        self.items = other;
+        self.sort();
+    }
+
+    pub fn push(&mut self, item: T) {
+        self.items.push(item);
+        if self.offset.hold {
+            self.offset.y += 1;
+        }
+    }
+}
+
+// TODO: Use lazy updated footer
+#[derive(Debug, Clone, PartialEq, SmartDefault)]
+pub struct MovableListState<'a, T: MovableListItem<'a>, S: Default> {
+    pub(super) offset: Coord,
+    pub(super) items: Vec<T>,
+    pub(super) placeholder: Option<Cow<'a, str>>,
+    #[default = 1]
+    pub(super) padding: u16,
+    pub(super) sort: S,
+    pub(super) with_index: bool,
+    pub(super) reverse_index: bool,
+}
+
+impl<'a, T, S> Deref for MovableListState<'a, T, S>
+where
+    T: MovableListItem<'a>,
+    S: Default,
+{
+    type Target = Vec<T>;
+    fn deref(&self) -> &Self::Target {
+        &self.items
+    }
+}
+
+impl<'a, T, S> DerefMut for MovableListState<'a, T, S>
+where
+    T: MovableListItem<'a>,
+    S: Default,
+{
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.items
+    }
 }
 
 impl<'a, T, S> Extend<T> for MovableListState<'a, T, S>
 where
     T: MovableListItem<'a>,
+    S: Default,
 {
     fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
         self.items.extend(iter)
@@ -97,7 +140,7 @@ where
 impl<'a, T, S> Sortable<'a, S> for MovableListState<'a, T, S>
 where
     T: MovableListItem<'a>,
-    S: SortMethod<T>,
+    S: SortMethod<T> + Default,
 {
     type Item<'b> = T;
     fn sort_with(&mut self, method: &S) {
@@ -105,60 +148,51 @@ where
     }
 }
 
-pub trait MovableListManage<T> {
-    fn sort(&mut self);
+pub trait MovableListManage {
+    fn sort(&mut self) -> &mut Self;
 
-    fn next_sort(&mut self);
+    fn next_sort(&mut self) -> &mut Self;
 
-    fn prev_sort(&mut self);
-
-    fn sorted_merge(&mut self, other: Vec<T>);
+    fn prev_sort(&mut self) -> &mut Self;
 
     fn current_pos(&self) -> Coord;
 
     fn len(&self) -> usize;
 
     fn is_empty(&self) -> bool;
-    fn toggle(&mut self);
+    fn toggle(&mut self) -> &mut Self;
 
-    fn end(&mut self);
+    fn end(&mut self) -> &mut Self;
 
-    fn hold(&mut self);
+    fn hold(&mut self) -> &mut Self;
 
-    fn push(&mut self, item: T);
-
-    fn handle(&mut self, event: ListEvent);
+    fn handle(&mut self, event: ListEvent) -> Option<Action>;
     fn offset(&self) -> &Coord;
 }
 
-impl<'a, T, S> MovableListManage<T> for MovableListState<'a, T, S>
+impl<'a, T, S> MovableListManage for MovableListState<'a, T, S>
 where
     T: MovableListItem<'a>,
-    S: SortMethod<T> + EndlessSelf,
+    S: SortMethod<T> + EndlessSelf + Default,
 {
-    fn sort(&mut self) {
-        if let Some(ref sort) = self.sort {
-            self.items.sort_with(sort);
-        }
+    fn sort(&mut self) -> &mut Self {
+        let sort = &self.sort;
+        self.items.sort_with(sort);
+        self
     }
 
-    fn next_sort(&mut self) {
-        if let Some(ref mut sort) = self.sort {
-            sort.next_self();
-            self.items.sort_with(sort);
-        }
+    fn next_sort(&mut self) -> &mut Self {
+        self.sort.next_self();
+        let sort = &self.sort;
+        self.items.sort_with(sort);
+        self
     }
 
-    fn prev_sort(&mut self) {
-        if let Some(ref mut sort) = self.sort {
-            sort.prev_self();
-            self.items.sort_with(sort);
-        }
-    }
-
-    fn sorted_merge(&mut self, other: Vec<T>) {
-        self.items = other;
-        self.sort()
+    fn prev_sort(&mut self) -> &mut Self {
+        self.sort.prev_self();
+        let sort = &self.sort;
+        self.items.sort_with(sort);
+        self
     }
 
     fn current_pos(&self) -> Coord {
@@ -179,26 +213,22 @@ where
         self.len() == 0
     }
 
-    fn toggle(&mut self) {
-        self.offset.toggle()
+    fn toggle(&mut self) -> &mut Self {
+        self.offset.toggle();
+        self
     }
 
-    fn end(&mut self) {
-        self.offset.end()
+    fn end(&mut self) -> &mut Self {
+        self.offset.end();
+        self
     }
 
-    fn hold(&mut self) {
-        self.offset.hold()
+    fn hold(&mut self) -> &mut Self {
+        self.offset.hold();
+        self
     }
 
-    fn push(&mut self, item: T) {
-        self.items.push(item);
-        if self.offset.hold {
-            self.offset.y += 1;
-        }
-    }
-
-    fn handle(&mut self, event: ListEvent) {
+    fn handle(&mut self, event: ListEvent) -> Option<Action> {
         let len = self.len().saturating_sub(1);
         let offset = &mut self.offset;
 
@@ -217,9 +247,169 @@ where
             (false, KeyCode::Down) => offset.y = offset.y.saturating_add(1).min(len),
             _ => {}
         }
+        None
     }
 
     fn offset(&self) -> &Coord {
         &self.offset
+    }
+}
+
+pub enum MovableListManager<'a, 'own> {
+    Log(&'own mut LogListState<'a>),
+    Connection(&'own mut ConListState<'a>),
+    Rule(&'own mut RuleListState<'a>),
+    Event(&'own mut DebugListState<'a>),
+    Proxy(&'own mut ProxyTree<'a>),
+}
+
+impl<'a, 'own> MovableListManage for MovableListManager<'a, 'own> {
+    fn sort(&mut self) -> &mut Self {
+        match_any!(
+            self,
+            Self::Log(inner) |
+            Self::Event(inner) |
+            Self::Rule(inner) |
+            Self::Connection(inner) |
+            Self::Proxy(inner) => {
+                inner.sort();
+            }
+        );
+        self
+    }
+
+    fn next_sort(&mut self) -> &mut Self {
+        match_any!(
+            self,
+            Self::Log(inner) |
+            Self::Event(inner) |
+            Self::Rule(inner) |
+            Self::Connection(inner) |
+            Self::Proxy(inner) => {
+                inner.next_sort();
+            }
+        );
+        self
+    }
+
+    fn prev_sort(&mut self) -> &mut Self {
+        match_any!(
+            self,
+            Self::Log(inner) |
+            Self::Event(inner) |
+            Self::Rule(inner) |
+            Self::Connection(inner) |
+            Self::Proxy(inner) => {
+                inner.prev_sort();
+            }
+        );
+        self
+    }
+
+    fn current_pos(&self) -> Coord {
+        match_any!(
+            self,
+            Self::Log(inner) |
+            Self::Event(inner) |
+            Self::Rule(inner) |
+            Self::Connection(inner) |
+            Self::Proxy(inner) => {
+                inner.current_pos()
+            }
+        )
+    }
+
+    fn len(&self) -> usize {
+        match_any!(
+            self,
+            Self::Log(inner) |
+            Self::Event(inner) |
+            Self::Rule(inner) |
+            Self::Connection(inner) |
+            Self::Proxy(inner) => {
+                inner.len()
+            }
+        )
+    }
+
+    fn is_empty(&self) -> bool {
+        match_any!(
+            self,
+            Self::Log(inner) |
+            Self::Event(inner) |
+            Self::Rule(inner) |
+            Self::Connection(inner) |
+            Self::Proxy(inner) => {
+                inner.is_empty()
+            }
+        )
+    }
+
+    fn toggle(&mut self) -> &mut Self {
+        match_any!(
+            self,
+            Self::Log(inner) |
+            Self::Event(inner) |
+            Self::Rule(inner) |
+            Self::Connection(inner) |
+            Self::Proxy(inner) => {
+                inner.toggle();
+            }
+        );
+        self
+    }
+
+    fn end(&mut self) -> &mut Self {
+        match_any!(
+            self,
+            Self::Log(inner) |
+            Self::Event(inner) |
+            Self::Rule(inner) |
+            Self::Connection(inner) |
+            Self::Proxy(inner) => {
+                inner.end();
+            }
+        );
+        self
+    }
+
+    fn hold(&mut self) -> &mut Self {
+        match_any!(
+            self,
+            Self::Log(inner) |
+            Self::Event(inner) |
+            Self::Rule(inner) |
+            Self::Connection(inner) |
+            Self::Proxy(inner) => {
+                inner.hold();
+            }
+        );
+        self
+    }
+
+    fn handle(&mut self, event: ListEvent) -> Option<Action> {
+        match_any!(
+            self,
+            Self::Log(inner) |
+            Self::Event(inner) |
+            Self::Rule(inner) |
+            Self::Connection(inner) |
+            Self::Proxy(inner) => {
+                inner.handle(event)
+            }
+        )
+    }
+
+    fn offset(&self) -> &Coord {
+        match_any!(
+            self,
+            Self::Log(inner) |
+            Self::Event(inner) |
+            Self::Rule(inner) |
+            Self::Connection(inner) |
+            Self::Proxy(inner) => {
+                inner.offset()
+            }
+        )
     }
 }
