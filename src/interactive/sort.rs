@@ -1,5 +1,7 @@
 use std::cmp::Ordering;
 
+use crate::interactive::RuleSortBy;
+
 pub trait Sortable<'a, S: SortMethod<Self::Item<'a>>> {
     type Item<'b>;
     fn sort_with(&mut self, method: &S);
@@ -32,12 +34,32 @@ pub enum SortOrder {
     Descendant,
 }
 
+pub trait OrderBy {
+    fn order_by(self, order: SortOrder) -> Ordering;
+}
+
+impl OrderBy for Ordering {
+    fn order_by(self, order: SortOrder) -> Ordering {
+        if matches!(order, SortOrder::Descendant) {
+            self.reverse()
+        } else {
+            self
+        }
+    }
+}
+
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug, Default, Hash)]
 pub struct Noop;
 
 impl Noop {
     pub const fn new() -> Self {
         Noop
+    }
+}
+
+impl ToString for Noop {
+    fn to_string(&self) -> String {
+        "".into()
     }
 }
 
@@ -75,3 +97,27 @@ where
         self.sort_by(|a, b| method.sort_fn(a, b))
     }
 }
+
+// #[macro_export]
+// macro_rules! endless {
+//     ( $ty:path = $from:ident => $( $to:ident $(=>)? )+ ) => {
+//         impl EndlessSelf for $ty {
+//             fn next_self(&mut self) {
+//                 use $ty::*;
+//                 match self {
+//                     endless!( @inner $ty = $from => $( $to => )+ )
+//                 }
+//             }
+//             fn prev_self(&mut self) {}
+//         }
+//     };
+//     ( @inner $ty:path = $prev:ident => $from:ident => $( $to:ident $(=>)? )+ ) => {
+//         $ty::$prev => $ty::$from,
+//         endless!(@inner $ty = $from => $($to =>)+),
+//     };
+//     ( @inner $ty:path = $from:ident => $to:ident ) => {
+//         $from => $to,
+//     }
+// }
+
+// endless!( RuleSortBy = Payload => Proxy => Type );
