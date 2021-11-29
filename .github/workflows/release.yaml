@@ -30,9 +30,9 @@ jobs:
         run: |
           pushd target/release
           rm clashctl*.d
-          mv clashctl-bin clashctl-${{ runner.os }}
-          mv clashctl-ui clashctl-ui-${{ runner.os }}
-          mv clashctl-cli clashctl-cli-${{ runner.os }}
+          mv clashctl-bin* clashctl-${{ runner.os }}
+          mv clashctl-ui* clashctl-ui-${{ runner.os }}
+          mv clashctl-cli* clashctl-cli-${{ runner.os }}
           popd
       - name: Release
         uses: softprops/action-gh-release@v1
