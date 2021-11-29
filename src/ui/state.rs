@@ -3,13 +3,19 @@ use std::{collections::HashMap, time::Instant};
 use smart_default::SmartDefault;
 
 use crate::{
-    model::{Connection, Log, Rule, Traffic, Version},
+    interactive::{Noop, RuleSort},
+    model::{ConnectionWithSpeed, Log, Rule, Traffic, Version},
     ui::{
-        components::{MovableListManage, MovableListState, ProxyTree},
+        components::{MovableListManage, MovableListManager, MovableListState, ProxyTree},
         Action, Event, InputEvent, UpdateEvent,
     },
     Result,
 };
+
+pub(crate) type LogListState<'a> = MovableListState<'a, Log, Noop>;
+pub(crate) type ConListState<'a> = MovableListState<'a, ConnectionWithSpeed, Noop>;
+pub(crate) type RuleListState<'a> = MovableListState<'a, Rule, RuleSort>;
+pub(crate) type DebugListState<'a> = MovableListState<'a, Event, Noop>;
 
 #[derive(Debug, Clone, SmartDefault)]
 pub struct TuiStates<'a> {
@@ -19,7 +25,6 @@ pub struct TuiStates<'a> {
     pub version: Option<Version>,
     pub traffics: Vec<Traffic>,
     pub max_traffic: Traffic,
-    pub events: Vec<Event>,
     pub all_events_recv: usize,
     pub page_index: u8,
     pub show_debug: bool,
@@ -33,10 +38,10 @@ pub struct TuiStates<'a> {
         ret.with_index().dsc_index(); 
         ret 
     }")]
-    pub log_state: MovableListState<'a, Log>,
-    pub con_state: MovableListState<'a, Connection>,
-    pub rule_state: MovableListState<'a, Rule>,
-    pub debug_state: MovableListState<'a, Event>,
+    pub log_state: LogListState<'a>,
+    pub con_state: ConListState<'a>,
+    pub rule_state: RuleListState<'a>,
+    pub debug_state: DebugListState<'a>,
 }
 
 // TODO fix: drop_events not working
@@ -75,6 +80,17 @@ impl<'a> TuiStates<'a> {
     #[inline]
     pub fn title(&self) -> &str {
         Self::TITLES[self.page_index as usize]
+    }
+
+    fn active_list<'own>(&'own mut self) -> Option<MovableListManager<'a, 'own>> {
+        match self.title() {
+            "Rules" => Some(MovableListManager::Rule(&mut self.rule_state)),
+            "Debug" => Some(MovableListManager::Event(&mut self.debug_state)),
+            "Logs" => Some(MovableListManager::Log(&mut self.log_state)),
+            "Conns" => Some(MovableListManager::Connection(&mut self.con_state)),
+            "Proxies" => Some(MovableListManager::Proxy(&mut self.proxy_tree)),
+            _ => None,
+        }
     }
 
     fn handle_update(&mut self, update: UpdateEvent) -> Result<Option<Action>> {
@@ -125,9 +141,21 @@ impl<'a> TuiStates<'a> {
                     self.page_index = self.debug_page_index()
                 }
             }
-            InputEvent::Esc => {}
-            InputEvent::ToggleHold => {}
-            InputEvent::List(list_event) => {}
+            InputEvent::Esc => {
+                if let Some(mut list) = self.active_list() {
+                    list.end();
+                }
+            }
+            InputEvent::ToggleHold => {
+                if let Some(mut list) = self.active_list() {
+                    list.toggle();
+                }
+            }
+            InputEvent::List(list_event) => {
+                if let Some(mut list) = self.active_list() {
+                    return Ok(list.handle(list_event));
+                }
+            }
             InputEvent::TestLatency => {
                 if self.title() == "Proxies" && !self.proxy_tree.is_testing() {
                     self.proxy_tree.start_testing();
@@ -142,13 +170,13 @@ impl<'a> TuiStates<'a> {
                 }
             }
             InputEvent::NextSort => {
-                if self.title() == "Proxies" {
-                    self.proxy_tree.next_sort();
+                if let Some(mut list) = self.active_list() {
+                    list.next_sort();
                 }
             }
             InputEvent::PrevSort => {
-                if self.title() == "Proxies" {
-                    self.proxy_tree.prev_sort();
+                if let Some(mut list) = self.active_list() {
+                    list.prev_sort();
                 }
             }
             InputEvent::Other(_) => {} // InterfaceEvent::Other(event) => self.handle_list(event),
