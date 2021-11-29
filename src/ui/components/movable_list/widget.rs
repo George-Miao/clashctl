@@ -12,7 +12,7 @@ use crate::{
         components::{
             Footer, FooterItem, FooterWidget, MovableListItem, MovableListManage, MovableListState,
         },
-        spans_window_owned,
+        spans_window_owned, tagged_footer,
         utils::{get_block, get_focused_block, get_text_style},
     },
 };
@@ -24,6 +24,7 @@ use crate::{
 pub struct MovableList<'a, T, S = Noop>
 where
     T: MovableListItem<'a>,
+    S: Default,
 {
     pub(super) title: String,
     pub(super) state: &'a MovableListState<'a, T, S>,
@@ -31,8 +32,9 @@ where
 
 impl<'a, T, S> MovableList<'a, T, S>
 where
-    S: SortMethod<T> + EndlessSelf,
+    S: SortMethod<T> + EndlessSelf + Default + ToString,
     T: MovableListItem<'a>,
+    MovableListState<'a, T, S>: MovableListManage,
 {
     pub fn new<TITLE: Into<String>>(title: TITLE, state: &'a MovableListState<'a, T, S>) -> Self {
         Self {
@@ -44,6 +46,10 @@ where
     fn render_footer(&self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer) {
         let mut footer = Footer::default();
         let pos = self.state.current_pos();
+        let sort_style = Style::default()
+            .fg(Color::White)
+            .add_modifier(Modifier::REVERSED);
+        let sort_str = self.state.sort.to_string();
 
         footer.push_right(FooterItem::span(Span::styled(
             format!(" Ln {}, Col {} ", pos.y, pos.x),
@@ -59,6 +65,9 @@ where
 
             footer.push_left(FooterItem::span(Span::styled(" FREE ", style)));
             footer.push_left(FooterItem::span(Span::styled(" [^] ▲ ▼ ◀ ▶ Move ", style)));
+            if !sort_str.is_empty() {
+                footer.push_left(tagged_footer("Sort", style, sort_str).into());
+            }
         } else {
             let style = Style::default()
                 .fg(Color::Blue)
@@ -69,6 +78,9 @@ where
                 " SPACE / [^] ▲ ▼ ◀ ▶ Move ",
                 style,
             )));
+            if !sort_str.is_empty() {
+                footer.push_left(tagged_footer("Sort", style, sort_str).into());
+            }
         }
 
         let widget = FooterWidget::new(&footer);
@@ -78,8 +90,9 @@ where
 
 impl<'a, T, S> Widget for MovableList<'a, T, S>
 where
-    S: SortMethod<T> + EndlessSelf,
+    S: SortMethod<T> + EndlessSelf + Default + ToString,
     T: MovableListItem<'a>,
+    MovableListState<'a, T, S>: MovableListManage,
 {
     fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer) {
         let num = self.state.items.len();
