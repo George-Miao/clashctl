@@ -27,11 +27,11 @@ urlencoding = "~2.1"
 log         = { version = "~0.4", features = ["std"] }
 url         = { version = "~2.2", features = ["serde"] }
 serde       = { version = "~1.0", features = ["derive"] }
+ureq        = { version = "~2.3", default-features = false }
 
 strum  = { version = "~0.22.0", features = ["derive"], optional = true }
 chrono = { version = "~0.4", features = ["serde"], optional = true }
 semver = { version = "~1.0", features = ["serde"], optional = true }
-ureq   = { version = "~2.3", default-features = false }
 
 [dev-dependencies]
 simple_logger = "*"
