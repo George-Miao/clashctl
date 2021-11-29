@@ -139,7 +139,7 @@ dependencies = [
 
 [[package]]
 name = "clashctl-bin"
-version = "0.1.0"
+version = "0.3.0-alpha.3"
 dependencies = [
  "clashctl-cli",
  "clashctl-interactive",
@@ -150,7 +150,7 @@ dependencies = [
 
 [[package]]
 name = "clashctl-cli"
-version = "0.1.0"
+version = "0.3.0-alpha.3"
 dependencies = [
  "clap",
  "clap_generate",
@@ -171,7 +171,7 @@ dependencies = [
 
 [[package]]
 name = "clashctl-interactive"
-version = "0.1.0"
+version = "0.3.0-alpha.3"
 dependencies = [
  "clap",
  "clashctl",
@@ -189,7 +189,7 @@ dependencies = [
 
 [[package]]
 name = "clashctl-tui"
-version = "0.1.0"
+version = "0.3.0-alpha.3"
 dependencies = [
  "bytesize",
  "chrono",
