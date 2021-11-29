@@ -8,7 +8,7 @@ use tui::{
 };
 
 use crate::{
-    model::{Connections, Log, Proxies, Rules, Traffic, Version},
+    model::{Connections, ConnectionsWithSpeed, Log, Proxies, Rules, Traffic, Version},
     ui::{components::MovableListItem, utils::AsColor},
     Error, Result,
 };
@@ -88,7 +88,7 @@ pub struct ListEvent {
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum UpdateEvent {
-    Connection(Connections),
+    Connection(ConnectionsWithSpeed),
     Version(Version),
     Traffic(Traffic),
     Proxies(Proxies),

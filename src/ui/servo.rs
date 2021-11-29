@@ -124,7 +124,7 @@ impl Servo {
                 }
                 if connection_pulse.tick() {
                     tx.send(Event::Update(UpdateEvent::Connection(
-                        clash.get_connections()?,
+                        clash.get_connections()?.into(),
                     )))?;
                 }
                 if rules_pulse.tick() {
@@ -186,7 +186,6 @@ impl Servo {
                         let count = result.len();
 
                         if count != 0 {
-                            warn!("({}) error(s) during test proxy delay", count);
                             warn!(
                                 "   {}",
                                 result
@@ -194,9 +193,11 @@ impl Servo {
                                     .map(|x| x.to_string())
                                     .collect::<Vec<_>>()
                                     .join(" ")
-                            )
+                            );
+                            warn!("({}) error(s) during test proxy delay", count);
                         }
 
+                        tx.send(Event::Update(UpdateEvent::ProxyTestLatencyDone))?;
                         tx.send(Event::Update(UpdateEvent::Proxies(clash.get_proxies()?)))?;
                     }
                     Action::ApplySelection { group, proxy } => {
