@@ -1,0 +1,23 @@
+[package]
+name = "clashctl-tui"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clashctl-interactive = { path = "../clashctl-interactive", features = ["tui"] }
+workspace-hack       = { version = "0.1", path = "../clashctl-workspace-hack" }
+
+thiserror     = { version = "~1.0" }
+tui           = { version = "~0.16.0", default-features = false, features = ['crossterm'] }
+crossterm     = { version = "~0.22.1" }
+bytesize      = { version = "~1.1.0" }
+unicode-width = { version = "~0.1.9" }
+itertools     = { version = "~0.10.1" }
+smart-default = { version = "~0.6.0" }
+rayon         = { version = "~1.5.1" }
+paste         = { version = "~1.0.6" }
+match_any     = { version = "~1.0.1" }
+log           = { version = "~0.4", features = ["std"] }
+chrono        = { version = "~0.4", features = ["serde"] }

@@ -1,0 +1,37 @@
+[package]
+name = "clashctl"
+description = "A TUI & CLI to interact with clash RESTful API"
+version = "0.3.0-alpha.3"
+authors = ["George Miao <gm@miao.dev>"]
+repository = "https://github.com/George-Miao/clashctl"
+license = "MIT"
+edition = "2021"
+keywords = ["clash", "cli"]
+categories = ["command-line-utilities"]
+default-run = "clashctl"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = []
+deserialize = ["chrono", "semver"]
+enum_ext = ["strum"]
+
+[dependencies]
+workspace-hack = { version = "0.1", path = "../clashctl-workspace-hack" }
+
+cfg-if      = "~1.0"
+serde_json  = "~1.0"
+thiserror   = "~1.0"
+urlencoding = "~2.1"
+log         = { version = "~0.4", features = ["std"] }
+url         = { version = "~2.2", features = ["serde"] }
+serde       = { version = "~1.0", features = ["derive"] }
+
+strum  = { version = "~0.22.0", features = ["derive"], optional = true }
+chrono = { version = "~0.4", features = ["serde"], optional = true }
+semver = { version = "~1.0", features = ["serde"], optional = true }
+ureq   = { version = "~2.3", default-features = false }
+
+[dev-dependencies]
+simple_logger = "*"
