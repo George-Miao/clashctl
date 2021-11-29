@@ -2,3 +2,5 @@
 /.vscode
 *.profraw
 .trigger
+
+*/target
