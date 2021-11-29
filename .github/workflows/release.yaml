@@ -4,7 +4,7 @@ on:
     tags:
       - '*'
   workflow_dispatch:
-  
+
 jobs:
   release:
     name: Release
@@ -33,7 +33,7 @@ jobs:
           pushd target/release
           rm clashctl*.d
           mv clashctl-bin* clashctl-${{ runner.os }}
-          mv clashctl-ui* clashctl-ui-${{ runner.os }}
+          mv clashctl-tui* clashctl-ui-${{ runner.os }}
           mv clashctl-cli* clashctl-cli-${{ runner.os }}
           popd
       - name: Release
