@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use clashctl_interactive::{Flags, TuiOpt};
+use clashctl_interactive::Flags;
 
 use crate::mod_use;
 
@@ -24,7 +24,7 @@ pub struct Opts {
 pub enum Cmd {
     #[cfg(feature = "tui")]
     #[clap(about = "Enter tui")]
-    Tui(TuiOpt),
+    Tui(clashctl_interactive::TuiOpt),
     #[clap(subcommand)]
     Proxy(ProxySubcommand),
     #[clap(subcommand)]

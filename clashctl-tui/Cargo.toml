@@ -1,7 +1,13 @@
 [package]
 name = "clashctl-tui"
+description = "Tui used to interact with Clash RESTful API"
 version = "0.3.0-alpha.3"
+authors = ["George Miao <gm@miao.dev>"]
+repository = "https://github.com/George-Miao/clashctl"
+license = "MIT"
 edition = "2021"
+keywords = ["clash", "api", "cli", "tui"]
+categories = ["command-line-utilities"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
