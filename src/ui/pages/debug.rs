@@ -19,7 +19,7 @@ impl<'a> Widget for DebugPage<'a> {
             .direction(tui::layout::Direction::Horizontal)
             .split(area);
 
-        let event_num = self.state.events.len();
+        let event_num = self.state.debug_state.len();
 
         let offset = self.state.debug_state.offset();
 
