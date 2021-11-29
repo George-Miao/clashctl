@@ -11,8 +11,8 @@ use crate::{
     interactive::{EndlessSelf, ProxySort, Sortable},
     model::Proxies,
     ui::{
-        components::{Footer, FooterItem, ProxyGroup, ProxyItem},
-        help_footer, Action, ListEvent, Wrap,
+        components::{Footer, FooterItem, MovableListManage, ProxyGroup, ProxyItem},
+        help_footer, tagged_footer, Action, Coord, ListEvent, Wrap,
     },
 };
 
@@ -55,28 +55,6 @@ impl<'a> Default for ProxyTree<'a> {
 
 impl<'a> ProxyTree<'a> {
     #[inline]
-    pub fn toggle(&mut self) -> &mut Self {
-        self.expanded = !self.expanded;
-        self.update_footer()
-    }
-
-    #[inline]
-    pub fn end(&mut self) -> &mut Self {
-        self.expanded = false;
-        self.update_footer()
-    }
-
-    #[inline]
-    pub fn len(&self) -> usize {
-        self.groups.len()
-    }
-
-    #[inline]
-    pub fn is_empty(&self) -> bool {
-        self.groups.is_empty()
-    }
-
-    #[inline]
     pub fn cursor(&self) -> usize {
         self.cursor
     }
@@ -114,80 +92,12 @@ impl<'a> ProxyTree<'a> {
         self
     }
 
-    pub fn next_sort(&mut self) -> &mut Self {
-        self.sort_method.next_self();
-        let method = self.sort_method;
-        self.sort_with(&method);
-        self.update_footer();
-        self
-    }
-
-    pub fn prev_sort(&mut self) -> &mut Self {
-        self.sort_method.prev_self();
-        let method = self.sort_method;
-        self.sort_with(&method);
-        self.update_footer();
-        self
-    }
-
-    pub fn handle(&mut self, event: ListEvent) -> Option<Action> {
-        if self.expanded {
-            let step = if event.fast { 3 } else { 1 };
-            let group = &mut self.groups[self.cursor];
-            match event.code {
-                KeyCode::Up => {
-                    if group.cursor > 0 {
-                        group.cursor = group.cursor.saturating_sub(step)
-                    }
-                }
-                KeyCode::Down => {
-                    let left = group.members.len().saturating_sub(group.cursor + 1);
-
-                    group.cursor += left.min(step)
-                }
-                KeyCode::Right | KeyCode::Enter => {
-                    if group.proxy_type.is_selector() {
-                        let current = group.members[group.cursor].name.to_owned();
-                        return Some(Action::ApplySelection {
-                            group: group.name.to_owned(),
-                            proxy: current,
-                        });
-                    }
-                }
-                _ => {}
-            }
-        } else {
-            match event.code {
-                KeyCode::Up => {
-                    if self.cursor > 0 {
-                        self.cursor = self.cursor.saturating_sub(1)
-                    }
-                }
-                KeyCode::Down => {
-                    if self.cursor < self.groups.len() - 1 {
-                        self.cursor = self.cursor.saturating_add(1)
-                    }
-                }
-                KeyCode::Enter => self.expanded = true,
-                _ => {}
-            }
-        }
-        self.update_footer();
-        None
-    }
-
     pub fn update_footer(&mut self) -> &mut Self {
         let mut footer = Footer::default();
         let current_group = match self.groups.get(self.cursor) {
             Some(grp) => grp,
             _ => return self,
         };
-
-        let sort_style = Style::default()
-            .fg(Color::White)
-            .add_modifier(Modifier::REVERSED);
-
-        let sort_method = Span::styled(self.sort_method.to_string().wrapped(), sort_style);
 
         if !self.expanded {
             let group_name = current_group.name.clone();
@@ -196,16 +106,15 @@ impl<'a> ProxyTree<'a> {
                 .add_modifier(Modifier::REVERSED);
 
             let highlight = style.add_modifier(Modifier::BOLD);
-            let mut sort = help_footer("Sort", style, highlight).wrapped();
-            sort.0.push(sort_method);
+            let sort = tagged_footer("Sort", style, self.sort_method);
 
             let mut left = vec![
                 FooterItem::span(Span::styled(" FREE ", style)),
                 FooterItem::span(Span::styled(" SPACE to expand ", style)),
-                if !self.testing {
-                    FooterItem::spans(help_footer("Test", style, highlight)).wrapped()
-                } else {
+                if self.testing {
                     FooterItem::span(Span::styled(" Testing ", highlight.fg(Color::Green)))
+                } else {
+                    FooterItem::spans(help_footer("Test", style, highlight)).wrapped()
                 },
                 FooterItem::spans(sort),
             ];
@@ -233,18 +142,15 @@ impl<'a> ProxyTree<'a> {
                 footer.push_left(FooterItem::span(Span::styled(" ▶ Select ", style)));
             }
 
-            let current_item = &current_group.members[current_group.cursor];
-            footer.push_left(if !self.testing {
-                FooterItem::spans(help_footer("Test", style, highlight)).wrapped()
-            } else {
+            footer.push_left(if self.testing {
                 FooterItem::span(Span::styled(" Testing ", highlight.fg(Color::Blue)))
+            } else {
+                FooterItem::spans(help_footer("Test", style, highlight)).wrapped()
             });
 
-            let mut sort = help_footer("Sort", style, highlight).wrapped();
-            sort.0.push(sort_method);
-            footer.push_left(FooterItem::spans(sort));
+            footer.push_left(tagged_footer("Sort", style, self.sort_method).into());
 
-            if let Some(now) = &current_item.now {
+            if let Some(ref now) = current_group.members[current_group.cursor].now {
                 footer.push_right(FooterItem::span(Span::raw(now.to_owned())).wrapped());
             }
         }
@@ -324,5 +230,112 @@ impl<'a> From<Proxies> for ProxyTree<'a> {
         }
 
         ret
+    }
+}
+
+impl<'a> MovableListManage for ProxyTree<'a> {
+    fn sort(&mut self) -> &mut Self {
+        let method = self.sort_method;
+        self.sort_with(&method);
+        self
+    }
+
+    fn next_sort(&mut self) -> &mut Self {
+        self.sort_method.next_self();
+        let method = self.sort_method;
+        self.sort_with(&method);
+        self.update_footer()
+    }
+
+    fn prev_sort(&mut self) -> &mut Self {
+        self.sort_method.prev_self();
+        let method = self.sort_method;
+        self.sort_with(&method);
+        self.update_footer()
+    }
+
+    fn current_pos(&self) -> Coord {
+        Default::default()
+    }
+
+    #[inline]
+    fn toggle(&mut self) -> &mut Self {
+        self.expanded = !self.expanded;
+        self.update_footer()
+    }
+
+    #[inline]
+    fn end(&mut self) -> &mut Self {
+        self.expanded = false;
+        self.update_footer()
+    }
+
+    #[inline]
+    fn len(&self) -> usize {
+        self.groups.len()
+    }
+
+    #[inline]
+    fn is_empty(&self) -> bool {
+        self.groups.is_empty()
+    }
+
+    fn hold(&mut self) -> &mut Self {
+        self.expanded = true;
+        self
+    }
+
+    fn handle(&mut self, event: ListEvent) -> Option<Action> {
+        if self.expanded {
+            let step = if event.fast { 3 } else { 1 };
+            let group = &mut self.groups[self.cursor];
+            match event.code {
+                KeyCode::Up => {
+                    if group.cursor > 0 {
+                        group.cursor = group.cursor.saturating_sub(step)
+                    }
+                }
+                KeyCode::Down => {
+                    let left = group.members.len().saturating_sub(group.cursor + 1);
+
+                    group.cursor += left.min(step)
+                }
+                KeyCode::Right | KeyCode::Enter => {
+                    if group.proxy_type.is_selector() {
+                        let current = group.members[group.cursor].name.to_owned();
+                        return Some(Action::ApplySelection {
+                            group: group.name.to_owned(),
+                            proxy: current,
+                        });
+                    }
+                }
+                _ => {}
+            }
+        } else {
+            match event.code {
+                KeyCode::Up => {
+                    if self.cursor > 0 {
+                        self.cursor = self.cursor.saturating_sub(1)
+                    }
+                }
+                KeyCode::Down => {
+                    if self.cursor < self.groups.len() - 1 {
+                        self.cursor = self.cursor.saturating_add(1)
+                    }
+                }
+                KeyCode::Enter => self.expanded = true,
+                _ => {}
+            }
+        }
+        self.update_footer();
+        None
+    }
+
+    fn offset(&self) -> &crate::ui::Coord {
+        &Coord {
+            x: 0,
+            y: 0,
+            hold: false,
+        }
     }
 }
