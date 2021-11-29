@@ -47,11 +47,10 @@ impl<'a> TuiStates<'a> {
 
     pub fn handle(&mut self, event: Event) -> Result<Option<Action>> {
         self.all_events_recv += 1;
-        if self.events.len() >= 300 {
-            drop(self.drop_events(100))
+        if self.debug_state.len() >= 300 {
+            let _ = self.drop_events(100);
         }
-        self.events.push(event.to_owned());
-        // self.debug_state.push(event);
+        self.debug_state.push(event.to_owned());
 
         match event {
             Event::Quit => {
@@ -162,6 +161,6 @@ impl<'a> TuiStates<'a> {
     }
 
     fn drop_events(&mut self, num: usize) -> impl Iterator<Item = Event> + '_ {
-        self.events.drain(..num)
+        self.debug_state.drain(..num)
     }
 }
