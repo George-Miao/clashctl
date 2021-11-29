@@ -3,26 +3,23 @@ alias b := build
 alias d := dev
 
 ui *args:
-	cargo run --features ui --bin clashctl_ui -- {{ args }}
+	cargo run -p clashctl-tui -- {{ args }}
 
 cli *args:
-	cargo run --features cli --bin clashctl_cli -- {{ args }}
+	cargo run -p clashctl-cli -- {{ args }}
 
 reset_terminal:
 	pkill clashctl && stty sane && stty cooked
 
 dev:
-	cargo watch -x 'check  --features "ui cli" > /dev/null 2>&1 ' -s 'touch .trigger' > /dev/null & 
-	cargo watch --no-gitignore -w .trigger -x 'run --features "ui cli"'
+	cargo watch -x 'check -p clashctl-tui > /dev/null 2>&1 ' -s 'touch .trigger' > /dev/null & 
+	cargo watch --no-gitignore -w .trigger -x 'run -p clashctl-tui'
 
 run *args:
-	cargo run --features "ui, cli" -- {{ args }}
+	cargo run -p clashctl-bin -- {{ args }}
 
 build:
-	cargo build --release --features="cli ui"
+	cargo build --release
 
-add crate:
-	cargo add {{ crate }} --upgrade patch --optional
-
-test args:
-	cargo test --package clashctl --lib --all-features -- {{ args }} --nocapture
+test *args:
+	cargo test -- {{ args }} --nocapture
