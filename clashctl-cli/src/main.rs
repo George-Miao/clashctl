@@ -1,3 +1,3 @@
 fn main() {
-    println!("Hello, world!");
+    clashctl_cli::run()
 }
