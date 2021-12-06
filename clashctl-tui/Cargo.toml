@@ -8,6 +8,7 @@ license     = "MIT"
 name        = "clashctl-tui"
 repository  = "https://github.com/George-Miao/clashctl"
 version     = "0.3.0-alpha.5"
+readme      = "../README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]

@@ -9,6 +9,7 @@ edition = "2021"
 keywords = ["clash", "api", "cli", "tui"]
 categories = ["command-line-utilities"]
 default-run = "clashctl"
+readme = "../README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
