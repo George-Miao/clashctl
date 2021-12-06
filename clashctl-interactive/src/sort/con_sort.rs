@@ -1,4 +1,4 @@
-use clashctl::model::ConnectionWithSpeed;
+use clashctl_core::model::ConnectionWithSpeed;
 
 use crate::{EndlessSelf, OrderBy, SortMethod, SortOrder};
 

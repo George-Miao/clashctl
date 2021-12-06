@@ -7,10 +7,11 @@ use std::{
 };
 
 use crate::{
-    components::Tabs, pages::route, Check, Interval, Logger, Result, Servo, TicksCounter, TuiStates,
+    components::Tabs, pages::route, Check, Interval, Logger, Result, Servo, TicksCounter, TuiOpt,
+    TuiStates,
 };
 // use clap::Parser;
-use clashctl_interactive::{Flags, TuiOpt};
+use clashctl_interactive::Flags;
 use crossterm::execute;
 use crossterm::terminal::{
     disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,

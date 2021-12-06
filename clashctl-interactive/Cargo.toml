@@ -1,19 +1,17 @@
 [package]
 name = "clashctl-interactive"
-version = "0.3.0-alpha.3"
+version = "0.3.0-alpha.5"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [features]
-cli = ["clap"]
-tui = []
 
 [dependencies]
-clashctl       = { path = "../clashctl", features = ["enum_ext", "deserialize"] }
+clashctl-core  = { path = "../clashctl-core", features = ["enum_ext", "deserialize"] }
 workspace-hack = { version = "0.1", path = "../clashctl-workspace-hack" }
 
 smart-default = { version = "~0.6.0" }
-clap          = { version = "~3.0.0-beta.5", optional = true }
+clap          = { version = "~3.0.0-beta.5" }
 url           = { version = "~2.2" }
 log           = { version = "~0.4", features = ["std"] }
 strum         = { version = "~0.22.0", features = ["derive"] }

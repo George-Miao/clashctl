@@ -1,13 +1,7 @@
 #![feature(generic_associated_types)]
 
-use clashctl::mod_use;
+use clashctl_core::mod_use;
 
-pub use clashctl;
+pub use clashctl_core as clashctl;
 
-mod_use![config, flags, sort, error,];
-
-#[cfg(feature = "tui")]
-mod tui_opt;
-
-#[cfg(feature = "tui")]
-pub use tui_opt::*;
+mod_use![flags, sort, error, config];

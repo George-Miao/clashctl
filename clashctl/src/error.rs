@@ -1,22 +1,19 @@
-#[derive(thiserror::Error, Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("Invalid URL format")]
-    UrlParseError,
+    #[error("{0}")]
+    InteractiveError(#[from] clashctl_interactive::Error),
 
-    #[error("Error whiling requesting API ({0})")]
-    RequestError(#[from] ureq::Error),
+    #[error("{0}")]
+    TuiError(#[from] clashctl_tui::Error),
 
-    #[error("Broken response from server")]
-    BadResponseEncoding,
+    #[error("{0}")]
+    ClashCtl(#[from] crate::clashctl::Error),
 
-    #[error("Broken response from server: {0}")]
-    BadResponseFormat(#[from] serde_json::Error),
+    #[error("Bad option")]
+    BadOption,
 
-    #[error("Failed response from server (Code {0})")]
-    FailedResponse(u16),
-
-    #[error("Other errors ({0})")]
-    Other(String),
+    #[error("Requestty error")]
+    RequesttyError(#[from] requestty::ErrorKind),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

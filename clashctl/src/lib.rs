@@ -1,22 +1,27 @@
-mod_use![api, error];
+pub use clap;
+pub(crate) use clashctl_interactive::clashctl::{self, model};
 
-#[cfg(test)]
-mod test;
+use clap::Parser;
+use clashctl::mod_use;
+use clashctl_tui::main_loop;
+use log::debug;
 
-pub mod model;
+use crate::{Cmd, Opts};
 
-#[cfg(feature = "enum_ext")]
-pub use strum;
+mod_use![command, proxy_render, utils, error];
 
-#[macro_export]
-macro_rules! mod_use {
-    ($($name:ident $(,)?)+) => {
-        $(
-            mod $name;
-        )+
+pub fn run() {
+    let opts = Opts::parse();
+    opts.init_logger();
+    debug!("Opts: {:#?}", opts);
 
-        $(
-            pub use $name::*;
-        )+
-    };
+    if let Err(e) = match opts.cmd {
+        None => main_loop(Default::default(), opts.flag).map_err(Error::TuiError),
+        Some(Cmd::Tui(opt)) => main_loop(opt, opts.flag).map_err(Error::TuiError),
+        Some(Cmd::Proxy(sub)) => sub.handle(&opts.flag),
+        Some(Cmd::Server(sub)) => sub.handle(&opts.flag),
+        Some(Cmd::Completion(arg)) => arg.handle(),
+    } {
+        eprintln!("{:?}", e)
+    }
 }

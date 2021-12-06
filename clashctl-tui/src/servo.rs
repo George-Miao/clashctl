@@ -7,7 +7,7 @@ use std::{
     time::Duration,
 };
 
-use clashctl_interactive::{Flags, TuiOpt};
+use clashctl_interactive::Flags;
 use crossterm::event::Event as CrossTermEvent;
 use log::warn;
 use rayon::prelude::*;
@@ -16,7 +16,7 @@ use crate::{
     clashctl::Clash,
     event::{Event, UpdateEvent},
     utils::{Interval, Pulse},
-    Action, Result,
+    Action, Result, TuiOpt,
 };
 
 pub(crate) trait Check {

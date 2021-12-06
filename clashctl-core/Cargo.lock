@@ -41,14 +41,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fff857943da45f546682664a79488be82e69e43c1a7a2307679ab9afb3a66d2e"
 
 [[package]]
-name = "clashctl"
-version = "0.1.0"
-dependencies = [
- "clashctl-cli",
- "clashctl-ui",
-]
-
-[[package]]
 name = "clashctl-api"
 version = "0.1.0"
 dependencies = [
@@ -61,26 +53,6 @@ dependencies = [
  "ureq",
  "url",
  "urlencoding",
-]
-
-[[package]]
-name = "clashctl-cli"
-version = "0.1.0"
-dependencies = [
- "clashctl-api",
- "clashctl-interactive",
-]
-
-[[package]]
-name = "clashctl-interactive"
-version = "0.1.0"
-
-[[package]]
-name = "clashctl-ui"
-version = "0.1.0"
-dependencies = [
- "clashctl-api",
- "clashctl-interactive",
 ]
 
 [[package]]

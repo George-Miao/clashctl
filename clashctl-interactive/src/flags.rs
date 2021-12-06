@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use std::time::Duration;
 
-use clashctl::Clash;
+use clashctl_core::Clash;
 use home::home_dir;
 use log::debug;
 use url::Url;
@@ -10,49 +10,45 @@ use crate::{Config, Error, Result};
 
 const DEFAULT_TEST_URL: &str = "http://www.gstatic.com/generate_204";
 
-#[derive(Clone, Debug)]
-#[cfg_attr(feature = "cli", derive(clap::Parser))]
+#[derive(Clone, Debug, clap::Parser)]
 pub struct Flags {
-    #[cfg_attr(
-        feature = "cli",
-        clap(
-            short,
-            long,
-            parse(from_occurrences),
-            about = "Verbosity. Default: INFO, -v DEBUG, -vv TRACE"
-        )
+    #[clap(
+        short,
+        long,
+        parse(from_occurrences),
+        about = "Verbosity. Default: INFO, -v DEBUG, -vv TRACE"
     )]
     pub verbose: u8,
 
-    #[cfg_attr(
-        feature = "cli",
-        clap(
-            short,
-            long,
-            about = "Timeout of requests, in ms",
-            default_value = "2000"
-        )
+    #[clap(
+        short,
+        long,
+        about = "Timeout of requests, in ms",
+        default_value = "2000"
     )]
     pub timeout: u64,
 
-    #[cfg_attr(
-        feature = "cli",
-        clap(
-            short,
-            long,
-            about = "Path of config file. Default to ~/.config/clashctl/config.ron"
-        )
+    #[clap(
+        long,
+        about = "Path of config directory. Default to ~/.config/clashctl",
+        conflicts_with = "config-path"
     )]
-    pub config: Option<PathBuf>,
+    pub config_dir: Option<PathBuf>,
 
-    #[cfg_attr(
-        feature = "cli",
-        clap(
+    #[clap(
+        short,
+        long,
+        about = "Path of config file. Default to ~/.config/clashctl/config.ron",
+        conflicts_with = "config-dir"
+    )]
+    pub config_path: Option<PathBuf>,
+
+    #[clap(
             long,
             default_value = DEFAULT_TEST_URL,
             about = "Url for testing proxy endpointes"
         )
-    )]
+    ]
     pub test_url: Url,
 }
 
@@ -61,7 +57,8 @@ impl Default for Flags {
         Self {
             verbose: 0,
             timeout: 2000,
-            config: None,
+            config_dir: None,
+            config_path: None,
             test_url: Url::parse(DEFAULT_TEST_URL).unwrap(),
         }
     }
@@ -69,8 +66,11 @@ impl Default for Flags {
 
 impl Flags {
     pub fn get_config(&self) -> Result<Config> {
+        if let Some(ref dir) = self.config_path {
+            return Config::from_dir(dir);
+        }
         let conf_dir = self
-            .config
+            .config_dir
             .to_owned()
             .or_else(|| home_dir().map(|dir| dir.join(".config/clashctl/")))
             .ok_or(Error::ConfigFileOpenError)?;

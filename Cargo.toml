@@ -3,9 +3,8 @@ cargo-features = ["strip"]
 [workspace]
 members = [
     "clashctl",
-    "clashctl-bin",
     "clashctl-tui",
-    "clashctl-cli",
+    "clashctl-core",
     "clashctl-interactive",
     "clashctl-workspace-hack",
 ]

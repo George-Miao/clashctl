@@ -1,29 +1,29 @@
 [package]
-name = "clashctl-tui"
+authors     = ["George Miao <gm@miao.dev>"]
+categories  = ["command-line-utilities"]
 description = "Tui used to interact with Clash RESTful API"
-version = "0.3.0-alpha.3"
-authors = ["George Miao <gm@miao.dev>"]
-repository = "https://github.com/George-Miao/clashctl"
-license = "MIT"
-edition = "2021"
-keywords = ["clash", "api", "cli", "tui"]
-categories = ["command-line-utilities"]
+edition     = "2021"
+keywords    = ["clash", "api", "cli", "tui"]
+license     = "MIT"
+name        = "clashctl-tui"
+repository  = "https://github.com/George-Miao/clashctl"
+version     = "0.3.0-alpha.3"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-clashctl-interactive = { path = "../clashctl-interactive", features = ["tui"] }
+clashctl-interactive = { path = "../clashctl-interactive" }
 workspace-hack       = { version = "0.1", path = "../clashctl-workspace-hack" }
 
-thiserror     = { version = "~1.0" }
-tui           = { version = "~0.16.0", default-features = false, features = ['crossterm'] }
-crossterm     = { version = "~0.22.1" }
-bytesize      = { version = "~1.1.0" }
-unicode-width = { version = "~0.1.9" }
-itertools     = { version = "~0.10.1" }
-smart-default = { version = "~0.6.0" }
-rayon         = { version = "~1.5.1" }
-paste         = { version = "~1.0.6" }
-match_any     = { version = "~1.0.1" }
-log           = { version = "~0.4", features = ["std"] }
-chrono        = { version = "~0.4", features = ["serde"] }
+tui            = { version = "~0.16.0", default-features = false, features = [ 'crossterm' ] }
+chrono         = { version = "~0.4", features = ["serde"] }
+log            = { version = "~0.4", features = ["std"] }
+clap           = { version = "~3.0.0-beta.5" }
+bytesize       = { version = "~1.1.0" }
+crossterm      = { version = "~0.22.1" }
+itertools      = { version = "~0.10.1" }
+match_any      = { version = "~1.0.1" }
+paste          = { version = "~1.0.6" }
+rayon          = { version = "~1.5.1" }
+smart-default  = { version = "~0.6.0" }
+thiserror      = { version = "~1.0" }
+unicode-width  = { version = "~0.1.9" }

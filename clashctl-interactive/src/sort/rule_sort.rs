@@ -1,6 +1,6 @@
 use crate::{EndlessSelf, OrderBy, SortMethod, SortOrder};
 
-use clashctl::model::Rule;
+use clashctl_core::model::Rule;
 
 #[derive(
     Debug,

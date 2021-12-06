@@ -3,7 +3,7 @@ use std::path::PathBuf;
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("Clashctl error: {0}")]
-    ClashCtl(#[from] clashctl::Error),
+    ClashCtl(#[from] clashctl_core::Error),
 
     #[error("Cannot find server")]
     ServerNotFound,

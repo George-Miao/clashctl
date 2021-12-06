@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use clashctl::model::Proxy;
+use clashctl_core::model::Proxy;
 
 use crate::{EndlessSelf, SortMethod, SortOrder};
 

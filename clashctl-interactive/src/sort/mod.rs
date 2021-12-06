@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use clashctl::mod_use;
+use clashctl_core::mod_use;
 
 mod_use![con_sort, proxy_sort, rule_sort];
 

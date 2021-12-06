@@ -5,13 +5,13 @@ use std::ops::{Deref, DerefMut};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use log::debug;
+use log::{debug, info};
 use ron::from_str;
 use ron::ser::{to_string_pretty, PrettyConfig};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use clashctl::{Clash, ClashBuilder};
+use clashctl_core::{Clash, ClashBuilder};
 
 use crate::{Error, Result};
 
@@ -68,7 +68,7 @@ impl Config {
         debug!("Open config file @ {}", path.display());
 
         if !path.exists() {
-            debug!("File not exist, creating new one");
+            info!("Config file not exist, creating new one");
             let mut file = OpenOptions::new()
                 .create(true)
                 .write(true)
@@ -96,10 +96,8 @@ impl Config {
 
         debug!("Content read");
 
-        let data = from_str::<ConfigData>(&buf)?;
-
         Ok(Self {
-            inner: data,
+            inner: from_str(&buf)?,
             path: path.to_owned(),
         })
     }

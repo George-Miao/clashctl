@@ -7,7 +7,7 @@ use clashctl_interactive::clashctl::{self, mod_use, model};
 pub mod components;
 pub mod pages;
 
-mod_use![utils, action, app, event, servo, state, error];
+mod_use![utils, action, app, event, servo, state, error, tui_opt];
 
 #[macro_export]
 macro_rules! define_widget {
