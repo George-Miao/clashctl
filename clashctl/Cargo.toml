@@ -12,9 +12,8 @@ default-run = "clashctl"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-clashctl-tui         = { path = "../clashctl-tui" }
-clashctl-interactive = { path = "../clashctl-interactive" }
-workspace-hack       = { path = "../clashctl-workspace-hack" }
+clashctl-tui         = "0.3.0-alpha.5"
+clashctl-interactive = "0.3.0-alpha.5"
 
 log           = { version = "~0.4", features = ["std"] }
 url           = { version = "~2.2", features = ["serde"] }
@@ -26,6 +25,7 @@ requestty     = { version = "~0.1" }
 either        = { version = "~1.6.1" }
 clap          = { version = "~3.0.0-beta.5" }
 clap_generate = { version = "~3.0.0-beta.5" }
+workspace-hack = { version = "0.1", path = "../clashctl-workspace-hack" }
 
 [dev-dependencies]
 rand = { version = "0.8.4", features = ["small_rng"] }

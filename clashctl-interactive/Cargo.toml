@@ -23,4 +23,4 @@ ron           = { version = "~0.7" }
 workspace-hack = { version = "0.1", path = "../clashctl-workspace-hack" }
 
 [dev-dependencies]
-simple_logger = "*"
+simple_logger = "1.15"
