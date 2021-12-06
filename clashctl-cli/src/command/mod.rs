@@ -22,9 +22,6 @@ pub struct Opts {
 
 #[derive(Subcommand, Debug)]
 pub enum Cmd {
-    #[cfg(feature = "tui")]
-    #[clap(about = "Enter tui")]
-    Tui(clashctl_interactive::TuiOpt),
     #[clap(subcommand)]
     Proxy(ProxySubcommand),
     #[clap(subcommand)]

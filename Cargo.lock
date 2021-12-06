@@ -155,7 +155,6 @@ dependencies = [
  "clap",
  "clap_generate",
  "clashctl-interactive",
- "clashctl-tui",
  "either",
  "env_logger",
  "log",

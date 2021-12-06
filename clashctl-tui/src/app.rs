@@ -75,20 +75,14 @@ pub fn main_loop(opt: TuiOpt, flag: Flags) -> Result<()> {
             match state.handle(event) {
                 Ok(Some(action)) => {
                     if let Err(e) = action_tx.send(action) {
-                        event_handler_error
-                            .lock()
-                            .expect("other thread has panicked")
-                            .replace(e.into());
+                        event_handler_error.lock().unwrap().replace(e.into());
                         should_quit = true;
                     }
                 }
                 // No action needed
                 Ok(None) => {}
                 Err(e) => {
-                    event_handler_error
-                        .lock()
-                        .expect("other thread has panicked")
-                        .replace(e);
+                    event_handler_error.lock().unwrap().replace(e);
                     should_quit = true;
                 }
             }
@@ -117,6 +111,7 @@ pub fn main_loop(opt: TuiOpt, flag: Flags) -> Result<()> {
         if state.should_quit {
             break;
         }
+
         TICK_COUNTER.with(|t| t.borrow_mut().new_tick());
         if let Err(e) = terminal.draw(|f| render(&state, f)) {
             error.lock().unwrap().replace(e.into());

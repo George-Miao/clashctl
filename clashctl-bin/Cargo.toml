@@ -13,8 +13,12 @@ categories = ["command-line-utilities"]
 
 [dependencies]
 clashctl-tui         = { path = "../clashctl-tui" }
-clashctl-cli         = { path = "../clashctl-cli", features = ["tui"] }
+clashctl-cli         = { path = "../clashctl-cli" }
 clashctl-interactive = { path = "../clashctl-interactive" }
 workspace-hack       = { version = "0.1", path = "../clashctl-workspace-hack" }
 
 log = { version = "~0.4", features = ["std"] }
+
+[[bin]]
+path = "src/main.rs"
+name = "clashctl"

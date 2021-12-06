@@ -13,11 +13,8 @@ categories = ["command-line-utilities"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-tui = []
-
 
 [dependencies]
-clashctl-tui = { path = "../clashctl-tui", optional = true }
 clashctl-interactive = { path = "../clashctl-interactive", features = ["cli"] }
 workspace-hack       = { version = "0.1", path = "../clashctl-workspace-hack" }
 

@@ -25,7 +25,6 @@ pub fn run() {
         Cmd::Proxy(sub) => sub.handle(&opts.flag),
         Cmd::Server(sub) => sub.handle(&opts.flag),
         Cmd::Completion(arg) => arg.handle(),
-        _ => unreachable!(),
     } {
         eprintln!("{:?}", e)
     }

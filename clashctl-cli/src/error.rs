@@ -3,6 +3,10 @@ pub enum Error {
     #[error("{0}")]
     InteractiveError(#[from] clashctl_interactive::Error),
 
+    #[cfg(feature = "tui")]
+    #[error("{0}")]
+    TuiError(#[from] clashctl_tui::Error),
+
     #[error("Clashctl error: {0}")]
     ClashCtl(#[from] crate::clashctl::Error),
 
