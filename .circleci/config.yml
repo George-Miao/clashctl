@@ -1,13 +1,18 @@
 version: 2.1
 
 jobs:
-  build: 
+  build:
     docker:
       - image: cimg/rust:1.57.0
     steps:
       - checkout
-      - run: 
+      - run:
           command: |
             rustup install nightly
             rustup default nightly
             cargo build --release
+            mkdir /tmp/clashctl
+            cd target/release
+            mv clashctl clashctl-tui /tmp/clashctl/
+      - store_artifacts:
+          path: /tmp/clashctl
