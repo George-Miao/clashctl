@@ -145,6 +145,7 @@ version = "0.3.0-alpha.5"
 dependencies = [
  "cfg-if",
  "chrono",
+ "home",
  "log",
  "semver",
  "serde",

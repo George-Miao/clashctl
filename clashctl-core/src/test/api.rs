@@ -1,6 +1,7 @@
 use std::env;
 use std::sync::Once;
 
+use home::home_dir;
 use log::info;
 
 use crate::Clash;
@@ -38,9 +39,9 @@ fn test_proxy() {
 fn test_proxy_delay() {
     let clash = init();
     let proxies = clash.get_proxies().unwrap();
-    let (proxy, _) = proxies.iter().next().unwrap();
+    let (proxy, _) = proxies.iter().find(|x| x.1.proxy_type.is_normal()).unwrap();
     clash
-        .get_proxy_delay(proxy, "http://www.gstatic.com/generate_204", 10000)
+        .get_proxy_delay(proxy, "https://static.miao.dev/generate_204", 10000)
         .unwrap();
 }
 
@@ -61,9 +62,14 @@ fn test_set_proxy() {
 #[test]
 fn test_configs() {
     let clash = init();
+    let default_config_dir = home_dir()
+        .expect("Home dir should exist")
+        .join(".config/clash/config.yaml");
+    let path = default_config_dir.to_str().unwrap();
+
     clash.get_configs().unwrap();
-    clash.reload_configs(false, "/tmp/clash.yaml").unwrap();
-    clash.reload_configs(true, "/tmp/clash.yaml").unwrap();
+    // clash.reload_configs(false, path).unwrap();
+    // clash.reload_configs(true, path).unwrap();
 }
 
 #[test]

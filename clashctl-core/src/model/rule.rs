@@ -28,6 +28,8 @@ pub enum RuleType {
     Match,
     Direct,
     Reject,
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
