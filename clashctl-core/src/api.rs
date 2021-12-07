@@ -116,6 +116,7 @@ impl Clash {
         Ok(req)
     }
 
+    /// Send a oneshot request to the specific endpoint with method, with body
     pub fn oneshot_req_with_body(
         &self,
         endpoint: &str,
@@ -139,10 +140,30 @@ impl Clash {
         Ok(text)
     }
 
+    /// Send a oneshot request to the specific endpoint with method, without body
     pub fn oneshot_req(&self, endpoint: &str, method: &str) -> Result<String> {
         self.oneshot_req_with_body(endpoint, method, None)
     }
 
+    /// Send a longhaul request to the specific endpoint with method,
+    /// Underlying is an http stream with chunked-encoding.
+    ///
+    /// Use [`LongHaul::next_item`], [`LongHaul::next_raw`] or [`Iterator::next`] to retreive data
+    ///
+    /// # Examplel
+    ///
+    /// ```rust
+    /// # use clashctl_core::{ Clash, model::Traffic }; use std::env;
+    /// # fn main() {
+    /// # let clash = Clash::builder(env::var("PROXY_ADDR").unwrap()).unwrap().build();
+    /// let traffics = clash.longhaul_req::<Traffic>("traffic", "GET").expect("connect failed");
+    ///
+    /// // LongHaul implements `Iterator` so you can use iterator combinators
+    /// for traffic in traffics.take(3) {
+    ///     println!("{:#?}", traffic)
+    /// }
+    /// # }
+    /// ```
     pub fn longhaul_req<T: DeserializeOwned>(
         &self,
         endpoint: &str,
@@ -159,15 +180,17 @@ impl Clash {
         Ok(LongHaul::new(Box::new(resp.into_reader())))
     }
 
+    /// Helper function for method `GET`
     pub fn get<T: DeserializeOwned>(&self, endpoint: &str) -> Result<T> {
         self.oneshot_req(endpoint, "GET").and_then(Convert::convert)
     }
 
-    pub fn delete<T: DeserializeOwned>(&self, endpoint: &str) -> Result<T> {
-        self.oneshot_req(endpoint, "DELETE")
-            .and_then(Convert::convert)
+    /// Helper function for method `DELETE`
+    pub fn delete(&self, endpoint: &str) -> Result<()> {
+        self.oneshot_req(endpoint, "DELETE").map(|_| ())
     }
 
+    /// Helper function for method `PUT`
     pub fn put<T: DeserializeOwned>(&self, endpoint: &str, body: Option<String>) -> Result<T> {
         self.oneshot_req_with_body(endpoint, "PUT", body)
             .and_then(Convert::convert)
@@ -192,12 +215,8 @@ impl Clash {
     pub fn reload_configs(&self, force: bool, path: &str) -> Result<()> {
         let body = json!({ "path": path }).to_string();
         debug!("{}", body);
-        self.oneshot_req_with_body(
-            if force { "configs?force" } else { "configs" },
-            "PUT",
-            Some(body),
-        )
-        .map(|_| ())
+        self.put::<String>(if force { "configs?force" } else { "configs" }, Some(body))
+            .map(|_| ())
     }
 
     /// Get proxies information
@@ -215,7 +234,7 @@ impl Clash {
         self.get(&format!("proxies/{}", proxy))
     }
 
-    ///  Get connections information
+    /// Get connections information
     pub fn get_connections(&self) -> Result<Connections> {
         self.get("connections")
     }
@@ -233,6 +252,10 @@ impl Clash {
     /// Get real-time traffic data
     ///
     /// **Note**: This is a longhaul request, which will last forever until interrupted or disconnected.
+    ///
+    /// See [`longhaul_req`] for more information
+    ///
+    /// [`longhaul_req`]: Clash::longhaul_req
     pub fn get_traffic(&self) -> Result<LongHaul<Traffic>> {
         self.longhaul_req("traffic", "GET")
     }
@@ -240,6 +263,10 @@ impl Clash {
     /// Get real-time logs
     ///
     /// **Note**: This is a longhaul request, which will last forever until interrupted or disconnected.
+    ///
+    /// See [`longhaul_req`] for more information
+    ///
+    /// [`longhaul_req`]: Clash::longhaul_req
     pub fn get_log(&self) -> Result<LongHaul<Log>> {
         self.longhaul_req("logs", "GET")
     }
