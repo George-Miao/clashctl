@@ -35,6 +35,7 @@ impl AsColor for RuleType {
             RuleType::Match => Color::Blue,
             RuleType::Direct => Color::Blue,
             RuleType::Reject => Color::Red,
+            RuleType::Unknown => Color::DarkGray,
         }
     }
 }
