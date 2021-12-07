@@ -3,13 +3,11 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: cimg/rust:1.57.0
+      - image: rustlang/rust:nightly
     steps:
       - checkout
       - run:
           command: |
-            rustup install nightly
-            rustup default nightly
             cargo build --release
             mkdir /tmp/clashctl
             cd target/release
