@@ -5,7 +5,7 @@ use std::time::Duration;
 use log::{debug, trace};
 
 use serde::de::DeserializeOwned;
-use serde_json::from_str;
+use serde_json::{from_str, json};
 use ureq::{Agent, Request};
 use url::Url;
 
@@ -62,6 +62,11 @@ impl ClashBuilder {
     }
 }
 
+/// # Clash API
+///
+/// Use struct `Clash` for interacting with Clash RESTful API.
+/// For more information, check <https://github.com/Dreamacro/clash/wiki/external-controller-API-reference###Proxies>,
+/// or maybe just read source code of clash
 #[derive(Debug, Clone)]
 pub struct Clash {
     url: Url,
@@ -167,10 +172,13 @@ impl Clash {
         self.oneshot_req_with_body(endpoint, "PUT", body)
             .and_then(Convert::convert)
     }
+
+    /// Get clash version
     pub fn get_version(&self) -> Result<Version> {
         self.get("version")
     }
 
+    /// Get base configs
     pub fn get_configs(&self) -> Result<Config> {
         self.get("configs")
     }
@@ -191,30 +199,42 @@ impl Clash {
         )
         .map(|_| ())
     }
+
+    /// Get proxies information
     pub fn get_proxies(&self) -> Result<Proxies> {
         self.get("proxies")
     }
 
+    /// Get rules information
     pub fn get_rules(&self) -> Result<Rules> {
         self.get("rules")
     }
 
+    /// Get specific proxy information
     pub fn get_proxy(&self, proxy: &str) -> Result<Proxy> {
         self.get(&format!("proxies/{}", proxy))
     }
 
+    ///  Get connections information
     pub fn get_connections(&self) -> Result<Connections> {
         self.get("connections")
     }
 
+    /// Get real-time traffic data
+    ///
+    /// **Note**: This is a longhaul request, which will last forever until interrupted or disconnected.
     pub fn get_traffic(&self) -> Result<LongHaul<Traffic>> {
         self.longhaul_req("traffic", "GET")
     }
 
+    /// Get real-time logs
+    ///
+    /// **Note**: This is a longhaul request, which will last forever until interrupted or disconnected.
     pub fn get_log(&self) -> Result<LongHaul<Log>> {
         self.longhaul_req("logs", "GET")
     }
 
+    /// Get specific proxy delay test information
     pub fn get_proxy_delay(&self, proxy: &str, test_url: &str, timeout: u64) -> Result<Delay> {
         use urlencoding::encode as e;
         let (proxy, test_url) = (e(proxy), e(test_url));
@@ -224,6 +244,7 @@ impl Clash {
         ))
     }
 
+    /// Select specific proxy
     pub fn set_proxygroup_selected(&self, group: &str, proxy: &str) -> Result<()> {
         let body = format!("{{\"name\":\"{}\"}}", proxy);
         self.oneshot_req_with_body(&format!("proxies/{}", group), "PUT", Some(body))?;
@@ -254,7 +275,6 @@ impl<T: DeserializeOwned> LongHaul<T> {
             Ok(0) => None,
             Ok(_) => Some(Ok(buf)),
             Err(e) => Some(Err(Error::Other(format!("{:}", e)))),
-            // _ => Some(Err(Error::BadResponseEncoding)),
         }
     }
 }
