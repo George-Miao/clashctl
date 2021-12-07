@@ -19,7 +19,10 @@ Easy-to-use TUI & CLI to interact with [Clash](https://github.com/Dreamacro/clas
 ### From [`crates.io`](https://crates.io)
 
 ```bash
-$ cargo install clashctl --vers 0.3.0-alpha.5
+# Full function version
+$ cargo install clashctl 
+# Or install the tui-only version
+$ cargo install clashctl-tui
 ```
 
 ### Compile from source
