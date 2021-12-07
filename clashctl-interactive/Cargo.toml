@@ -1,6 +1,6 @@
 [package]
 name = "clashctl-interactive"
-version = "0.3.0-alpha.5"
+version = "0.3.0"
 edition = "2021"
 description = "Dependency for clashctl & clashctl-tui, do not use directly"
 license = "MIT"
