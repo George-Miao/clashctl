@@ -166,6 +166,22 @@ impl Clash {
         self.get("configs")
     }
 
+    /// Reloading base configs.
+    ///
+    /// - `force`: will change ports etc.,
+    /// - `path`: the absolute path to config file
+    ///
+    /// This will **NOT** affect `external-controller` & `secret`
+    pub fn reload_configs(&self, force: bool, path: &str) -> Result<()> {
+        let body = json!({ "path": path }).to_string();
+        debug!("{}", body);
+        self.oneshot_req_with_body(
+            if force { "configs?force" } else { "configs" },
+            "PUT",
+            Some(body),
+        )
+        .map(|_| ())
+    }
     pub fn get_proxies(&self) -> Result<Proxies> {
         self.get("proxies")
     }
