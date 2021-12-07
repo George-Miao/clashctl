@@ -220,6 +220,16 @@ impl Clash {
         self.get("connections")
     }
 
+    /// Close all connections
+    pub fn close_connections(&self) -> Result<()> {
+        self.delete("connections")
+    }
+
+    /// Close specific connection
+    pub fn close_one_connection(&self, id: &str) -> Result<()> {
+        self.delete(&format!("connections/{}", id))
+    }
+
     /// Get real-time traffic data
     ///
     /// **Note**: This is a longhaul request, which will last forever until interrupted or disconnected.
