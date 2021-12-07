@@ -125,7 +125,7 @@ dependencies = [
  "clap",
  "clap_generate",
  "clashctl-interactive 0.3.0-alpha.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "clashctl-tui 0.3.0-alpha.5",
+ "clashctl-tui 0.3.0-alpha.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "either",
  "env_logger",
  "log",
@@ -215,28 +215,6 @@ dependencies = [
 
 [[package]]
 name = "clashctl-tui"
-version = "0.3.0-alpha.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9acfead94043a82585bc4f52c4f5e89bb67519c4f0c20bb1c9834f3907569066"
-dependencies = [
- "bytesize",
- "chrono",
- "clap",
- "clashctl-interactive 0.3.0-alpha.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "crossterm 0.22.1",
- "itertools",
- "log",
- "match_any",
- "paste",
- "rayon",
- "smart-default",
- "thiserror",
- "tui",
- "unicode-width",
-]
-
-[[package]]
-name = "clashctl-tui"
 version = "0.3.0-alpha.6"
 dependencies = [
  "bytesize",
@@ -254,6 +232,28 @@ dependencies = [
  "tui",
  "unicode-width",
  "workspace-hack",
+]
+
+[[package]]
+name = "clashctl-tui"
+version = "0.3.0-alpha.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "14a1f67c43ce9fee152efb7b8de906d5effa56021ed162677bcdac76696d0263"
+dependencies = [
+ "bytesize",
+ "chrono",
+ "clap",
+ "clashctl-interactive 0.3.0-alpha.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "crossterm 0.22.1",
+ "itertools",
+ "log",
+ "match_any",
+ "paste",
+ "rayon",
+ "smart-default",
+ "thiserror",
+ "tui",
+ "unicode-width",
 ]
 
 [[package]]
