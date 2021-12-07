@@ -158,6 +158,15 @@ impl Clash {
         self.oneshot_req(endpoint, "GET").and_then(Convert::convert)
     }
 
+    pub fn delete<T: DeserializeOwned>(&self, endpoint: &str) -> Result<T> {
+        self.oneshot_req(endpoint, "DELETE")
+            .and_then(Convert::convert)
+    }
+
+    pub fn put<T: DeserializeOwned>(&self, endpoint: &str, body: Option<String>) -> Result<T> {
+        self.oneshot_req_with_body(endpoint, "PUT", body)
+            .and_then(Convert::convert)
+    }
     pub fn get_version(&self) -> Result<Version> {
         self.get("version")
     }
