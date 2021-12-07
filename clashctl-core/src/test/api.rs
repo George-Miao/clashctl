@@ -62,6 +62,8 @@ fn test_set_proxy() {
 fn test_configs() {
     let clash = init();
     clash.get_configs().unwrap();
+    clash.reload_configs(false, "/tmp/clash.yaml").unwrap();
+    clash.reload_configs(true, "/tmp/clash.yaml").unwrap();
 }
 
 #[test]
