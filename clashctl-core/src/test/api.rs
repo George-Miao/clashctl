@@ -87,7 +87,14 @@ fn test_log() {
 #[test]
 fn test_connections() {
     let clash = init();
-    clash.get_connections().unwrap();
+    let cons = clash.get_connections().unwrap();
+    let res = &cons
+        .connections
+        .first()
+        .expect("Should exist at least one connection")
+        .id;
+    clash.close_one_connection(res).unwrap();
+    clash.close_connections().unwrap();
 }
 
 #[test]
