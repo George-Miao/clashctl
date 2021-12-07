@@ -125,7 +125,7 @@ dependencies = [
  "clap",
  "clap_generate",
  "clashctl-interactive 0.3.0-alpha.5",
- "clashctl-tui 0.3.0-alpha.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clashctl-tui 0.3.0-alpha.6",
  "either",
  "env_logger",
  "log",
@@ -216,6 +216,8 @@ dependencies = [
 [[package]]
 name = "clashctl-tui"
 version = "0.3.0-alpha.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "14a1f67c43ce9fee152efb7b8de906d5effa56021ed162677bcdac76696d0263"
 dependencies = [
  "bytesize",
  "chrono",
@@ -231,14 +233,11 @@ dependencies = [
  "thiserror",
  "tui",
  "unicode-width",
- "workspace-hack",
 ]
 
 [[package]]
 name = "clashctl-tui"
-version = "0.3.0-alpha.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "14a1f67c43ce9fee152efb7b8de906d5effa56021ed162677bcdac76696d0263"
+version = "0.3.0"
 dependencies = [
  "bytesize",
  "chrono",
