@@ -141,25 +141,6 @@ dependencies = [
 
 [[package]]
 name = "clashctl-core"
-version = "0.3.0-alpha.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d590c2a82b05506e3ee24442d9e3ebf940494bf049c6476afcc5d11829c76f9d"
-dependencies = [
- "cfg-if",
- "chrono",
- "log",
- "semver",
- "serde",
- "serde_json",
- "strum",
- "thiserror",
- "ureq",
- "url",
- "urlencoding",
-]
-
-[[package]]
-name = "clashctl-core"
 version = "0.3.0"
 dependencies = [
  "cfg-if",
@@ -178,11 +159,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "clashctl-core"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e9a9274d0a80f566d6007279a699a7ffd51d501e5f6d95d1adcf6ba4337151cb"
+dependencies = [
+ "cfg-if",
+ "chrono",
+ "log",
+ "semver",
+ "serde",
+ "serde_json",
+ "strum",
+ "thiserror",
+ "ureq",
+ "url",
+ "urlencoding",
+]
+
+[[package]]
 name = "clashctl-interactive"
 version = "0.3.0-alpha.5"
 dependencies = [
  "clap",
- "clashctl-core 0.3.0-alpha.5",
+ "clashctl-core 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "home",
  "log",
  "ron",
@@ -202,7 +202,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2ba28b1a02acd91579d7466860f3ebf7e0ee6fc892602cd9c1a1f5bdaba436cb"
 dependencies = [
  "clap",
- "clashctl-core 0.3.0-alpha.5",
+ "clashctl-core 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "home",
  "log",
  "ron",
@@ -472,9 +472,9 @@ dependencies = [
 
 [[package]]
 name = "itertools"
-version = "0.10.1"
+version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69ddb889f9d0d08a67338271fa9b62996bc788c7796a5c18cf057420aaed5eaf"
+checksum = "a9a9d19fa1e79b6215ff29b9d6880b706147f16e9b1dbb1e4e5947b5b02bc5e3"
 dependencies = [
  "either",
 ]
@@ -493,9 +493,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.108"
+version = "0.2.109"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8521a1b57e76b1ec69af7599e75e38e7b7fad6610f037db8c79b127201b5d119"
+checksum = "f98a04dce437184842841303488f70d0188c5f51437d2a834dc097eafa909a01"
 
 [[package]]
 name = "lock_api"
@@ -535,9 +535,9 @@ checksum = "308cc39be01b73d0d18f82a0e7b2a3df85245f84af96fdddc5d202d27e47b86a"
 
 [[package]]
 name = "memoffset"
-version = "0.6.4"
+version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59accc507f1338036a0477ef61afdae33cde60840f4dfe481319ce3ad116ddf9"
+checksum = "5aa361d4faea93603064a027415f07bd8e1d5c88c9fbf68bf56a285428fd79ce"
 dependencies = [
  "autocfg",
 ]
@@ -692,9 +692,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.32"
+version = "1.0.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba508cc11742c0dc5c1659771673afbab7a0efab23aa17e854cbab0837ed0b43"
+checksum = "fb37d2df5df740e582f28f8560cf425f52bb267d872fe58358eadb554909f07a"
 dependencies = [
  "unicode-xid",
 ]
