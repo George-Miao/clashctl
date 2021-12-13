@@ -47,41 +47,41 @@ pub enum ProxySubcommand {
 #[derive(Parser, Debug, Clone)]
 pub struct ProxyListOpt {
     #[clap(
-        long, 
-        default_value = "delay", 
+        long,
+        default_value = "delay",
         possible_values = &["type", "name", "delay"],
     )]
     pub sort_by: ProxySortBy,
 
     #[clap(
-        long, 
+        long,
         default_value = "ascendant",
         possible_values = &["ascendant", "descendant"],
     )]
     pub sort_order: SortOrder,
 
-    #[clap(short, long, about = "Reverse the listed result")]
+    #[clap(short, long, help = "Reverse the listed result")]
     pub reverse: bool,
 
     #[clap(
         short,
         long,
-        about = "Exclude proxy types",
+        help = "Exclude proxy types",
         conflicts_with = "include",
         possible_values = ProxyType::VARIANTS
     )]
     pub exclude: Vec<ProxyType>,
 
     #[clap(
-        short, 
-        long, 
-        about = "Include proxy types",
+        short,
+        long,
+        help = "Include proxy types",
         conflicts_with = "exclude",
         possible_values = ProxyType::VARIANTS
     )]
     pub include: Vec<ProxyType>,
 
-    #[clap(short, long, about = "Show proxies and groups without cascading")]
+    #[clap(short, long, help = "Show proxies and groups without cascading")]
     pub plain: bool
 }
 

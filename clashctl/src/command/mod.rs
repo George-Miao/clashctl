@@ -13,8 +13,8 @@ mod_use!(completion, proxy, server);
     name = clap::crate_name!(),
     author = clap::crate_authors!(),
     about = clap::crate_description!(),
-    license = clap::crate_license!(),
     version = clap::crate_version!(),
+
 )]
 pub struct Opts {
     #[clap(subcommand)]

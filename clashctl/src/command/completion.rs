@@ -23,7 +23,7 @@ pub struct CompletionArg {
     #[clap(
         short,
         long,
-        about = "Output completion script to file, default to STDOUT"
+        help = "Output completion script to file, default to STDOUT"
     )]
     pub output: Option<PathBuf>,
 }
