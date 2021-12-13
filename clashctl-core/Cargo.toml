@@ -17,7 +17,6 @@ deserialize = ["chrono", "semver"]
 enum_ext = ["strum"]
 
 [dependencies]
-
 cfg-if      = "~1.0"
 serde_json  = "~1.0"
 thiserror   = "~1.0"
@@ -30,6 +29,8 @@ ureq        = { version = "~2.3", default-features = false }
 strum  = { version = "~0.22.0", features = ["derive"], optional = true }
 chrono = { version = "~0.4", features = ["serde"], optional = true }
 semver = { version = "~1.0", features = ["serde"], optional = true }
+
+workspace-hack = { version = "0.1", path = "../clashctl-workspace-hack" }
 
 [dev-dependencies]
 home = "~0.5.3"
