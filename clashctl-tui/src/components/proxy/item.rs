@@ -7,7 +7,7 @@ pub struct ProxyItem {
     pub(super) name: String,
     pub(super) proxy_type: ProxyType,
     pub(super) history: Option<History>,
-    pub(super) udp: bool,
+    pub(super) udp: Option<bool>,
     pub(super) now: Option<String>,
 }
 
