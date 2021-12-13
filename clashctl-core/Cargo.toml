@@ -34,4 +34,4 @@ workspace-hack = { version = "0.1", path = "../clashctl-workspace-hack" }
 
 [dev-dependencies]
 home = "~0.5.3"
-simple_logger = "1.15.0"
+pretty_env_logger = "0.4.0"
