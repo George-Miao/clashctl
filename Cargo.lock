@@ -80,9 +80,9 @@ checksum = "fff857943da45f546682664a79488be82e69e43c1a7a2307679ab9afb3a66d2e"
 
 [[package]]
 name = "clap"
-version = "3.0.0-beta.5"
+version = "3.0.0-rc.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "feff3878564edb93745d58cf63e17b63f24142506e7a20c87a5521ed7bfb1d63"
+checksum = "967965e82fc46fee1a88147a7a977a66d615ed5f83eb95b18577b342c08f90ff"
 dependencies = [
  "atty",
  "bitflags",
@@ -93,14 +93,13 @@ dependencies = [
  "strsim",
  "termcolor",
  "textwrap",
- "unicase",
 ]
 
 [[package]]
 name = "clap_derive"
-version = "3.0.0-beta.5"
+version = "3.0.0-rc.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b15c6b4f786ffb6192ffe65a36855bc1fc2444bcd0945ae16748dcd6ed7d0d3"
+checksum = "85946d4034625800196413478a1c6d3a57c12785e1f3970e590e0137dfa07342"
 dependencies = [
  "heck",
  "proc-macro-error",
@@ -111,21 +110,21 @@ dependencies = [
 
 [[package]]
 name = "clap_generate"
-version = "3.0.0-beta.5"
+version = "3.0.0-rc.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "097ab5db1c3417442270cd57c8dd39f6c3114d3ce09d595f9efddbb1fcfaa799"
+checksum = "bdf3ee47de9ce0e5bfb686d0cf84eb9a2d4ee8e6fa78f97267ac0d37e060b9bd"
 dependencies = [
  "clap",
 ]
 
 [[package]]
 name = "clashctl"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "clap",
  "clap_generate",
- "clashctl-interactive 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "clashctl-tui 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clashctl-interactive 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clashctl-tui 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "either",
  "env_logger",
  "log",
@@ -156,6 +155,7 @@ dependencies = [
  "ureq",
  "url",
  "urlencoding",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -179,7 +179,7 @@ dependencies = [
 
 [[package]]
 name = "clashctl-interactive"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "clap",
  "clashctl-core 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -197,9 +197,9 @@ dependencies = [
 
 [[package]]
 name = "clashctl-interactive"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b36c1b2200f1e44edf787cd0bfddd608d185a8ffc7bf4d8abf7b6c1ac43ea273"
+checksum = "385550b347ecc7477bd7df76b6a93d572dee39411fb38471a9831c33e9a350b2"
 dependencies = [
  "clap",
  "clashctl-core 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -215,12 +215,12 @@ dependencies = [
 
 [[package]]
 name = "clashctl-tui"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "bytesize",
  "chrono",
  "clap",
- "clashctl-interactive 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clashctl-interactive 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "crossterm 0.22.1",
  "itertools",
  "log",
@@ -231,18 +231,19 @@ dependencies = [
  "thiserror",
  "tui",
  "unicode-width",
+ "workspace-hack",
 ]
 
 [[package]]
 name = "clashctl-tui"
-version = "0.3.1"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c3ad7ff07b91faf1a0f22f9fbe987154d04ff063c0ff7010ae3876303dc089e"
+checksum = "fe766bb1142e6563f4b825c63f7d1bfa2920be9d74fd7e1f10fe675f507249ef"
 dependencies = [
  "bytesize",
  "chrono",
  "clap",
- "clashctl-interactive 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clashctl-interactive 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "crossterm 0.22.1",
  "itertools",
  "log",
@@ -492,9 +493,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.109"
+version = "0.2.111"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f98a04dce437184842841303488f70d0188c5f51437d2a834dc097eafa909a01"
+checksum = "8e167738f1866a7ec625567bae89ca0d44477232a4f7c52b1c7f2adc2c98804f"
 
 [[package]]
 name = "lock_api"
@@ -609,9 +610,9 @@ checksum = "692fcb63b64b1758029e0a96ee63e049ce8c5948587f2f7208df04625e5f6b56"
 
 [[package]]
 name = "os_str_bytes"
-version = "4.2.0"
+version = "6.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "addaa943333a514159c80c97ff4a93306530d965d27e139188283cd13e06a799"
+checksum = "8e22443d1643a904602595ba1cd8f7d896afe56d26712531c5ff73a15b2fbf64"
 dependencies = [
  "memchr",
 ]
@@ -843,9 +844,9 @@ dependencies = [
 
 [[package]]
 name = "ryu"
-version = "1.0.6"
+version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c9613b5a66ab9ba26415184cfc41156594925a9cf3a2057e57f31ff145f6568"
+checksum = "73b4b750c782965c211b42f022f59af1fbceabdd026623714f104152f1ec149f"
 
 [[package]]
 name = "scopeguard"
@@ -864,18 +865,18 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.130"
+version = "1.0.131"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f12d06de37cf59146fbdecab66aa99f9fe4f78722e3607577a5375d66bd0c913"
+checksum = "b4ad69dfbd3e45369132cc64e6748c2d65cdfb001a2b1c232d128b4ad60561c1"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.130"
+version = "1.0.131"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d7bc1a1ab1961464eae040d96713baa5a724a8152c1222492465b54322ec508b"
+checksum = "b710a83c4e0dff6a3d511946b95274ad9ca9e5d3ae497b63fda866ac955358d2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -895,9 +896,9 @@ dependencies = [
 
 [[package]]
 name = "signal-hook"
-version = "0.3.10"
+version = "0.3.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c98891d737e271a2954825ef19e46bd16bdb98e2746f2eec4f7a4ef7946efd1"
+checksum = "c35dfd12afb7828318348b8c408383cf5071a086c1d4ab1c0f9840ec92dbb922"
 dependencies = [
  "libc",
  "signal-hook-registry",
@@ -925,9 +926,9 @@ dependencies = [
 
 [[package]]
 name = "simple_logger"
-version = "1.15.0"
+version = "1.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "205596cf77a15774e5601c5ef759f4211ac381c0855a1f1d5e24a46f60f93e9a"
+checksum = "12413e3c006deb4f16b9f43192d419c462e21134d0a4e63532fbd050f546a561"
 dependencies = [
  "atty",
  "colored",
@@ -1117,15 +1118,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "unicase"
-version = "2.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "50f37be617794602aabbeee0be4f259dc1778fabe05e2d67ee8f79326d5cb4f6"
-dependencies = [
- "version_check",
-]
-
-[[package]]
 name = "unicode-bidi"
 version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1246,6 +1238,7 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 name = "workspace-hack"
 version = "0.1.0"
 dependencies = [
+ "clap",
  "either",
  "itoa",
  "libc",

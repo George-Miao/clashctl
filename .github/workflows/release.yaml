@@ -1,5 +1,5 @@
 name: Release
-on:  
+on:
   push:
     tags:
       - '*'
@@ -10,7 +10,7 @@ jobs:
     name: Release
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v1
