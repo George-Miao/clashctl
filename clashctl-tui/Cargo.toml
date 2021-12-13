@@ -7,7 +7,7 @@ keywords    = ["clash", "api", "cli", "tui"]
 license     = "MIT"
 name        = "clashctl-tui"
 repository  = "https://github.com/George-Miao/clashctl"
-version     = "0.3.2"
+version     = "0.4.0"
 readme      = "../README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -26,5 +26,5 @@ smart-default  = { version = "~0.6.0" }
 thiserror      = { version = "~1.0" }
 unicode-width  = { version = "~0.1.9" }
 
-clashctl-interactive = "0.3.1"
+clashctl-interactive = "0.3.2"
 workspace-hack = { version = "0.1", path = "../clashctl-workspace-hack" }
