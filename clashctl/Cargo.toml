@@ -1,7 +1,7 @@
 [package]
 name = "clashctl"
 description = "Cli & Tui used to interact with Clash RESTful API"
-version = "0.3.1"
+version = "0.3.2"
 authors = ["George Miao <gm@miao.dev>"]
 repository = "https://github.com/George-Miao/clashctl"
 license = "MIT"
@@ -25,9 +25,9 @@ clap          = { version = "~3.0.0-rc.4", features = ["derive", "cargo"] }
 clap_generate = { version = "~3.0.0-rc.4" }
 
 # clashctl-tui         = { path = "../clashctl-tui" }
-clashctl-tui         = "0.3.1"
+clashctl-tui         = "^0.4"
 # clashctl-interactive = { path = "../clashctl-interactive" }
-clashctl-interactive = "0.3.0"
+clashctl-interactive = "^0.3.0"
 
 workspace-hack       = { version = "0.1", path = "../clashctl-workspace-hack" }
 
