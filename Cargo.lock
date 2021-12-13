@@ -141,6 +141,25 @@ dependencies = [
 [[package]]
 name = "clashctl-core"
 version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e9a9274d0a80f566d6007279a699a7ffd51d501e5f6d95d1adcf6ba4337151cb"
+dependencies = [
+ "cfg-if",
+ "chrono",
+ "log",
+ "semver",
+ "serde",
+ "serde_json",
+ "strum",
+ "thiserror",
+ "ureq",
+ "url",
+ "urlencoding",
+]
+
+[[package]]
+name = "clashctl-core"
+version = "0.4.0"
 dependencies = [
  "cfg-if",
  "chrono",
@@ -159,30 +178,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "clashctl-core"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e9a9274d0a80f566d6007279a699a7ffd51d501e5f6d95d1adcf6ba4337151cb"
-dependencies = [
- "cfg-if",
- "chrono",
- "log",
- "semver",
- "serde",
- "serde_json",
- "strum",
- "thiserror",
- "ureq",
- "url",
- "urlencoding",
-]
-
-[[package]]
 name = "clashctl-interactive"
 version = "0.3.1"
 dependencies = [
  "clap",
- "clashctl-core 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clashctl-core 0.3.0",
  "home",
  "log",
  "ron",
@@ -202,7 +202,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "385550b347ecc7477bd7df76b6a93d572dee39411fb38471a9831c33e9a350b2"
 dependencies = [
  "clap",
- "clashctl-core 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clashctl-core 0.3.0",
  "home",
  "log",
  "ron",
