@@ -12,43 +12,28 @@ const DEFAULT_TEST_URL: &str = "http://www.gstatic.com/generate_204";
 
 #[derive(Clone, Debug, clap::Parser)]
 pub struct Flags {
-    #[clap(
-        short,
-        long,
-        parse(from_occurrences),
-        about = "Verbosity. Default: INFO, -v DEBUG, -vv TRACE"
-    )]
+    #[clap(short, long, parse(from_occurrences))]
+    /// Verbosity. Default: INFO, -v DEBUG, -vv TRACE
     pub verbose: u8,
 
-    #[clap(
-        short,
-        long,
-        about = "Timeout of requests, in ms",
-        default_value = "2000"
-    )]
+    #[clap(short, long, default_value = "2000")]
+    /// Timeout of requests, in ms
     pub timeout: u64,
 
-    #[clap(
-        long,
-        about = "Path of config directory. Default to ~/.config/clashctl",
-        conflicts_with = "config-path"
-    )]
+    #[clap(long, conflicts_with = "config-path")]
+    /// Path of config directory. Default to ~/.config/clashctl
     pub config_dir: Option<PathBuf>,
 
-    #[clap(
-        short,
-        long,
-        about = "Path of config file. Default to ~/.config/clashctl/config.ron",
-        conflicts_with = "config-dir"
-    )]
+    #[clap(short, long, conflicts_with = "config-dir")]
+    /// Path of config file. Default to ~/.config/clashctl/config.ron
     pub config_path: Option<PathBuf>,
 
     #[clap(
             long,
             default_value = DEFAULT_TEST_URL,
-            about = "Url for testing proxy endpointes"
         )
     ]
+    /// Url for testing proxy endpointes
     pub test_url: Url,
 }
 
