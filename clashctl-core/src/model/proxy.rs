@@ -40,7 +40,7 @@ pub struct Proxy {
     #[serde(rename = "type")]
     pub proxy_type: ProxyType,
     pub history: Vec<History>,
-    pub udp: bool,
+    pub udp: Option<bool>,
 
     // Only present in ProxyGroups
     pub all: Option<Vec<String>>,
@@ -126,7 +126,7 @@ fn test_proxies() {
             Proxy {
                 proxy_type: ProxyType::Direct,
                 history: vec![],
-                udp: false,
+                udp: Some(false),
                 all: None,
                 now: None,
             },
@@ -136,7 +136,7 @@ fn test_proxies() {
             Proxy {
                 proxy_type: ProxyType::Selector,
                 history: vec![],
-                udp: false,
+                udp: Some(false),
                 all: Some(vec!["test_c".into()]),
                 now: Some("test_c".into()),
             },
@@ -146,7 +146,7 @@ fn test_proxies() {
             Proxy {
                 proxy_type: ProxyType::Shadowsocks,
                 history: vec![],
-                udp: false,
+                udp: Some(false),
                 all: None,
                 now: None,
             },
@@ -156,7 +156,7 @@ fn test_proxies() {
             Proxy {
                 proxy_type: ProxyType::Fallback,
                 history: vec![],
-                udp: false,
+                udp: Some(false),
                 all: Some(vec!["test_c".into()]),
                 now: Some("test_c".into()),
             },

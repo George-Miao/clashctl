@@ -9,9 +9,15 @@ use crate::Clash;
 static INIT: Once = Once::new();
 
 fn init() -> Clash {
-    INIT.call_once(|| simple_logger::init_with_level(log::Level::Debug).unwrap());
+    INIT.call_once(|| {
+        if env::var("RUST_LOG").is_err() {
+            env::set_var("RUST_LOG", "DEBUG")
+        }
+        pretty_env_logger::init()
+    });
     Clash::builder(env::var("PROXY_ADDR").unwrap())
         .unwrap()
+        .secret(env::var("PROXY_SECRET").ok())
         .build()
 }
 
