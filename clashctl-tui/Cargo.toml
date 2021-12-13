@@ -27,6 +27,4 @@ thiserror      = { version = "~1.0" }
 unicode-width  = { version = "~0.1.9" }
 
 clashctl-interactive = "0.3.1"
-# clashctl-interactive = { path = "../clashctl-interactive" }
-
 workspace-hack = { version = "0.1", path = "../clashctl-workspace-hack" }
