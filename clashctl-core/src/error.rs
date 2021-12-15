@@ -3,7 +3,7 @@ pub enum Error {
     #[error("Invalid URL format")]
     UrlParseError,
 
-    #[error("Error whiling requesting API ({0})")]
+    #[error("Error while requesting API ({0})")]
     RequestError(#[from] ureq::Error),
 
     #[error("Broken response from server")]
