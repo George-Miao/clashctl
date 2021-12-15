@@ -1,5 +1,6 @@
 use std::{
     cell::RefCell,
+    fs::OpenOptions,
     io::{self, Stdout},
     sync::{mpsc::channel, Arc, Mutex, RwLock},
     thread::spawn,
@@ -7,8 +8,8 @@ use std::{
 };
 
 use crate::{
-    components::Tabs, pages::route, Check, Interval, Logger, Result, Servo, TicksCounter, TuiOpt,
-    TuiStates,
+    components::Tabs, pages::route, Check, Interval, LoggerBuilder, Result, Servo, TicksCounter,
+    TuiOpt, TuiStates,
 };
 // use clap::Parser;
 use clashctl_interactive::Flags;
@@ -47,7 +48,8 @@ fn wrap_up(mut terminal: Terminal<Backend>) -> Result<()> {
 }
 
 pub fn main_loop(opt: TuiOpt, flag: Flags) -> Result<()> {
-    if flag.get_config()?.using_server().is_none() {
+    let config = flag.get_config()?;
+    if config.using_server().is_none() {
         eprintln!("No server configured yet. Use `clashctl server add` first.");
         return Ok(());
     };
@@ -58,7 +60,16 @@ pub fn main_loop(opt: TuiOpt, flag: Flags) -> Result<()> {
     let (event_tx, event_rx) = channel();
     let (action_tx, action_rx) = channel();
 
-    Logger::new(event_tx.clone()).apply()?;
+    // Logger::new(event_tx.clone()).apply()?;
+    LoggerBuilder::new(event_tx.clone())
+        .file(config.tui.log_file.as_ref().map(|x| {
+            OpenOptions::new()
+                .append(true)
+                .create(true)
+                .open(x)
+                .unwrap()
+        }))
+        .apply()?;
     info!("Logger set");
     let opt = Arc::new(opt);
     let flag = Arc::new(flag);

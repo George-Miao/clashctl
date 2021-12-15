@@ -1,26 +1,62 @@
-use std::sync::{mpsc::Sender, Mutex};
+use std::{fs::File, io::Write, sync::mpsc::Sender};
 
 use log::{LevelFilter, Record};
+use simple_mutex::Mutex;
 
 use crate::{DiagnosticEvent, Event, Result};
 
+pub struct LoggerBuilder {
+    sender: Sender<Event>,
+    file: Option<File>,
+    level: LevelFilter,
+}
+
+impl LoggerBuilder {
+    pub fn new(tx: Sender<Event>) -> Self {
+        Self {
+            sender: tx,
+            file: None,
+            level: LevelFilter::Info,
+        }
+    }
+
+    pub fn file(mut self, file: Option<File>) -> Self {
+        self.file = file;
+        self
+    }
+
+    pub fn level(mut self, level: LevelFilter) -> Self {
+        self.level = level;
+        self
+    }
+
+    pub fn build(self) -> Logger {
+        let inner = LoggerInner {
+            file: self.file,
+            sender: self.sender,
+        };
+        Logger {
+            inner: Mutex::new(inner),
+            level: self.level,
+        }
+    }
+
+    pub fn apply(self) -> Result<()> {
+        self.build().apply()
+    }
+}
+
+struct LoggerInner {
+    sender: Sender<Event>,
+    file: Option<File>,
+}
+
 pub struct Logger {
-    sender: Mutex<Sender<Event>>,
+    inner: Mutex<LoggerInner>,
     level: LevelFilter,
 }
 
 impl Logger {
-    pub fn new(sender: Sender<Event>) -> Self {
-        Self::new_with_level(sender, LevelFilter::Info)
-    }
-
-    pub fn new_with_level(sender: Sender<Event>, level: LevelFilter) -> Self {
-        Self {
-            sender: Mutex::new(sender),
-            level,
-        }
-    }
-
     pub fn apply(self) -> Result<()> {
         let level = self.level;
         Ok(log::set_boxed_logger(Box::new(self)).map(|_| log::set_max_level(level))?)
@@ -32,14 +68,16 @@ impl log::Log for Logger {
         meta.level() <= self.level
     }
     fn log(&self, record: &Record) {
-        self.sender
-            .lock()
-            .unwrap()
-            .send(Event::Diagnostic(DiagnosticEvent::Log(
-                record.level(),
-                format!("{}", record.args()),
-            )))
-            .unwrap()
+        let level = record.level();
+        let content = record.args().to_string();
+        let mut inner = self.inner.lock();
+        if let Some(ref mut file) = inner.file {
+            writeln!(file, "{:<5} > {}", level, content).unwrap()
+        }
+        inner
+            .sender
+            .send(Event::Diagnostic(DiagnosticEvent::Log(level, content)))
+            .expect("All receivers dropped");
     }
     fn flush(&self) {}
 }
