@@ -150,6 +150,12 @@ impl DerefMut for Config {
 pub struct ConfigData {
     pub servers: Vec<Server>,
     pub using: Option<Url>,
+    pub tui: Option<TuiConfig>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct TuiConfig {
+    pub log_file: Option<PathBuf>,
 }
 
 #[test]

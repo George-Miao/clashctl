@@ -1,6 +1,8 @@
 use std::cmp::Ordering;
 
 use clashctl_core::model::Proxy;
+use ron::to_string;
+use serde::{Deserialize, Serialize};
 
 use crate::{EndlessSelf, SortMethod, SortOrder};
 
@@ -12,10 +14,13 @@ use crate::{EndlessSelf, SortMethod, SortOrder};
     Eq,
     PartialOrd,
     Ord,
+    Serialize,
+    Deserialize,
     strum::EnumString,
     strum::Display,
     strum::EnumVariantNames,
 )]
+#[serde(rename_all = "lowercase")]
 #[strum(ascii_case_insensitive)]
 pub enum ProxySortBy {
     Name,
@@ -23,7 +28,7 @@ pub enum ProxySortBy {
     Delay,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ProxySort {
     by: ProxySortBy,
     order: SortOrder,
@@ -202,4 +207,17 @@ impl SortMethod<(&String, &Proxy)> for ProxySort {
             SortOrder::Descendant => ret.reverse(),
         }
     }
+}
+
+#[test]
+fn test() {
+    let serialized = r#"ProxySort ( by: name, order: ascendant )"#;
+    let deserialized = ProxySort {
+        by: ProxySortBy::Name,
+        order: SortOrder::Ascendant,
+    };
+    assert_eq!(
+        ron::from_str::<ProxySort>(serialized).unwrap(),
+        deserialized
+    );
 }

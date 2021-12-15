@@ -1,8 +1,10 @@
 use clashctl_core::model::ConnectionWithSpeed;
+use serde::{Deserialize, Serialize};
 
 use crate::{EndlessSelf, OrderBy, SortMethod, SortOrder};
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, strum::EnumIter)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, strum::EnumIter)]
+#[serde(rename_all = "lowercase")]
 enum ConSortBy {
     Host,
     Down,
@@ -33,6 +35,8 @@ impl EndlessSelf for ConSortBy {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub struct ConSort {
     by: ConSortBy,
     order: SortOrder,

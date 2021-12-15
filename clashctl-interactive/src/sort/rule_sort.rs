@@ -1,6 +1,7 @@
 use crate::{EndlessSelf, OrderBy, SortMethod, SortOrder};
 
 use clashctl_core::model::Rule;
+use serde::{Deserialize, Serialize};
 
 #[derive(
     Debug,
@@ -10,18 +11,22 @@ use clashctl_core::model::Rule;
     Eq,
     PartialOrd,
     Ord,
+    Serialize,
+    Deserialize,
     strum::EnumString,
     strum::Display,
     strum::EnumVariantNames,
 )]
 #[strum(ascii_case_insensitive)]
+#[serde(rename_all = "lowercase")]
 pub enum RuleSortBy {
     Payload,
     Proxy,
     Type,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub struct RuleSort {
     by: RuleSortBy,
     order: SortOrder,

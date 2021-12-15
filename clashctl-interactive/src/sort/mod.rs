@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 
 use clashctl_core::mod_use;
+use serde::{Deserialize, Serialize};
 
 mod_use![con_sort, proxy_sort, rule_sort];
 
@@ -26,10 +27,13 @@ pub trait EndlessSelf {
     Eq,
     PartialOrd,
     Ord,
+    Serialize,
+    Deserialize,
     strum::EnumString,
     strum::Display,
     strum::EnumVariantNames,
 )]
+#[serde(rename_all = "lowercase")]
 #[strum(ascii_case_insensitive)]
 pub enum SortOrder {
     Ascendant,
