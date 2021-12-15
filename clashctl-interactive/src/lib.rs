@@ -4,4 +4,4 @@ use clashctl_core::mod_use;
 
 pub use clashctl_core as clashctl;
 
-mod_use![flags, sort, error, config];
+mod_use![flags, sort, error, config, config_model];

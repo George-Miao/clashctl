@@ -1,7 +1,6 @@
 use std::cmp::Ordering;
 
 use clashctl_core::model::Proxy;
-use ron::to_string;
 use serde::{Deserialize, Serialize};
 
 use crate::{EndlessSelf, SortMethod, SortOrder};

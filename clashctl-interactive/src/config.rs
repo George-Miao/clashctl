@@ -13,7 +13,7 @@ use url::Url;
 
 use clashctl_core::{Clash, ClashBuilder};
 
-use crate::{Error, Result};
+use crate::{ConfigData, Error, Result};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
 pub struct Server {
@@ -55,6 +55,7 @@ impl TryInto<ClashBuilder> for Server {
     }
 }
 
+#[derive(Clone, Debug, Default)]
 pub struct Config {
     inner: ConfigData,
     path: PathBuf,
@@ -96,14 +97,18 @@ impl Config {
 
         debug!("Content read");
 
-        Ok(Self {
+        let this = Self {
             inner: from_str(&buf)?,
             path: path.to_owned(),
-        })
+        };
+        this.write()?;
+
+        Ok(this)
     }
 
     pub fn write(&self) -> Result<()> {
-        let formatted = to_string_pretty(&self.inner, PrettyConfig::new())?;
+        let pretty_config = PrettyConfig::new().indentor("  ".to_owned());
+        let formatted = to_string_pretty(&self.inner, pretty_config)?;
         let mut file = File::create(&self.path).map_err(Error::ConfigFileIoError)?;
         file.write_all(formatted.as_bytes())
             .map_err(Error::ConfigFileIoError)?;
@@ -144,18 +149,6 @@ impl DerefMut for Config {
     fn deref_mut(&mut self) -> &mut ConfigData {
         &mut self.inner
     }
-}
-
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
-pub struct ConfigData {
-    pub servers: Vec<Server>,
-    pub using: Option<Url>,
-    pub tui: Option<TuiConfig>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
-pub struct TuiConfig {
-    pub log_file: Option<PathBuf>,
 }
 
 #[test]

@@ -2,6 +2,7 @@ use std::cmp::Ordering;
 
 use clashctl_core::mod_use;
 use serde::{Deserialize, Serialize};
+use smart_default::SmartDefault;
 
 mod_use![con_sort, proxy_sort, rule_sort];
 
@@ -29,6 +30,7 @@ pub trait EndlessSelf {
     Ord,
     Serialize,
     Deserialize,
+    SmartDefault,
     strum::EnumString,
     strum::Display,
     strum::EnumVariantNames,
@@ -37,6 +39,7 @@ pub trait EndlessSelf {
 #[strum(ascii_case_insensitive)]
 pub enum SortOrder {
     Ascendant,
+    #[default]
     Descendant,
 }
 
