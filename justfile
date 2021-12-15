@@ -12,7 +12,7 @@ reset_terminal:
 	pkill clashctl && stty sane && stty cooked
 
 dev:
-	cargo watch -x 'check -p clashctl-tui > /dev/null 2>&1 ' -s 'touch .trigger' > /dev/null & 
+	cargo watch -x 'check -p clashctl-tui > /dev/null 2>&1 ' -s 'touch .trigger' > /dev/null &
 	cargo watch --no-gitignore -w .trigger -x 'run -p clashctl-tui'
 
 build:
@@ -25,6 +25,6 @@ release os: build
 	mv clashctl-tui* clashctl-tui-{{ os }}
 	mv clashctl* clashctl-{{ os }}
 	popd
-	
+
 test *args:
 	cargo test -- {{ args }} --nocapture
