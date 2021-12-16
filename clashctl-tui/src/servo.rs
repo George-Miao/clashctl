@@ -51,13 +51,15 @@ impl<T: std::fmt::Debug> Check for Option<JoinHandle<T>> {
     }
 }
 
+pub type Job = JoinHandle<Result<()>>;
+
 #[derive(Debug)]
 pub struct Servo {
-    traffic_handle: Option<JoinHandle<Result<()>>>,
-    input_handle: Option<JoinHandle<Result<()>>>,
-    req_handle: Option<JoinHandle<Result<()>>>,
-    log_handle: Option<JoinHandle<Result<()>>>,
-    action_handle: Option<JoinHandle<Result<()>>>,
+    traffic_handle: Option<Job>,
+    input_handle: Option<Job>,
+    req_handle: Option<Job>,
+    log_handle: Option<Job>,
+    action_handle: Option<Job>,
 }
 
 // TODO change behavior based on opt
@@ -70,6 +72,7 @@ impl Servo {
         flags: Arc<Flags>,
     ) -> Result<Self> {
         let clash = flags.connect_server_from_config()?;
+        clash.get_version()?;
         let clash = Arc::new(clash);
         let this = Self {
             input_handle: Some(Self::input_job(tx.clone())),
@@ -86,7 +89,7 @@ impl Servo {
         Ok(this)
     }
 
-    fn input_job(tx: Sender<Event>) -> JoinHandle<Result<()>> {
+    fn input_job(tx: Sender<Event>) -> Job {
         spawn(move || {
             loop {
                 match crossterm::event::read() {
@@ -102,15 +105,13 @@ impl Servo {
         })
     }
 
-    fn req_job(
-        _opt: Arc<TuiOpt>,
-        _flags: Arc<Flags>,
-        tx: Sender<Event>,
-        clash: Arc<Clash>,
-    ) -> JoinHandle<Result<()>> {
+    fn req_job(_opt: Arc<TuiOpt>, _flags: Arc<Flags>, tx: Sender<Event>, clash: Arc<Clash>) -> Job {
         spawn(move || {
             let mut interval = Interval::every(Duration::from_millis(50));
             let mut connection_pulse = Pulse::new(20); // Every 1 s
+            let mut proxies_pulse = Pulse::new(100); //   Every 5 s + 0 tick
+            let mut rules_pulse = Pulse::new(101); //     Every 5 s + 1 tick
+            let mut version_pulse = Pulse::new(102); //   Every 5 s + 2 tick
             let mut config_pulse = Pulse::new(103); //    Every 5 s + 3 tick
 
             loop {
@@ -136,7 +137,7 @@ impl Servo {
         })
     }
 
-    fn traffic_job(tx: Sender<Event>, clash: Arc<Clash>) -> JoinHandle<Result<()>> {
+    fn traffic_job(tx: Sender<Event>, clash: Arc<Clash>) -> Job {
         spawn(move || {
             let mut traffics = clash.get_traffic()?;
             loop {
@@ -150,7 +151,7 @@ impl Servo {
         })
     }
 
-    fn log_job(tx: Sender<Event>, clash: Arc<Clash>) -> JoinHandle<Result<()>> {
+    fn log_job(tx: Sender<Event>, clash: Arc<Clash>) -> Job {
         spawn(move || loop {
             let mut logs = clash.get_log()?;
             match logs.next() {
@@ -167,7 +168,7 @@ impl Servo {
         tx: Sender<Event>,
         rx: Receiver<Action>,
         clash: Arc<Clash>,
-    ) -> JoinHandle<Result<()>> {
+    ) -> Job {
         spawn(move || {
             while let Ok(action) = rx.recv() {
                 match action {

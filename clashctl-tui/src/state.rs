@@ -30,10 +30,10 @@ pub struct TuiStates<'a> {
     // (upload_size, download_size)
     pub con_size: (u64, u64),
 
-    #[default(_code = "{ 
-        let mut ret = MovableListState::default(); 
-        ret.with_index().dsc_index(); 
-        ret 
+    #[default(_code = "{
+        let mut ret = MovableListState::default();
+        ret.with_index().dsc_index();
+        ret
     }")]
     pub log_state: LogListState<'a>,
     pub con_state: ConListState<'a>,
@@ -115,7 +115,6 @@ impl<'a> TuiStates<'a> {
             UpdateEvent::Rules(rules) => {
                 self.rule_freq = rules.owned_frequency();
                 self.rule_state.sorted_merge(rules.rules);
-                self.rule_state.with_index();
             }
             UpdateEvent::ProxyTestLatencyDone => {
                 self.proxy_tree.end_testing();
