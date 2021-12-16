@@ -89,6 +89,7 @@ pub struct ListEvent {
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum UpdateEvent {
+    Config(clashctl_interactive::clashctl::model::Config),
     Connection(ConnectionsWithSpeed),
     Version(Version),
     Traffic(Traffic),
@@ -101,6 +102,7 @@ pub enum UpdateEvent {
 impl Display for UpdateEvent {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            UpdateEvent::Config(x) => write!(f, "{:?}", x),
             UpdateEvent::Connection(x) => write!(f, "{:?}", x),
             UpdateEvent::Version(x) => write!(f, "{:?}", x),
             UpdateEvent::Traffic(x) => write!(f, "{:?}", x),

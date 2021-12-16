@@ -8,8 +8,8 @@ use std::{
 };
 
 use crate::{
-    components::Tabs, pages::route, Check, Interval, LoggerBuilder, Result, Servo, TicksCounter,
-    TuiOpt, TuiStates,
+    components::Tabs, get_config, init_config, pages::route, Check, Interval, LoggerBuilder,
+    Result, Servo, TicksCounter, TuiOpt, TuiStates,
 };
 // use clap::Parser;
 use clashctl_interactive::Flags;
@@ -54,15 +54,22 @@ pub fn main_loop(opt: TuiOpt, flag: Flags) -> Result<()> {
         return Ok(());
     };
 
+    init_config(config);
+
     let state = Arc::new(RwLock::new(TuiStates::default()));
     let error = Arc::new(Mutex::new(None));
 
     let (event_tx, event_rx) = channel();
     let (action_tx, action_rx) = channel();
 
+    let opt = Arc::new(opt);
+    let flag = Arc::new(flag);
+
+    let mut servo = Servo::run(event_tx.clone(), action_rx, opt, flag)?;
+
     // Logger::new(event_tx.clone()).apply()?;
-    LoggerBuilder::new(event_tx.clone())
-        .file(config.tui.log_file.as_ref().map(|x| {
+    LoggerBuilder::new(event_tx)
+        .file(get_config().tui.log_file.as_ref().map(|x| {
             OpenOptions::new()
                 .append(true)
                 .create(true)
@@ -71,10 +78,6 @@ pub fn main_loop(opt: TuiOpt, flag: Flags) -> Result<()> {
         }))
         .apply()?;
     info!("Logger set");
-    let opt = Arc::new(opt);
-    let flag = Arc::new(flag);
-
-    let mut servo = Servo::run(event_tx, action_rx, opt, flag)?;
 
     let event_handler_state = state.clone();
     let event_handler_error = error.clone();

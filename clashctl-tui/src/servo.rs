@@ -111,9 +111,7 @@ impl Servo {
         spawn(move || {
             let mut interval = Interval::every(Duration::from_millis(50));
             let mut connection_pulse = Pulse::new(20); // Every 1 s
-            let mut proxies_pulse = Pulse::new(100); // Every 5 s
-            let mut rules_pulse = Pulse::new(100); // Every 5 s
-            let mut version_pulse = Pulse::new(100); // Every 5 s
+            let mut config_pulse = Pulse::new(103); //    Every 5 s + 3 tick
 
             loop {
                 if version_pulse.tick() {
@@ -129,6 +127,9 @@ impl Servo {
                 }
                 if proxies_pulse.tick() {
                     tx.send(Event::Update(UpdateEvent::Proxies(clash.get_proxies()?)))?;
+                }
+                if config_pulse.tick() {
+                    tx.send(Event::Update(UpdateEvent::Config(clash.get_configs()?)))?;
                 }
                 interval.tick();
             }

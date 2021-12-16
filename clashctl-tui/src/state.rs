@@ -6,7 +6,7 @@ use smart_default::SmartDefault;
 use crate::{
     clashctl::model::{ConnectionWithSpeed, Log, Rule, Traffic, Version},
     components::{MovableListManage, MovableListManager, MovableListState, ProxyTree},
-    Action, Event, InputEvent, Result, UpdateEvent,
+    Action, ConfigState, Event, InputEvent, Result, UpdateEvent,
 };
 
 pub(crate) type LogListState<'a> = MovableListState<'a, Log, Noop>;
@@ -39,6 +39,7 @@ pub struct TuiStates<'a> {
     pub con_state: ConListState<'a>,
     pub rule_state: RuleListState<'a>,
     pub debug_state: DebugListState<'a>,
+    pub config_state: ConfigState,
 }
 
 // TODO fix: drop_events not working
@@ -92,6 +93,7 @@ impl<'a> TuiStates<'a> {
 
     fn handle_update(&mut self, update: UpdateEvent) -> Result<Option<Action>> {
         match update {
+            UpdateEvent::Config(config) => self.config_state.update_clash(config),
             UpdateEvent::Connection(connection) => {
                 self.con_size = (connection.upload_total, connection.download_total);
                 self.con_state.sorted_merge(connection.connections);
