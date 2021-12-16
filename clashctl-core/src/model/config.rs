@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{Level, Mode};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "kebab-case")]
 pub struct Config {
     pub port: u64,

@@ -40,14 +40,14 @@ pub struct Connections {
     pub upload_total: u64,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ConnectionWithSpeed {
     pub connection: Connection,
     pub upload: Option<u64>,
     pub download: Option<u64>,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ConnectionsWithSpeed {
     pub connections: Vec<ConnectionWithSpeed>,
     pub download_total: u64,

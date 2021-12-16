@@ -8,7 +8,7 @@ pub use self::log::*;
 use cfg_if::cfg_if;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "lowercase")]
 #[cfg_attr(
     feature = "enum_ext",
@@ -21,7 +21,7 @@ pub enum Mode {
     Direct,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Delay {
     pub delay: u64,
 }
