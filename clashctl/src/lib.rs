@@ -22,6 +22,6 @@ pub fn run() {
         Some(Cmd::Server(sub)) => sub.handle(&opts.flag),
         Some(Cmd::Completion(arg)) => arg.handle(),
     } {
-        eprintln!("{:?}", e)
+        eprintln!("{}", e)
     }
 }
