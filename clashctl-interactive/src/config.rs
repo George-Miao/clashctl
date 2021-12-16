@@ -1,13 +1,16 @@
-use std::fmt::Display;
 use std::fs::{File, OpenOptions};
-use std::io::{Read, Write};
+use std::io::Read;
 use std::ops::{Deref, DerefMut};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::time::Duration;
+use std::{
+    fmt::Display,
+    io::{Seek, SeekFrom},
+};
 
 use log::{debug, info};
 use ron::from_str;
-use ron::ser::{to_string_pretty, PrettyConfig};
+use ron::ser::PrettyConfig;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -55,10 +58,10 @@ impl TryInto<ClashBuilder> for Server {
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Debug)]
 pub struct Config {
     inner: ConfigData,
-    path: PathBuf,
+    file: File,
 }
 
 // TODO: use config crate
@@ -68,50 +71,55 @@ impl Config {
 
         debug!("Open config file @ {}", path.display());
 
-        if !path.exists() {
+        let mut this = if !path.exists() {
             info!("Config file not exist, creating new one");
+            Self {
+                inner: ConfigData::default(),
+                file: File::create(path).map_err(Error::ConfigFileIoError)?,
+            }
+        } else {
+            debug!("Reading and parsing config file");
+
             let mut file = OpenOptions::new()
-                .create(true)
-                .write(true)
+                .read(true)
                 .open(path)
                 .map_err(Error::ConfigFileIoError)?;
-            let default_conf = to_string_pretty(&ConfigData::default(), Default::default())?;
-            file.write(default_conf.as_bytes())
+
+            let mut buf = match file.metadata() {
+                Ok(meta) => String::with_capacity(meta.len() as usize),
+                Err(_) => String::new(),
+            };
+
+            file.read_to_string(&mut buf)
                 .map_err(Error::ConfigFileIoError)?;
-        }
 
-        debug!("Reading and parsing config file");
+            debug!("Raw config:\n{}", buf);
 
-        let mut file = OpenOptions::new()
-            .read(true)
-            .open(path)
-            .map_err(Error::ConfigFileIoError)?;
+            let inner = from_str(&buf)?;
 
-        let mut buf = match file.metadata() {
-            Ok(meta) => String::with_capacity(meta.len() as usize),
-            Err(_) => String::new(),
+            drop(file);
+
+            debug!("Content read");
+
+            let file = File::create(path).map_err(Error::ConfigFileIoError)?;
+
+            Self { inner, file }
         };
 
-        file.read_to_string(&mut buf)
-            .map_err(Error::ConfigFileIoError)?;
-
-        debug!("Content read");
-
-        let this = Self {
-            inner: from_str(&buf)?,
-            path: path.to_owned(),
-        };
         this.write()?;
-
         Ok(this)
     }
 
-    pub fn write(&self) -> Result<()> {
-        let pretty_config = PrettyConfig::new().indentor("  ".to_owned());
-        let formatted = to_string_pretty(&self.inner, pretty_config)?;
-        let mut file = File::create(&self.path).map_err(Error::ConfigFileIoError)?;
-        file.write_all(formatted.as_bytes())
+    pub fn write(&mut self) -> Result<()> {
+        let pretty_config = PrettyConfig::default().indentor("  ".to_owned());
+
+        // Reset the file - Move cursor to 0 and truncate to 0
+        self.file
+            .seek(SeekFrom::Start(0))
+            .and_then(|_| self.file.set_len(0))
             .map_err(Error::ConfigFileIoError)?;
+
+        ron::ser::to_writer_pretty(&mut self.file, &self.inner, pretty_config)?;
         Ok(())
     }
 
@@ -123,17 +131,21 @@ impl Config {
     }
 
     pub fn use_server(&mut self, url: Url) -> Result<()> {
-        match self.get_server(url) {
+        match self.get_server(&url) {
             Some(s) => {
-                self.using = Some(s.url.clone());
+                self.using = Some(url);
                 Ok(())
             }
             None => Err(Error::ServerNotFound),
         }
     }
 
-    pub fn get_server(&mut self, url: Url) -> Option<&Server> {
-        self.servers.iter().find(|x| x.url == url)
+    pub fn get_server(&mut self, url: &Url) -> Option<&Server> {
+        self.servers.iter().find(|x| &x.url == url)
+    }
+
+    pub fn get_inner(&self) -> &ConfigData {
+        &self.inner
     }
 }
 
