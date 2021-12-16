@@ -80,9 +80,9 @@ checksum = "fff857943da45f546682664a79488be82e69e43c1a7a2307679ab9afb3a66d2e"
 
 [[package]]
 name = "clap"
-version = "3.0.0-rc.4"
+version = "3.0.0-rc.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "967965e82fc46fee1a88147a7a977a66d615ed5f83eb95b18577b342c08f90ff"
+checksum = "9d358d5dcd274692e60df775bd452f66341a49ab90cc6cc1084c4350a3f914d9"
 dependencies = [
  "atty",
  "bitflags",
@@ -97,9 +97,9 @@ dependencies = [
 
 [[package]]
 name = "clap_derive"
-version = "3.0.0-rc.4"
+version = "3.0.0-rc.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85946d4034625800196413478a1c6d3a57c12785e1f3970e590e0137dfa07342"
+checksum = "6a0823802ec32930a7b22133dc3a8b7cf297297e8af413e59d2fbbf864c7bd63"
 dependencies = [
  "heck",
  "proc-macro-error",
@@ -110,9 +110,9 @@ dependencies = [
 
 [[package]]
 name = "clap_generate"
-version = "3.0.0-rc.4"
+version = "3.0.0-rc.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bdf3ee47de9ce0e5bfb686d0cf84eb9a2d4ee8e6fa78f97267ac0d37e060b9bd"
+checksum = "3b1f91e7d08410b68ba386760df24a6eed27845e09add42616af14e7e6a2edaa"
 dependencies = [
  "clap",
 ]
@@ -123,8 +123,8 @@ version = "0.3.2"
 dependencies = [
  "clap",
  "clap_generate",
- "clashctl-interactive 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "clashctl-tui 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clashctl-interactive 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clashctl-tui 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "either",
  "env_logger 0.9.0",
  "log",
@@ -140,7 +140,7 @@ dependencies = [
 
 [[package]]
 name = "clashctl-core"
-version = "0.4.0"
+version = "0.4.2"
 dependencies = [
  "cfg-if",
  "chrono",
@@ -160,9 +160,9 @@ dependencies = [
 
 [[package]]
 name = "clashctl-core"
-version = "0.4.0"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a2e10735b0fbed14902de2a0e9855ad7b11dfd3d56f24c60808fc8a4b06e12b5"
+checksum = "869f6575816b2745c16d9e017d605f6f3775c9bcd02a9759bee60dcaf1511709"
 dependencies = [
  "cfg-if",
  "chrono",
@@ -179,10 +179,10 @@ dependencies = [
 
 [[package]]
 name = "clashctl-interactive"
-version = "0.3.2"
+version = "0.3.3"
 dependencies = [
  "clap",
- "clashctl-core 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clashctl-core 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "home",
  "log",
  "ron",
@@ -197,12 +197,12 @@ dependencies = [
 
 [[package]]
 name = "clashctl-interactive"
-version = "0.3.2"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e14b30b79cb60cf625263ae2ed78290c961b28e3aeb2867a720efc6f695cecb"
+checksum = "ef7e05721f12d12419977c726726183f4a2e0addeab26626a025b16237882016"
 dependencies = [
  "clap",
- "clashctl-core 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clashctl-core 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "home",
  "log",
  "ron",
@@ -215,18 +215,20 @@ dependencies = [
 
 [[package]]
 name = "clashctl-tui"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "bytesize",
  "chrono",
  "clap",
- "clashctl-interactive 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clashctl-interactive 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "crossterm 0.22.1",
  "itertools",
  "log",
  "match_any",
+ "owo-colors",
  "paste",
  "rayon",
+ "simple-mutex",
  "smart-default",
  "thiserror",
  "tui",
@@ -236,20 +238,22 @@ dependencies = [
 
 [[package]]
 name = "clashctl-tui"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "773bec585ca397889bb7e48e7ff5051d454a087961620a06a0c69f3f15e8d469"
+checksum = "0ff6a99d67e7605d0f9ee23568bdd17080ddda4e33ac0c44277ed392ec765e2f"
 dependencies = [
  "bytesize",
  "chrono",
  "clap",
- "clashctl-interactive 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clashctl-interactive 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "crossterm 0.22.1",
  "itertools",
  "log",
  "match_any",
+ "owo-colors",
  "paste",
  "rayon",
+ "simple-mutex",
  "smart-default",
  "thiserror",
  "tui",
@@ -394,6 +398,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "event-listener"
+version = "2.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
+
+[[package]]
 name = "form_urlencoded"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -508,6 +518,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b71991ff56294aa922b450139ee08b3bfc70982c6b2c7562771375cf73542dd4"
 
 [[package]]
+name = "itoa"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1aab8fc367588b89dcee83ab0fd66b72b50b72fa1904d7095045ace2b0c81c35"
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -515,9 +531,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.111"
+version = "0.2.112"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e167738f1866a7ec625567bae89ca0d44477232a4f7c52b1c7f2adc2c98804f"
+checksum = "1b03d17f364a3a042d5e5d46b053bbbf82c92c9430c592dd4c064dc6ee997125"
 
 [[package]]
 name = "lock_api"
@@ -626,9 +642,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.8.0"
+version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "692fcb63b64b1758029e0a96ee63e049ce8c5948587f2f7208df04625e5f6b56"
+checksum = "da32515d9f6e6e489d7bc9d84c71b060db7247dc035bbe44eac88cf87486d8d5"
 
 [[package]]
 name = "os_str_bytes"
@@ -724,9 +740,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.33"
+version = "1.0.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb37d2df5df740e582f28f8560cf425f52bb267d872fe58358eadb554909f07a"
+checksum = "2f84e92c0f7c9d58328b85a78557813e4bd845130db68d7184635344399423b1"
 dependencies = [
  "unicode-xid",
 ]
@@ -923,11 +939,11 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.72"
+version = "1.0.73"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0ffa0837f2dfa6fb90868c2b5468cad482e175f7dad97e7421951e663f2b527"
+checksum = "bcbd0344bc6533bc7ec56df11d42fb70f1b912351c0825ccb7211b59d8af7cf5"
 dependencies = [
- "itoa",
+ "itoa 1.0.1",
  "ryu",
  "serde",
 ]
@@ -963,10 +979,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "simple_logger"
-version = "1.15.1"
+name = "simple-mutex"
+version = "1.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12413e3c006deb4f16b9f43192d419c462e21134d0a4e63532fbd050f546a561"
+checksum = "38aabbeafa6f6dead8cebf246fe9fae1f9215c8d29b3a69f93bd62a9e4a3dcd6"
+dependencies = [
+ "event-listener",
+]
+
+[[package]]
+name = "simple_logger"
+version = "1.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "45b60258a35dc3cb8a16890b8fd6723349bfa458d7960e25e633f1b1c19d7b5e"
 dependencies = [
  "atty",
  "colored",
@@ -1116,7 +1141,7 @@ version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "41effe7cfa8af36f439fac33861b66b049edc6f9a32331e2312660529c1c24ad"
 dependencies = [
- "itoa",
+ "itoa 0.4.8",
  "libc",
  "time-macros",
 ]
@@ -1278,7 +1303,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "either",
- "itoa",
+ "itoa 0.4.8",
  "libc",
  "proc-macro2",
  "quote",
