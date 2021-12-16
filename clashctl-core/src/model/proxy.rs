@@ -59,7 +59,6 @@ pub struct History {
     derive(strum::EnumString, strum::Display, strum::EnumVariantNames),
     strum(ascii_case_insensitive)
 )]
-#[cfg_attr(feature = "ui", derive(Hash))]
 pub enum ProxyType {
     // Built-In types
     Direct,
