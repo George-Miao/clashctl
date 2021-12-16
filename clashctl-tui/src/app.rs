@@ -18,6 +18,7 @@ use crossterm::terminal::{
     disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
 use log::info;
+use owo_colors::OwoColorize;
 use tui::backend::CrosstermBackend;
 use tui::layout::{Constraint, Layout};
 use tui::{Frame, Terminal};
@@ -50,7 +51,11 @@ fn wrap_up(mut terminal: Terminal<Backend>) -> Result<()> {
 pub fn main_loop(opt: TuiOpt, flag: Flags) -> Result<()> {
     let config = flag.get_config()?;
     if config.using_server().is_none() {
-        eprintln!("No server configured yet. Use `clashctl server add` first.");
+        println!(
+            "{} No API server configured yet. Use this command to add a server:\n\n  $ {}",
+            "WARN:".red(),
+            "clashctl server add".green()
+        );
         return Ok(());
     };
 
