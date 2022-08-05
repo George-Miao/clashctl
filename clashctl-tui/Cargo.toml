@@ -28,6 +28,6 @@ simple-mutex  = { version = "1.1.5" }
 unicode-width = { version = "0.1.9" }
 smart-default = { version = "0.6.0" }
 once_cell     = { version = "1.13.0"}
-clashctl-interactive = "0.3.3"
-# clashctl-interactive = { path = "../clashctl-interactive" }
+# clashctl-interactive = "0.3.3"
+clashctl-interactive = { path = "../clashctl-interactive" }
 workspace-hack = { version = "0.1", path = "../clashctl-workspace-hack" }

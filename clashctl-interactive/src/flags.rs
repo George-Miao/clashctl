@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 use std::time::Duration;
+use std::process::Command;
 
+use clap::Parser;
 use clashctl_core::Clash;
 use home::home_dir;
 use log::debug;
@@ -10,7 +12,7 @@ use crate::{Config, Error, Result};
 
 const DEFAULT_TEST_URL: &str = "http://www.gstatic.com/generate_204";
 
-#[derive(Clone, Debug, clap::Parser)]
+#[derive(Clone, Debug, Parser)]
 pub struct Flags {
     #[clap(short, long, parse(from_occurrences))]
     /// Verbosity. Default: INFO, -v DEBUG, -vv TRACE
