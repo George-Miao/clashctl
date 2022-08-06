@@ -26,7 +26,7 @@ pub(crate) trait Check {
 impl<T: std::fmt::Debug> Check for Option<JoinHandle<T>> {
     fn ok(&mut self, indent: &str) -> bool {
         if let Some(ref handle) = self {
-            if !handle.is_running() {
+            if handle.is_finished() {
                 let handle = self.take().unwrap();
                 match handle.join() {
                     Ok(res) => warn!(

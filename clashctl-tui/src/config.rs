@@ -1,12 +1,12 @@
-use std::{
-    lazy::SyncOnceCell,
-    sync::{RwLock, RwLockReadGuard, RwLockWriteGuard},
-};
+use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use clashctl_interactive::{clashctl::model::Config as ConfigModel, Config, ConfigData};
 use smart_default::SmartDefault;
 
-static CONFIG: SyncOnceCell<RwLock<Config>> = SyncOnceCell::new();
+use once_cell::sync::OnceCell;
+
+// static CONFIG: OnceCell<RwLock<Config>> = OnceCell::new();
+static CONFIG: OnceCell<RwLock<Config>> = OnceCell::new();
 
 static NONE: &str = "N/A";
 

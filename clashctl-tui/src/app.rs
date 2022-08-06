@@ -120,7 +120,7 @@ pub fn main_loop(opt: TuiOpt, flag: Flags) -> Result<()> {
 
     let mut interval = Interval::every(Duration::from_millis(33));
     while let Ok(state) = state.read() {
-        if !handle.is_running() {
+        if handle.is_finished() {
             break;
         }
 
