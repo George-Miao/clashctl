@@ -132,7 +132,7 @@ impl Config {
 
     pub fn use_server(&mut self, url: Url) -> Result<()> {
         match self.get_server(&url) {
-            Some(s) => {
+            Some(_s) => {
                 self.using = Some(url);
                 Ok(())
             }

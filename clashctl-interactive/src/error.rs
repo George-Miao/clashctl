@@ -18,7 +18,10 @@ pub enum Error {
     ConfigFileIoError(std::io::Error),
 
     #[error("Config file cannot be parsed")]
-    ConfigFileFormatError(#[from] ron::Error),
+    ConfigFileFormatError(#[from] ron::error::SpannedError),
+
+    #[error("Config file cannot be generated")]
+    ConfigFileGenerateError(#[from] ron::Error),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

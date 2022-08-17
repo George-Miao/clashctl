@@ -16,13 +16,13 @@ readme = "../README.md"
 log           = { version = "~0.4", features = ["std"] }
 url           = { version = "~2.2", features = ["serde"] }
 thiserror     = { version = "~1.0" }
-terminal_size = { version = "~0.1" }
-owo-colors    = { version = "~3.0" }
+terminal_size = { version = "~0.2" }
+owo-colors    = { version = "~3.4" }
 env_logger    = { version = "~0.9" }
-requestty     = { version = "~0.1" }
-either        = { version = "~1.6.1" }
-clap          = { version = "~3.0.0-rc.4", features = ["derive", "cargo"] }
-clap_generate = { version = "~3.0.0-rc.4" }
+requestty     = { version = "~0.4" }
+either        = { version = "~1.7.0" }
+clap          = { version = "~3.2.17", features = ["derive", "cargo"] }
+clap_complete = { version = "~3.2.4" }
 
 clashctl-tui         = { path = "../clashctl-tui" }
 # clashctl-tui         = "0.4.0"
@@ -32,5 +32,5 @@ clashctl-interactive = { path = "../clashctl-interactive" }
 workspace-hack       = { version = "0.1", path = "../clashctl-workspace-hack" }
 
 [dev-dependencies]
-rand = { version = "0.8.4", features = ["small_rng"] }
+rand = { version = "0.8.5", features = ["small_rng"] }
 pretty_env_logger = "0.4.0"

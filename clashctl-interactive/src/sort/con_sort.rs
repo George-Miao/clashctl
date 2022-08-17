@@ -33,7 +33,7 @@ enum ConSortBy {
 }
 
 impl SortMethod<ConnectionWithSpeed> for ConSortBy {
-    fn sort_fn(&self, a: &ConnectionWithSpeed, b: &ConnectionWithSpeed) -> std::cmp::Ordering {
+    fn sort_fn(&self, _a: &ConnectionWithSpeed, _b: &ConnectionWithSpeed) -> std::cmp::Ordering {
         todo!()
     }
 }
