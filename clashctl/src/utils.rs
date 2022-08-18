@@ -1,4 +1,4 @@
-use clap_generate::Shell;
+use clap_complete::Shell;
 use env_logger::fmt::Color;
 use env_logger::Builder;
 use log::{Level, LevelFilter};

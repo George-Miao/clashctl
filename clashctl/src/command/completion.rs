@@ -3,7 +3,7 @@ use std::io::Write;
 use std::path::PathBuf;
 
 use clap::{ArgEnum, IntoApp, Parser};
-use clap_generate::{generate, Shell};
+use clap_complete::{generate, Shell};
 use log::warn;
 
 // use crate::Result;

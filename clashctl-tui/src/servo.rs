@@ -163,7 +163,7 @@ impl Servo {
     }
 
     fn action_job(
-        opt: Arc<TuiOpt>,
+        _opt: Arc<TuiOpt>,
         flags: Arc<Flags>,
         tx: Sender<Event>,
         rx: Receiver<Action>,

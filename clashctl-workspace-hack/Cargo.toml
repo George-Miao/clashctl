@@ -14,13 +14,11 @@ publish = false
 
 ### BEGIN HAKARI SECTION
 [dependencies]
-clap = { version = "3.0.0-rc.4", features = ["atty", "cargo", "clap_derive", "color", "derive", "lazy_static", "std", "strsim", "suggestions", "termcolor"] }
+clap = { version = "3", features = ["atty", "cargo", "clap_derive", "color", "derive", "once_cell", "std", "strsim", "suggestions", "termcolor"] }
 either = { version = "1", features = ["use_std"] }
-itoa = { version = "0.4", features = ["std"] }
-rand = { version = "0.8", features = ["alloc", "getrandom", "libc", "rand_chacha", "rand_hc", "small_rng", "std", "std_rng"] }
 regex = { version = "1", features = ["aho-corasick", "memchr", "perf", "perf-cache", "perf-dfa", "perf-inline", "perf-literal", "std", "unicode", "unicode-age", "unicode-bool", "unicode-case", "unicode-gencat", "unicode-perl", "unicode-script", "unicode-segment"] }
 regex-syntax = { version = "0.6", features = ["unicode", "unicode-age", "unicode-bool", "unicode-case", "unicode-gencat", "unicode-perl", "unicode-script", "unicode-segment"] }
-textwrap = { version = "0.14", features = ["smawk", "unicode-linebreak", "unicode-width"] }
+textwrap = { version = "0.15", features = ["smawk", "unicode-linebreak", "unicode-width"] }
 
 [build-dependencies]
 proc-macro2 = { version = "1", features = ["proc-macro"] }
@@ -30,12 +28,13 @@ regex-syntax = { version = "0.6", features = ["unicode", "unicode-age", "unicode
 syn = { version = "1", features = ["clone-impls", "derive", "extra-traits", "full", "parsing", "printing", "proc-macro", "quote"] }
 
 [target.x86_64-unknown-linux-gnu.dependencies]
-libc = { version = "0.2", features = ["std"] }
+libc = { version = "0.2", features = ["extra_traits", "std"] }
 
 [target.x86_64-apple-darwin.dependencies]
-libc = { version = "0.2", features = ["std"] }
+libc = { version = "0.2", features = ["extra_traits", "std"] }
 
 [target.x86_64-pc-windows-msvc.dependencies]
-winapi = { version = "0.3", default-features = false, features = ["consoleapi", "errhandlingapi", "fileapi", "handleapi", "impl-default", "minwinbase", "minwindef", "ntdef", "ntstatus", "processenv", "profileapi", "shlobj", "std", "synchapi", "sysinfoapi", "timezoneapi", "winbase", "wincon", "winerror", "winnt", "winuser"] }
+winapi = { version = "0.3", default-features = false, features = ["activation", "combaseapi", "consoleapi", "errhandlingapi", "fileapi", "handleapi", "impl-default", "minwinbase", "minwindef", "ntdef", "objbase", "processenv", "profileapi", "roapi", "shlobj", "std", "synchapi", "sysinfoapi", "timezoneapi", "winbase", "wincon", "winerror", "winnt", "winstring", "winuser"] }
+windows-sys = { version = "0.36", features = ["Win32", "Win32_Foundation", "Win32_System", "Win32_System_Console", "Win32_System_LibraryLoader", "Win32_System_SystemServices", "Win32_System_WindowsProgramming"] }
 
 ### END HAKARI SECTION

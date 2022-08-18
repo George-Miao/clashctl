@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 use std::time::Duration;
-use std::process::Command;
 
 use clap::Parser;
 use clashctl_core::Clash;
