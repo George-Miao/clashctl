@@ -1,23 +1,23 @@
 [package]
-name = "clashctl-interactive"
-version = "0.3.3"
-edition = "2021"
+name        = "clashctl-interactive"
+version     = "0.3.3"
+edition     = "2021"
 description = "Dependency for clashctl & clashctl-tui, do not use directly"
-license = "MIT"
+license     = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [features]
 
 [dependencies]
-clap           = { version = "~3.2.17", features = ["derive"] }
-strum          = { version = "~0.24.1", features = ["derive"] }
-serde          = { version = "~1.0", features = ["derive"] }
-log            = { version = "~0.4", features = ["std"] }
-smart-default  = { version = "~0.6.0" }
-url            = { version = "~2.2" }
-thiserror      = { version = "~1.0"}
-home           = { version = "~0.5" }
-ron            = { version = "~0.8" }
+clap          = { version = "~3.2.17", features = ["derive"] }
+strum         = { version = "~0.24.1", features = ["derive"] }
+serde         = { version = "~1.0", features = ["derive"] }
+log           = { version = "~0.4", features = ["std"] }
+smart-default = { version = "~0.6.0" }
+url           = { version = "~2.2" }
+thiserror     = { version = "~1.0" }
+home          = { version = "~0.5" }
+ron           = { version = "~0.8" }
 
 clashctl-core  = { version = "^0.4.0", features = ["enum_ext", "deserialize"] }
 workspace-hack = { version = "0.1", path = "../clashctl-workspace-hack" }
