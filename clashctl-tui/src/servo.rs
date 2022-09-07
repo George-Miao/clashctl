@@ -152,12 +152,14 @@ impl Servo {
     }
 
     fn log_job(tx: Sender<Event>, clash: Arc<Clash>) -> Job {
-        spawn(move || loop {
-            let mut logs = clash.get_log()?;
-            match logs.next() {
-                Some(Ok(log)) => tx.send(Event::Update(UpdateEvent::Log(log)))?,
-                Some(Err(e)) => warn!("{:?}", e),
-                None => warn!("No more traffic"),
+        spawn(move || {
+            loop {
+                let mut logs = clash.get_log()?;
+                match logs.next() {
+                    Some(Ok(log)) => tx.send(Event::Update(UpdateEvent::Log(log)))?,
+                    Some(Err(e)) => warn!("{:?}", e),
+                    None => warn!("No more traffic"),
+                }
             }
         })
     }

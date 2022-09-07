@@ -7,4 +7,3 @@ mod_use!(proxy);
 mod_use!(sparkline);
 mod_use!(tabs);
 mod_use!(traffic);
-

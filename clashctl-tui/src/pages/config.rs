@@ -33,6 +33,7 @@ impl<'a> ConfigListItem<'a> {
         ]
         .into_iter()
     }
+
     pub fn into_list_item(self, width: u16) -> ListItem<'a> {
         match self {
             ConfigListItem::Title(title) => ListItem::new(title).style(

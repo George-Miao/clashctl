@@ -3,12 +3,12 @@ use crate::mod_use;
 mod_use![config, connection, proxy, rule, traffic];
 
 mod log;
-pub use self::log::*;
-
 use cfg_if::cfg_if;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub use self::log::*;
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "lowercase")]
 #[cfg_attr(
     feature = "enum_ext",

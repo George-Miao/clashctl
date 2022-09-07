@@ -1,8 +1,7 @@
 pub use clap;
-pub(crate) use clashctl_interactive::clashctl::{self, model};
-
 use clap::Parser;
 use clashctl::mod_use;
+pub(crate) use clashctl_interactive::clashctl::{self, model};
 use clashctl_tui::main_loop;
 use log::debug;
 

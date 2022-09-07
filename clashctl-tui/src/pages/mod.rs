@@ -6,9 +6,9 @@ mod proxy;
 mod rule;
 mod status;
 
-use crate::{Backend, TuiStates};
-
 use tui::{layout::Rect, Frame};
+
+use crate::{Backend, TuiStates};
 
 pub fn route(state: &TuiStates, area: Rect, f: &mut Frame<Backend>) {
     match state.page_index {

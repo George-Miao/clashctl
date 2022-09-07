@@ -35,14 +35,22 @@ impl TicksCounter {
                     "Hey anyone who sees this as a panic message. Is the universe still there?",
                 ),
         );
-        if self.inner.len() > 100 {
-            self.inner.drain(50..);
+        if self.inner.len() > 128 {
+            self.inner.drain(64..);
         }
     }
 
     pub fn tick_rate(&self) -> Option<f64> {
         // Ticks per Second
-        Some(20_000.0 / ((self.inner.get(0)? - self.inner.get(20)?) as f64))
+        Some(
+            20_000.0
+                / ((self.inner.get(0)?
+                    - self
+                        .inner
+                        .get(20)
+                        .or_else(|| self.inner.get(self.inner.len() - 1))?)
+                    as f64),
+        )
     }
 
     pub fn tick_num(&self) -> u64 {

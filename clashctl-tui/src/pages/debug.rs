@@ -1,5 +1,7 @@
-use tui::layout::{Constraint, Layout};
-use tui::widgets::{Paragraph, Widget};
+use tui::{
+    layout::{Constraint, Layout},
+    widgets::{Paragraph, Widget},
+};
 
 use crate::{
     components::{MovableList, MovableListManage},
