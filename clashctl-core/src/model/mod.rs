@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 pub use self::log::*;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
 #[serde(rename_all = "lowercase")]
 #[cfg_attr(
     feature = "enum_ext",

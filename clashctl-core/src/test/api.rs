@@ -70,7 +70,7 @@ fn test_configs() {
     let default_config_dir = home_dir()
         .expect("Home dir should exist")
         .join(".config/clash/config.yaml");
-    let path = default_config_dir.to_str().unwrap();
+    let _path = default_config_dir.to_str().unwrap();
 
     clash.get_configs().unwrap();
     // clash.reload_configs(false, path).unwrap();

@@ -7,21 +7,24 @@ use std::{
     time::{Duration, Instant},
 };
 
+// use clap::Parser;
+use clashctl_interactive::Flags;
+use crossterm::{
+    execute,
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+};
+use log::info;
+use owo_colors::OwoColorize;
+use tui::{
+    backend::CrosstermBackend,
+    layout::{Constraint, Layout},
+    Frame, Terminal,
+};
+
 use crate::{
     components::Tabs, get_config, init_config, pages::route, Check, Interval, LoggerBuilder,
     Result, Servo, TicksCounter, TuiOpt, TuiStates,
 };
-// use clap::Parser;
-use clashctl_interactive::Flags;
-use crossterm::execute;
-use crossterm::terminal::{
-    disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
-};
-use log::info;
-use owo_colors::OwoColorize;
-use tui::backend::CrosstermBackend;
-use tui::layout::{Constraint, Layout};
-use tui::{Frame, Terminal};
 
 thread_local!(pub(crate) static TICK_COUNTER: RefCell<TicksCounter> = RefCell::new(TicksCounter::new_with_time(Instant::now())));
 

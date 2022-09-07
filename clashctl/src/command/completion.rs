@@ -1,6 +1,4 @@
-use std::fs::File;
-use std::io::Write;
-use std::path::PathBuf;
+use std::{fs::File, io::Write, path::PathBuf};
 
 use clap::{ArgEnum, IntoApp, Parser};
 use clap_complete::{generate, Shell};
@@ -50,7 +48,7 @@ impl CompletionArg {
                 //     .unwrap();
                 let mut out: Box<dyn Write> = match self.output {
                     Some(ref dir) => Box::new(
-                        File::create(&dir)
+                        File::create(dir)
                             .unwrap_or_else(|_| panic!("Unable to open {}", dir.display())),
                     ),
                     None => Box::new(std::io::stdout()),

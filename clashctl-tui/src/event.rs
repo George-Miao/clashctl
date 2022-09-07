@@ -153,7 +153,7 @@ impl From<KE> for Event {
             (KM::NONE, KC::Char('s')) => Self::Input(InputEvent::NextSort),
             (KM::NONE, key_code) => key_code
                 .try_into()
-                .unwrap_or_else(|_| Self::Input(InputEvent::Other(value))),
+                .unwrap_or(Self::Input(InputEvent::Other(value))),
             _ => Self::Input(InputEvent::Other(value)),
         }
     }

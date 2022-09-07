@@ -93,7 +93,7 @@ where
 }
 
 // TODO: Use lazy updated footer
-#[derive(Debug, Clone, PartialEq, SmartDefault)]
+#[derive(Debug, Clone, PartialEq, Eq, SmartDefault)]
 pub struct MovableListState<'a, T: MovableListItem<'a>, S: Default> {
     pub(super) offset: Coord,
     pub(super) items: Vec<T>,

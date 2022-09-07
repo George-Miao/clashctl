@@ -9,9 +9,6 @@ pub enum Error {
     #[error("{0}")]
     ClashCtl(#[from] crate::clashctl::Error),
 
-    #[error("Bad option")]
-    BadOption,
-
     #[error("Requestty error")]
     RequesttyError(#[from] requestty::ErrorKind),
 }

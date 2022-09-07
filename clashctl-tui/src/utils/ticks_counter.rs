@@ -48,7 +48,7 @@ impl TicksCounter {
                     - self
                         .inner
                         .get(20)
-                        .or_else(|| self.inner.get(self.inner.len() - 1))?)
+                        .or_else(|| self.inner.back())?)
                     as f64),
         )
     }

@@ -1,17 +1,11 @@
 cargo-features = ["strip"]
 
 [workspace]
-members = [
-    "clashctl",
-    "clashctl-tui",
-    "clashctl-core",
-    "clashctl-interactive",
-    "clashctl-workspace-hack",
-]
+members = ["clashctl", "clashctl-tui", "clashctl-core", "clashctl-interactive", "clashctl-workspace-hack"]
 
 [profile.release]
-lto = true
-strip = true
-panic = "abort"
-opt-level = "z"
+lto           = true
+strip         = true
+panic         = "abort"
+opt-level     = "z"
 codegen-units = 1

@@ -119,8 +119,7 @@ impl ServerSubcommand {
                             prev.get("server")
                                 .and_then(|x| x.as_list_items())
                                 .map(|x| !x.is_empty())
-                                .or(Some(false))
-                                .unwrap()
+                                .unwrap_or(false)
                         })
                         .default(true)
                         .message(|prev: &Answers| {

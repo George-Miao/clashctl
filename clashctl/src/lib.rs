@@ -3,7 +3,7 @@ use clap::Parser;
 use clashctl::mod_use;
 pub(crate) use clashctl_interactive::clashctl::{self, model};
 use clashctl_tui::main_loop;
-use log::debug;
+use log::{debug, error};
 
 use crate::{Cmd, Opts};
 
@@ -21,6 +21,6 @@ pub fn run() {
         Some(Cmd::Server(sub)) => sub.handle(&opts.flag),
         Some(Cmd::Completion(arg)) => arg.handle(),
     } {
-        eprintln!("{}", e)
+        error!("{}", e)
     }
 }
