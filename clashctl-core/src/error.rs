@@ -9,7 +9,7 @@ pub enum ErrorKind {
     #[error("Broken response from server")]
     BadResponseEncoding,
 
-    #[error("Broken response from server: {0}")]
+    #[error("Broken response from server ({0})")]
     BadResponseFormat(#[from] serde_json::Error),
 
     #[error("Failed response from server (Code {0})")]

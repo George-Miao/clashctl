@@ -8,12 +8,16 @@ use tui::{
     text::{Span, Spans},
 };
 
-use crate::ui::{components::MovableListItem, utils::AsColor, TuiError, TuiResult};
+use crate::{
+    ui::{components::MovableListItem, utils::AsColor, TuiError, TuiResult},
+    Action,
+};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 #[non_exhaustive]
 pub enum Event {
     Quit,
+    Action(Action),
     Input(InputEvent),
     Update(UpdateEvent),
     Diagnostic(DiagnosticEvent),
@@ -23,6 +27,10 @@ impl<'a> MovableListItem<'a> for Event {
     fn to_spans(&self) -> Spans<'a> {
         match self {
             Event::Quit => Spans(vec![]),
+            Event::Action(action) => Spans(vec![
+                Span::styled("⋉ ", Style::default().fg(Color::Yellow)),
+                Span::raw(format!("{:?}", action)),
+            ]),
             Event::Update(event) => Spans(vec![
                 Span::styled("⇵  ", Style::default().fg(Color::Yellow)),
                 Span::raw(event.to_string()),

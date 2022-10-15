@@ -22,9 +22,10 @@ use tui::{
 // use clap::Parser;
 use crate::{
     interactive::Flags,
+    servo,
     ui::{
-        components::Tabs, get_config, init_config, pages::route, Check, Interval, LoggerBuilder,
-        Servo, TicksCounter, TuiOpt, TuiResult, TuiStates,
+        components::Tabs, get_config, init_config, pages::route, Interval, LoggerBuilder,
+        TicksCounter, TuiOpt, TuiResult, TuiStates,
     },
 };
 
@@ -72,12 +73,9 @@ pub fn main_loop(opt: TuiOpt, flag: Flags) -> TuiResult<()> {
     let (event_tx, event_rx) = channel();
     let (action_tx, action_rx) = channel();
 
-    let opt = Arc::new(opt);
-    let flag = Arc::new(flag);
+    let servo_event_tx = event_tx.clone();
+    let servo = spawn(|| servo(servo_event_tx, action_rx, opt, flag));
 
-    let mut servo = Servo::run(event_tx.clone(), action_rx, opt, flag)?;
-
-    // Logger::new(event_tx.clone()).apply()?;
     LoggerBuilder::new(event_tx)
         .file(get_config().tui.log_file.as_ref().map(|x| {
             OpenOptions::new()
@@ -129,7 +127,7 @@ pub fn main_loop(opt: TuiOpt, flag: Flags) -> TuiResult<()> {
             break;
         }
 
-        if !servo.ok("servo") {
+        if !servo.is_finished() {
             break;
         }
 
