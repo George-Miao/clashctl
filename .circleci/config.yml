@@ -8,7 +8,7 @@ jobs:
       - checkout
       - run:
           command: |
-            cargo build --release
+            cargo build --release --bin clashctl
             mkdir /tmp/clashctl
             cd target/release
             mv clashctl clashctl-tui /tmp/clashctl/
