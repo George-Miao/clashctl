@@ -32,7 +32,6 @@ ron           = { version = "~0.8" }
 tui           = { version = "0.19.0", default-features = false, features = ['crossterm'] }
 chrono        = { version = "0.4", features = ["serde"] }
 bytesize      = { version = "1.1.0" }
-itertools     = { version = "0.10.1" }
 match_any     = { version = "1.0.1" }
 paste         = { version = "1.0.6" }
 simple-mutex  = { version = "1.1.5" }
