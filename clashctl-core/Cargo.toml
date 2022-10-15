@@ -1,36 +1,38 @@
 [package]
-name = "clashctl-core"
+name        = "clashctl-core"
 description = "Clash RESTful API"
-version = "0.4.2"
-authors = ["George Miao <gm@miao.dev>"]
-repository = "https://github.com/George-Miao/clashctl"
-license = "MIT"
-edition = "2021"
-keywords = ["clash", "api"]
-categories = ["command-line-utilities"]
+version     = "0.4.2"
+authors     = ["George Miao <gm@miao.dev>"]
+repository  = "https://github.com/George-Miao/clashctl"
+license     = "MIT"
+edition     = "2021"
+keywords    = ["clash", "api"]
+categories  = ["command-line-utilities"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = []
+default     = []
 deserialize = ["chrono", "semver"]
-enum_ext = ["strum"]
+enum_ext    = ["strum"]
+full        = ["deserialize", "enum_ext"]
 
 [dependencies]
 cfg-if      = "1.0"
+mod_use     = "0.2.1"
 serde_json  = "1.0"
 thiserror   = "1.0"
 urlencoding = "2.1"
-log         = { version = "0.4", features = ["std"] }
-url         = { version = "2.2", features = ["serde"] }
-serde       = { version = "1.0", features = ["derive"] }
-ureq        = { version = "2.3", default-features = false }
 
-strum  = { version = "0.24", features = ["derive"], optional = true }
+log   = { version = "0.4", features = ["std"] }
+url   = { version = "2.2", features = ["serde"] }
+serde = { version = "1.0", features = ["derive"] }
+ureq  = { version = "2.3", default-features = false }
+
+strum  = { version = "~0.24.1", features = ["derive"], optional = true }
 chrono = { version = "0.4", features = ["serde"], optional = true }
 semver = { version = "1.0", features = ["serde"], optional = true }
-workspace-hack = { version = "0.1", path = "../clashctl-workspace-hack" }
 
 [dev-dependencies]
-home = "~0.5.3"
+home              = "~0.5.3"
 pretty_env_logger = "0.4.0"

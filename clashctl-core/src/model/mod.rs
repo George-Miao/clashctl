@@ -1,6 +1,4 @@
-use crate::mod_use;
-
-mod_use![config, connection, proxy, rule, traffic];
+mod_use::mod_use![config, connection, proxy, rule, traffic];
 
 mod log;
 use cfg_if::cfg_if;

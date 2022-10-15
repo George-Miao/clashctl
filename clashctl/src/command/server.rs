@@ -1,13 +1,14 @@
 use clap::Subcommand;
-
-use clashctl_interactive::{Flags, Server};
 use log::{debug, info, warn};
 use owo_colors::OwoColorize;
 use requestty::{prompt, prompt_one, Answers, Question};
 use terminal_size::{terminal_size, Height, Width};
 use url::Url;
 
-use crate::Result;
+use crate::{
+    interactive::{Flags, Server},
+    Result,
+};
 
 // use crate::Result;
 

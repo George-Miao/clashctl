@@ -1,0 +1,9 @@
+mod_use::mod_use![
+    block_footer,
+    constants,
+    movable_list,
+    proxy,
+    sparkline,
+    tabs,
+    traffic
+];

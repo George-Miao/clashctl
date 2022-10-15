@@ -1,7 +1,7 @@
 cargo-features = ["strip"]
 
 [workspace]
-members = ["clashctl", "clashctl-tui", "clashctl-core", "clashctl-interactive", "clashctl-workspace-hack"]
+members = ["clashctl*"]
 
 [profile.release]
 lto           = true

@@ -1,12 +1,9 @@
 use clap::{Parser, Subcommand};
 use log::LevelFilter;
 
-use clashctl_interactive::Flags;
-use clashctl_tui::TuiOpt;
+use crate::{interactive::Flags, ui::TuiOpt, utils::init_logger};
 
-use crate::{mod_use, utils::init_logger};
-
-mod_use!(completion, proxy, server);
+mod_use::mod_use!(completion, proxy, server);
 
 #[derive(Parser, Debug)]
 #[clap(

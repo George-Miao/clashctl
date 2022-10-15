@@ -1,16 +1,19 @@
-use std::io::{BufRead, BufReader, Read};
-use std::marker::PhantomData;
-use std::time::Duration;
+use std::{
+    io::{BufRead, BufReader, Read},
+    marker::PhantomData,
+    time::Duration,
+};
 
 use log::{debug, trace};
-
 use serde::de::DeserializeOwned;
 use serde_json::{from_str, json};
 use ureq::{Agent, Request};
 use url::Url;
 
-use crate::model::{Config, Connections, Delay, Log, Proxies, Proxy, Rules, Traffic, Version};
-use crate::{Error, Result};
+use crate::{
+    model::{Config, Connections, Delay, Log, Proxies, Proxy, Rules, Traffic, Version},
+    Error, Result,
+};
 
 trait Convert<T: DeserializeOwned> {
     fn convert(self) -> Result<T>;
@@ -18,7 +21,7 @@ trait Convert<T: DeserializeOwned> {
 
 impl<T: DeserializeOwned> Convert<T> for String {
     fn convert(self) -> Result<T> {
-        from_str(&self).map_err(Error::BadResponseFormat)
+        from_str(&self).map_err(Into::into)
     }
 }
 
@@ -36,7 +39,7 @@ impl ClashBuilder {
         if !url_str.ends_with('/') {
             url_str += "/";
         };
-        let url = Url::parse(&url_str).map_err(|_| Error::UrlParseError)?;
+        let url = Url::parse(&url_str).map_err(|_| Error::url_parse())?;
         Ok(Self {
             url,
             secret: None,
@@ -91,7 +94,7 @@ impl Clash {
     }
 
     fn build_request(&self, endpoint: &str, method: &str) -> Result<Request> {
-        let url = self.url.join(endpoint).map_err(|_| Error::UrlParseError)?;
+        let url = self.url.join(endpoint).map_err(|_| Error::url_parse())?;
         let mut req = self.agent.request_url(method, &url);
 
         if let Some(timeout) = self.timeout {
@@ -106,7 +109,7 @@ impl Clash {
     }
 
     fn build_request_without_timeout(&self, endpoint: &str, method: &str) -> Result<Request> {
-        let url = self.url.join(endpoint).map_err(|_| Error::UrlParseError)?;
+        let url = self.url.join(endpoint).map_err(|_| Error::url_parse())?;
         let mut req = self.agent.request_url(method, &url);
 
         if let Some(ref secret) = self.secret {
@@ -131,16 +134,19 @@ impl Clash {
         };
 
         if resp.status() >= 400 {
-            return Err(Error::FailedResponse(resp.status()));
+            return Err(Error::failed_response(resp.status()));
         }
 
-        let text = resp.into_string().map_err(|_| Error::BadResponseEncoding)?;
+        let text = resp
+            .into_string()
+            .map_err(|_| Error::bad_response_encoding())?;
         trace!("Received response: {}", text);
 
         Ok(text)
     }
 
-    /// Send a oneshot request to the specific endpoint with method, without body
+    /// Send a oneshot request to the specific endpoint with method, without
+    /// body
     pub fn oneshot_req(&self, endpoint: &str, method: &str) -> Result<String> {
         self.oneshot_req_with_body(endpoint, method, None)
     }
@@ -148,7 +154,8 @@ impl Clash {
     /// Send a longhaul request to the specific endpoint with method,
     /// Underlying is an http stream with chunked-encoding.
     ///
-    /// Use [`LongHaul::next_item`], [`LongHaul::next_raw`] or [`Iterator::next`] to retreive data
+    /// Use [`LongHaul::next_item`], [`LongHaul::next_raw`] or
+    /// [`Iterator::next`] to retreive data
     ///
     /// # Examplel
     ///
@@ -156,7 +163,9 @@ impl Clash {
     /// # use clashctl_core::{ Clash, model::Traffic }; use std::env;
     /// # fn main() {
     /// # let clash = Clash::builder(env::var("PROXY_ADDR").unwrap()).unwrap().build();
-    /// let traffics = clash.longhaul_req::<Traffic>("traffic", "GET").expect("connect failed");
+    /// let traffics = clash
+    ///     .longhaul_req::<Traffic>("traffic", "GET")
+    ///     .expect("connect failed");
     ///
     /// // LongHaul implements `Iterator` so you can use iterator combinators
     /// for traffic in traffics.take(3) {
@@ -174,7 +183,7 @@ impl Clash {
             .call()?;
 
         if resp.status() >= 400 {
-            return Err(Error::FailedResponse(resp.status()));
+            return Err(Error::failed_response(resp.status()));
         }
 
         Ok(LongHaul::new(Box::new(resp.into_reader())))
@@ -251,7 +260,8 @@ impl Clash {
 
     /// Get real-time traffic data
     ///
-    /// **Note**: This is a longhaul request, which will last forever until interrupted or disconnected.
+    /// **Note**: This is a longhaul request, which will last forever until
+    /// interrupted or disconnected.
     ///
     /// See [`longhaul_req`] for more information
     ///
@@ -262,7 +272,8 @@ impl Clash {
 
     /// Get real-time logs
     ///
-    /// **Note**: This is a longhaul request, which will last forever until interrupted or disconnected.
+    /// **Note**: This is a longhaul request, which will last forever until
+    /// interrupted or disconnected.
     ///
     /// See [`longhaul_req`] for more information
     ///
@@ -311,13 +322,14 @@ impl<T: DeserializeOwned> LongHaul<T> {
         match self.reader.read_line(&mut buf) {
             Ok(0) => None,
             Ok(_) => Some(Ok(buf)),
-            Err(e) => Some(Err(Error::Other(format!("{:}", e)))),
+            Err(e) => Some(Err(Error::other(format!("{:}", e)))),
         }
     }
 }
 
 impl<T: DeserializeOwned> Iterator for LongHaul<T> {
     type Item = Result<T>;
+
     fn next(&mut self) -> Option<Self::Item> {
         self.next_item()
     }

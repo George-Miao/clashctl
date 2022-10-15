@@ -1,18 +1,20 @@
 [package]
-name = "clashctl"
+name        = "clashctl"
 description = "Cli & Tui used to interact with Clash RESTful API"
-version = "0.3.2"
-authors = ["George Miao <gm@miao.dev>"]
-repository = "https://github.com/George-Miao/clashctl"
-license = "MIT"
-edition = "2021"
-keywords = ["clash", "api", "cli", "tui"]
-categories = ["command-line-utilities"]
+version     = "0.3.2"
+authors     = ["George Miao <gm@miao.dev>"]
+repository  = "https://github.com/George-Miao/clashctl"
+license     = "MIT"
+edition     = "2021"
+keywords    = ["clash", "api", "cli", "tui"]
+categories  = ["command-line-utilities"]
 default-run = "clashctl"
-readme = "../README.md"
+readme      = "../README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
+mod_use = "0.2.1"
+
 log           = { version = "~0.4", features = ["std"] }
 url           = { version = "~2.2", features = ["serde"] }
 thiserror     = { version = "~1.0" }
@@ -23,14 +25,25 @@ requestty     = { version = "~0.4" }
 either        = { version = "~1.7.0" }
 clap          = { version = "~3.2.17", features = ["derive", "cargo"] }
 clap_complete = { version = "~3.2.4" }
+serde         = { version = "1.0.145", features = ["derive"] }
+strum         = { version = "~0.24.1", features = ["derive"] }
+home          = { version = "~0.5" }
+ron           = { version = "~0.8" }
+tui           = { version = "0.19.0", default-features = false, features = ['crossterm'] }
+chrono        = { version = "0.4", features = ["serde"] }
+bytesize      = { version = "1.1.0" }
+itertools     = { version = "0.10.1" }
+match_any     = { version = "1.0.1" }
+paste         = { version = "1.0.6" }
+simple-mutex  = { version = "1.1.5" }
+unicode-width = { version = "0.1.9" }
+once_cell     = { version = "1.15.0" }
+smart-default = { version = "0.6.0" }
+crossterm     = { version = "0.25.0" }
+rayon         = { version = "1.5.3" }
 
-clashctl-tui         = { path = "../clashctl-tui" }
-# clashctl-tui         = "0.4.0"
-clashctl-interactive = { path = "../clashctl-interactive" }
-# clashctl-interactive = "0.3.0"
-
-workspace-hack       = { version = "0.1", path = "../clashctl-workspace-hack" }
+clashctl-core = { path = "../clashctl-core", features = ["full"] }
 
 [dev-dependencies]
-rand = { version = "0.8.5", features = ["small_rng"] }
+rand              = { version = "0.8.5", features = ["small_rng"] }
 pretty_env_logger = "0.4.0"

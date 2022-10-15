@@ -1,14 +1,15 @@
 use std::time::Duration;
 
 use clap::{Parser, Subcommand};
-
+use clashctl_core::{model::ProxyType, strum::VariantNames};
 use log::{error, info, warn};
 use owo_colors::OwoColorize;
 use requestty::{prompt_one, Answer, ListItem, Question};
-use clashctl_interactive::{Flags, ProxySortBy, SortOrder};
 
-use crate::{RenderList, Result, clashctl::strum::VariantNames};
-use crate::model::ProxyType;
+use crate::{
+    interactive::{Flags, ProxySortBy, SortOrder},
+    RenderList, Result,
+};
 // use crate::{Result};
 
 // #[allow(clippy::match_str_case_mismatch)]
@@ -82,7 +83,7 @@ pub struct ProxyListOpt {
     pub include: Vec<ProxyType>,
 
     #[clap(short, long, help = "Show proxies and groups without cascading")]
-    pub plain: bool
+    pub plain: bool,
 }
 
 impl ProxySubcommand {
@@ -151,9 +152,7 @@ impl ProxySubcommand {
                     group_selected.green(),
                     member_selected.green()
                 );
-                clash
-                    .set_proxygroup_selected(&group_selected, &member_selected)
-                    ?;
+                clash.set_proxygroup_selected(&group_selected, &member_selected)?;
                 info!("Done!")
             }
         }

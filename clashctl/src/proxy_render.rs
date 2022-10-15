@@ -1,11 +1,12 @@
-use clashctl_interactive::{ProxySort, Sortable};
+use clashctl_core::model::{Proxies, Proxy};
 use either::Either;
 use owo_colors::OwoColorize;
 use terminal_size::{terminal_size, Height, Width};
 
-use crate::model::{Proxies, Proxy};
-use crate::ProxyListOpt;
-// use crate::Result;
+use crate::{
+    interactive::{ProxySort, Sortable},
+    ProxyListOpt,
+};
 
 pub trait RenderList {
     fn render_list(&self, opt: &ProxyListOpt);
@@ -87,7 +88,8 @@ impl RenderList for Proxies {
         let sort_method = ProxySort::new(opt.sort_by, opt.sort_order);
 
         for (name, group) in groups.into_iter() {
-            // Since list only contains groups, and only groups have `all`, so it is safe to [`unwrap`]
+            // Since list only contains groups, and only groups have `all`, so it is safe to
+            // [`unwrap`]
             println!("{:<16}  -       {}\n", group.proxy_type.blue(), name);
             let mut members = group
                 .all
