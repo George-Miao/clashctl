@@ -16,6 +16,10 @@ Easy-to-use TUI & CLI to interact with [Clash](https://github.com/Dreamacro/clas
 
 ## Installing <a name = "installing"></a>
 
+### Download release binaries
+
+For mac and Linux x86 users, find compiled binary under [release page](https://github.com/George-Miao/clashctl/releases).
+
 ### Compile from source
 
 ```bash
@@ -26,14 +30,14 @@ $ cargo install --path ./clashctl # Note that the path here is *NOT* a mistake -
 
 ## Getting Started <a name = "getting_started"></a>
 
-First add an API server:
+First, add an API server:
 
 ```bash
 $ clashctl server add
 # Follow the prompts
 ```
 
-Use command without subcommands defaults to open TUI:
+Use the command without subcommands defaults to open TUI:
 
 ```bash
 $ clashctl
@@ -43,7 +47,7 @@ $ clashctl
 $ clashctl tui
 ```
 
-Or use a subcommand to use the cli:
+Or use a subcommand to use the CLI:
 
 ```bash
 $ clashctl proxy list
@@ -73,16 +77,16 @@ selector            -       All
 
 ### Done & TODO <a name = "todo"></a>
 
-- [ ] Cli
+- [ ] CLI
   - [x] Manage servers
   - [x] Sort proxies
   - [ ] More features
 - [ ] TUI
   - [x] Status Panel
   - [x] Proxies Panel
-    - [X] Update proxy
-    - [X] Test latency
-    - [X] Sort by {Original, LatencyAsc, LatencyDsc, NameAsc, NameDsc}
+    - [x] Update proxy
+    - [x] Test latency
+    - [x] Sort by {Original, LatencyAsc, LatencyDsc, NameAsc, NameDsc}
   - [x] Rules Panel
   - [x] Connections Panel
     - [ ] Sort
@@ -188,8 +192,6 @@ Run CLI only
 Build in release mode with feature cli & ui
 
 #### `just add`
-
-Add an optional dependency, requires [`cargo-edit`](https://github.com/killercup/cargo-edit)
 
 ### Project structure
 
