@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: rustlang/rust:nightly
+      - image: rustlang/rust:nightly-bullseye
     steps:
       - checkout
       - run:
