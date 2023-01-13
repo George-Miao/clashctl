@@ -2,7 +2,7 @@ name: Release
 on:
   push:
     tags:
-      - '*'
+      - "*"
   workflow_dispatch:
 
 jobs:
@@ -32,9 +32,7 @@ jobs:
         run: |
           pushd target/release
           rm clashctl*.d
-          mv clashctl-bin* clashctl-${{ runner.os }}
-          mv clashctl-tui* clashctl-ui-${{ runner.os }}
-          mv clashctl-cli* clashctl-cli-${{ runner.os }}
+          mv clashctl* clashctl-${{ runner.os }}
           popd
       - name: Release
         uses: softprops/action-gh-release@v1

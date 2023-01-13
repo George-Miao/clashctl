@@ -13,7 +13,6 @@ use crossterm::{
 };
 use log::{info, warn};
 use owo_colors::OwoColorize;
-use tap::{Tap, TapFallible};
 use tui::{
     backend::CrosstermBackend,
     layout::{Constraint, Layout},
