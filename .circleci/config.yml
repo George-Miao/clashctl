@@ -11,6 +11,6 @@ jobs:
             cargo build --release --bin clashctl
             mkdir /tmp/clashctl
             cd target/release
-            mv clashctl clashctl-tui /tmp/clashctl/
+            mv clashctl /tmp/clashctl/
       - store_artifacts:
           path: /tmp/clashctl
