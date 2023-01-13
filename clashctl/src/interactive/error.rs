@@ -17,10 +17,10 @@ pub enum InteractiveError {
     #[error("Config file IO error ({0})")]
     ConfigFileIoError(std::io::Error),
 
-    #[error("Config file cannot be parsed")]
+    #[error("Config file cannot be parsed ({0})")]
     ConfigFileFormatError(#[from] ron::error::SpannedError),
 
-    #[error("Config file cannot be generated")]
+    #[error("Config file cannot be generated ({0})")]
     ConfigFileGenerateError(#[from] ron::Error),
 }
 

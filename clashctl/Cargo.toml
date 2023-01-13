@@ -42,6 +42,7 @@ crossterm     = { version = "0.25.0" }
 rayon         = { version = "1.5.3" }
 
 clashctl-core = { path = "../clashctl-core", features = ["full"] }
+tap = "1.0.1"
 
 [dev-dependencies]
 rand              = { version = "0.8.5", features = ["small_rng"] }

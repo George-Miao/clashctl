@@ -11,8 +11,9 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use log::info;
+use log::{info, warn};
 use owo_colors::OwoColorize;
+use tap::{Tap, TapFallible};
 use tui::{
     backend::CrosstermBackend,
     layout::{Constraint, Layout},
@@ -124,14 +125,26 @@ pub fn main_loop(opt: TuiOpt, flag: Flags) -> TuiResult<()> {
     let mut interval = Interval::every(Duration::from_millis(33));
     while let Ok(state) = state.read() {
         if handle.is_finished() {
+            info!("State handler quit");
             break;
         }
 
-        if !servo.is_finished() {
+        if servo.is_finished() {
+            info!("Servo quit");
+            match servo.join() {
+                Err(_) => {
+                    warn!("Servo panicked");
+                }
+                Ok(Err(e)) => {
+                    warn!("TUI error ({e})");
+                }
+                _ => {}
+            }
             break;
         }
 
         if state.should_quit {
+            info!("Should quit issued");
             break;
         }
 
@@ -143,7 +156,7 @@ pub fn main_loop(opt: TuiOpt, flag: Flags) -> TuiResult<()> {
         drop(state);
         interval.tick();
     }
-    drop(servo);
+
     drop(handle);
 
     wrap_up(terminal)?;

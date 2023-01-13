@@ -1,7 +1,7 @@
 use std::{
     fmt::Display,
     fs::{File, OpenOptions},
-    io::{Read, Seek, SeekFrom},
+    io::{Read, Seek, SeekFrom, Write},
     ops::{Deref, DerefMut},
     path::Path,
     time::Duration,
@@ -119,6 +119,10 @@ impl Config {
             .map_err(InteractiveError::ConfigFileIoError)?;
 
         ron::ser::to_writer_pretty(&mut self.file, &self.inner, pretty_config)?;
+        self.file
+            .flush()
+            .map_err(InteractiveError::ConfigFileIoError)?;
+
         Ok(())
     }
 
