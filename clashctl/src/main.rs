@@ -1,5 +1,3 @@
-#![feature(generic_associated_types)]
-
 mod_use::mod_use![command, proxy_render, utils, error, interactive, ui];
 
 pub use clap;
