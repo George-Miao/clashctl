@@ -13,6 +13,7 @@ impl AsColor for model::Level {
             model::Level::Info => Color::Blue,
             model::Level::Warning => Color::Yellow,
             model::Level::Error => Color::Red,
+            _ => Color::Gray,
         }
     }
 }
@@ -22,7 +23,7 @@ impl AsColor for log::Level {
         match self {
             log::Level::Debug => Color::Gray,
             log::Level::Info => Color::Blue,
-            log::Level::Warn => Color::Yellow,
+            log::Level::Warning => Color::Yellow,
             log::Level::Error => Color::Red,
             _ => Color::Gray,
         }

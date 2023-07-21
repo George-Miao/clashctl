@@ -13,6 +13,7 @@ pub enum Level {
     Warning,
     Info,
     Debug,
+    Silent,
 }
 
 // TODO Parse log
