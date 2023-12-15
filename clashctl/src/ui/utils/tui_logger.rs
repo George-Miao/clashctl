@@ -77,8 +77,8 @@ impl log::Log for Logger {
         }
         inner
             .sender
-            .send(Event::Diagnostic(DiagnosticEvent::Log(level, content)))
-            .expect("All receivers dropped");
+            .send(Event::Diagnostic(DiagnosticEvent::Log(level, content))).ok();
+            
     }
 
     fn flush(&self) {}
